@@ -1,0 +1,420 @@
+#!/usr/bin/env node
+// XXX  - steps seem to indicate the previous steps (or next one?)
+//      - clean up path
+//        I do need more cognitive abiity for this, lol
+// TODO - path should never be empty
+// TODO - can draw behaviour only one
+// TODO - draw initial state by default
+const xml2json = require("xml2json");
+const json = require("./debug.json");
+const fs = require("fs");
+const _ = require("lodash");
+const jsondiffpatch = require("jsondiffpatch").create({
+   textDiff: {
+        // default 60, minimum string length (left and right sides) to use text diff algorythm: google-diff-match-patch
+        minLength: 10
+    }
+});
+const clc = require('cli-color');
+var clear = require("cli-clear");
+const crypto = require('crypto');
+const hash = string => {
+  var md5sum = crypto.createHash('md5');
+  md5sum.update(string);
+  var d = md5sum.digest('hex');
+  return d;
+}
+var stdin = process.stdin;
+stdin.setRawMode( true );
+stdin.resume();
+stdin.setEncoding( 'utf8' );
+
+const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).join("\n");
+
+const help = ["0-5/n next choice", "N next branching point", "q quit", "p previous", "b show behaviour"].join("     ");
+
+const bin_string = "606060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632e4c697f146044575b600080fd5b3415604e57600080fd5b606b60048080359060200190919080359060200190919050506081565b6040518082815260200191505060405180910390f35b6000600190505b600082111560a7576098838260ad565b90508180600190039250506088565b92915050565b60008082148060ca5750828283850292508281151560c757fe5b04145b151560d457600080fd5b929150505600a165627a7a72305820b5ac4b0841e89c109f1ce1a7648ad4054ecc8db0d1653b0b9dda992e425298730029";
+var code_arr = []
+for(let i=0; i<bin_string.length; i+=2) {
+  code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
+}
+var pc_to_inst_map = [];
+let pc=0;
+let inst_c = 1;
+while(pc < code_arr.length) {
+  if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
+    let size = code_arr[pc] - 96;
+    for(let i = 0; i <= size; i++) {
+      pc_to_inst_map.push(inst_c);
+    }
+    pc += size;
+  } else {
+    pc_to_inst_map.push(inst_c);
+  }
+  pc++;
+  inst_c++;
+}
+// pc_to_inst_map.forEach((e,i) => {
+// console.log(i,e);
+// })
+
+const srcmap = "26:277:1:-;;;;;;;;;;;;;;;;;;;;;;;;166:135;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;216:6;236:1;232:5;;245:50;256:1;252;:5;245:50;;;275:9;279:1;282;275:3;:9::i;:::-;271:13;;259:3;;;;;;;;245:50;;;166:135;;;;:::o;45:116::-;97:6;128:1;123;:6;:30;;;;152:1;147;142;138;:5;134:9;;;133:15;;;;;;;;:20;123:30;115:39;;;;;;;;45:116;;;;:::o";
+const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol";
+var last = [0,0,0,0];
+const srcmapArr = srcmap
+  .split(";")
+  .map(e => {
+    if(e === "") return last
+    let tmp = e.split(":")
+      .map(o => parseInt(o))
+      .forEach((o, i) => {
+        if(typeof o === "number" && o > 0) last[i] = o;
+      });
+    return last.slice();
+  })
+  // .map(e => e.split(":").map(o => parseInt(o)))
+var source = fs.readFileSync(src_filepath).toString();
+
+const getCodeStringFromPc = pc => {
+  // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
+  var cpos = srcmapArr[pc_to_inst_map[pc]];
+  var str = (source.slice(0, cpos[0]) + clc.blue(source.slice(cpos[0], cpos[0]+cpos[1])) + source.slice(cpos[0]+cpos[1]));
+  return str;
+}
+
+
+
+
+
+
+
+const parseRule = ruleString => {
+  let location = ruleString.match(/Location\((\d+)\,\d+\,(\d+)\,\d+\)/);
+  let filepath = ruleString.match(/Source\(([^\)]+)\)/)[1];
+
+  return {
+    from: location[1],
+    to: location[1],
+    filepath
+  };
+}
+
+const omits = [
+  "generatedTop.ethereum.evm.txExecState.program",
+  "generatedTop.ethereum.evm.txExecState.programBytes",
+  "generatedTop.ethereum.evm.callStack"
+];
+
+const initial = (xml2json.toJson(json[0].initialTerm, {object: true}));
+const target = (xml2json.toJson(json[0].targetTerm, {object: true}));
+
+const toArray = (json, diff, o = {indent: 0}) => {
+  switch(typeof json) {
+    case "object":
+      let keys = Object.keys(json)
+        .map(key => toArray(json[key], diff && key in diff && diff[key], {indent: o.indent + 1, key}))
+        .reduce((a, e) => a.concat(e), []);
+      return "key" in o
+              ? [Object.assign(o)].concat(keys)
+              : keys
+      break;
+    case "string":
+      let o_ = Object.assign({}, o)
+      if(diff && diff.length == 2) {
+        // o_.value = clc.red(diff[0]) + "\n" + clc.green(diff[1])
+        o_.value = clc.yellow(diff[1])
+      } else if(diff && diff.length == 3) {
+        // console.log(diff[0]);
+        // console.log(require("jsondiffpatch").formatters.console.format(diff));
+        // let mp = diff[0]
+        let str = clc.yellow(jsondiffpatch.patch(json, diff));
+        // for(let i=0; i < mp.length; i+=3) {
+        //   // let [bla, a, b, c, d] = mp[i].match(/\@\@\s(-\d+),(\d+)\s\+(\d+),(\d+)\s\@\@/);
+        //   // str = str.slice(0, a) + mp[i + 1] + str.slice(b);
+        // }
+        o_.value = str;
+      } else {
+        o_.value = json;
+      }
+
+      o_.value = o_.value.split("~>").join("\n~>");
+      // o_.value = o_.value.split(":").join(":\n");
+      if(o_.value.split("\n").length > 1) {
+        let sp = o_.value.split("\n");
+        o_.value = sp[0]
+        return [o_].concat(sp.slice(1).map(val => ({value: val.trim()})))
+      }
+      return [o_];
+      break;
+    default:
+      console.log('ERROR');
+  }
+}
+
+const prepare = arr => {
+  return arr.map(o => {
+    return ["  ".repeat(o.indent - 1)+  (o.key === "pc" ? clc.blue(o.key) : o.key || ""), o.value, o.diff];
+  })
+}
+
+const formatTable = arr => {
+  let maxInt = [];
+  arr = [["KEY", "VALUE", "CHANGE"]].concat(arr)
+  arr[0].forEach(e => {maxInt.push(0)});
+  arr.forEach(row => {
+    row.forEach((e, i) => {
+      if(maxInt[i] < clc.getStrippedLength(e || "")) maxInt[i] = clc.getStrippedLength(e)
+    })
+  });
+  return arr.map(row => row.map((cell, i) => {
+    return (cell || "") +  " ".repeat(maxInt[i] - clc.getStrippedLength(cell || "") + 2)
+  }).join("")).join("\n");
+}
+
+
+
+
+var step_position = 0;
+
+const E = {};
+const V = {};
+const C = {};
+json[0].steps.forEach(step => {
+  const val = (xml2json.toJson(step.from, {object: true}));
+  // const con = (xml2json.toJson(step.from_constraint, {object: true}));
+  const con = step.from_constraint;
+  const to   = (xml2json.toJson(step.to, {object: true}));
+  let from_id = hash(step.from);
+  let to_id = hash(step.to);
+  if(!(from_id in E)) E[from_id] = [];
+  E[from_id].push({
+    id: to_id, // TODO - rename to "to"
+    rule: step.rule
+  });
+  V[from_id] = _.omit(val, omits);
+  V[to_id] = _.omit(to, omits);
+  C[from_id] = con;
+})
+
+Object.keys(E).forEach(id => {
+  E[id] = _.uniqBy(E[id], edge => edge.id);
+})
+let initial_id = hash(json[0].initialTerm);
+
+var visited = {};
+let propagate = (o) => {
+  let id = o.id;
+  visited[id] = true;
+  let steps = [];
+  steps.push(id);
+  while((E[id] || []).length === 1) {
+    id = E[id][0].id;
+    steps.push(id);
+    visited[id] = true;
+  }
+  o.steps = steps;
+  // TODO - rename cid to edge
+  o.children = (E[id] || [])
+  .filter(cid => !visited[cid.id])
+  .map(cid => {
+    o_ = ({
+      term: V[cid.id],
+      id: cid.id
+    })
+    if(cid.rule) {
+      let {from, to, filepath} = parseRule(cid.rule);
+      let ruleString = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).trim();
+      o_.rule = ruleString;
+    }
+    return propagate(o_);
+  });
+  return o;
+}
+
+// TODO - remove id from behaviour
+const behaviour = propagate({
+  term: initial,
+  id: initial_id
+});
+
+
+// let c = hash(json[0].initialTerm);
+let history = [];
+
+// Look for the reverse path:
+let endHash = hash(json[0].targetTerm);
+
+// Object.keys(E)
+// .forEach(id => {
+//   let es = E[id];
+//   if(es.indexOf(endHash) > -1) {
+//     console.log("found: "+id);
+//   }
+// })
+
+
+const drawStep = c => {
+  // const from = (xml2json.toJson(step.from, {object: true}));
+  // const to   = (xml2json.toJson(step.to, {object: true}));
+  // const diff = jsondiffpatch.diff(V[c], V[E[c][E[c].length - 1]]);
+  console.log(formatTable(prepare(toArray(V[c], {}))));
+  // console.log(C[c]);
+  // console.log(diff);
+  // console.log(E[c].length);
+}
+
+
+// drawStep(c);
+
+// TODO - extend path with total branching number
+// {
+//   branch: number  current branch as choosen from last
+//   total:  number  total last choices
+// }
+let path = [];
+path.push({
+  branch: 0,
+  total: 0
+})
+
+const getNode = path => {
+  if(path.length === 1) {
+    return behaviour;
+  } else {
+    return _.at(behaviour, 'children' + path.slice(1).map(s => `[${s.branch}]`).join('.children'))[0];
+  }
+}
+
+visited = {};
+var crashHash = ("crash" in json[0]) && hash(json[0].crash) || "";
+var crashRule = ("crash" in json[0]) && json[0].crash_rule || "";
+// TODO - why does behaviour is ounly drawn once
+const drawBehaviour = () => {
+  const genBehaviourPath = (prefix, o) => {
+    visited[o.id] = true;
+    var children = (o.children || [])
+      .filter(edge => !visited[edge.id]);
+    if(children.length > 0) {
+      return children
+      .map((child, i) => genBehaviourPath(prefix + "." + i, child))
+      .reduce((a,e) => a.concat(e), []);
+    } else {
+      if(o.id == crashHash) return [prefix + "💥"]
+      return [prefix];
+    }
+  }
+  console.log(genBehaviourPath("", behaviour).join("\n"));
+}
+var current_step = 0;
+
+const draw = path => {
+  v = getNode(path);
+  let total_steps = v.steps.length;
+  // let cstep = path.length > 0 && path[path.length - 1].cstep || 0;
+  let id = v.steps[current_step];
+  let isCrash = id === crashHash;
+
+  let tw = process.stdout.columns; // total width
+  let prefix = (tw - help.length) / 2
+  console.log(" ".repeat(prefix) + help+"\n"+"-".repeat(tw));
+
+  let format_step = "step: " + current_step + "/" + total_steps + "  ";
+  let format_crash = (isCrash ? " 💥" : "")
+  let format_path = 'root.' + path.slice(1).map(o => `${o.branch}`).join(".");
+
+  let lhs = 'Behaviour: ' + format_path + format_crash;
+  let rhs = format_step;
+
+  let nav = lhs + " ".repeat(tw - (lhs.length + rhs.length)) + rhs;
+
+  console.log(nav + "\n");
+  drawStep(id);
+  console.log(getCodeStringFromPc(V[id].generatedTop.ethereum.evm.txExecState.pc));
+  if(isCrash) {
+    // handle broken state
+    let {from, to, filepath} = parseRule(crashRule);
+    let ruleString = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).trim();
+    console.log(clc.red("\nCrash occurred during rule:\n") + ruleString);
+  } else if(current_step >= total_steps - 1) {
+    console.log("\nBranching:\n  " + v.children.map((c,i) => i + ". " + c.rule).join("\n  "));
+  } else {
+    // TODO - display rule, which will be taken for the next step
+  }
+}
+
+var state = "step"; // step, behaviour
+const doStepState = (key) => {
+  let v = getNode(path);
+  switch(key) {
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+      let index = parseInt(key) || 0;
+      // console.log(v);
+      if(v.children.length > index) {
+        path.push({
+          branch: index,
+          total: v.children.length
+        })
+        current_step = 0;
+      }
+      draw(path);
+      break;
+    case "n":
+      if(path.length > 0) {
+        // TODO - better name for position in a behaviour
+        let cstep = path[path.length - 1];
+        if(current_step < v.steps.length - 1) {
+          current_step ++;
+        }
+      }
+      draw(path);
+      break;
+    case "N":
+      if(path.length > 0) {
+        let cstep = path[path.length - 1];
+        current_step = v.steps.length - 1;
+      }
+      draw(path);
+      break;
+    case "p":
+      if(current_step > 0) current_step --;
+      draw(path);
+      break;
+    case "P":
+      if(path.length > 1) {
+        path.pop();
+        current_step = getNode(path).steps.length - 1;
+      } else {
+        current_step = 0;
+      }
+      draw(path);
+      break;
+    case "b":
+      drawBehaviour();
+      break;
+    case "\u0003":
+    case "q":
+      process.exit();
+      break;
+    default:
+      console.log("key: " + key);
+  }
+
+}
+
+clear();
+draw(path);
+
+stdin.on( 'data', function (key) {
+  clear();
+
+  if(state === "step") {
+    doStepState(key)
+  } else if(state === "behaviour") {
+    state = "step";
+  }
+})
