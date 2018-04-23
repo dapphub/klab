@@ -6,7 +6,7 @@ prefix ?= /usr/local
 
 dirs:; mkdir -p $(prefix)/$(dirs)
 files = $(shell ls -d $(dirs)/*)
-link: uninstall dirs; for x in $(files); do \
+link: uninstall dirs; npm i; for x in $(files); do \
 	ln -s `pwd`/$$x $(prefix)/$$x; done
 uninstall:; rm -rf $(addprefix $(prefix)/,$(files))
 
