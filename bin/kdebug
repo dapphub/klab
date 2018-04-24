@@ -6,7 +6,7 @@
 // TODO - can draw behaviour only one
 // TODO - draw initial state by default
 const xml2json = require("xml2json");
-const json = require("./debug.json");
+
 const fs = require("fs");
 const _ = require("lodash");
 const jsondiffpatch = require("jsondiffpatch").create({
@@ -29,58 +29,61 @@ stdin.setRawMode( true );
 stdin.resume();
 stdin.setEncoding( 'utf8' );
 
+const jsonString = fs.readFileSync("./debug.json").toString();
+const json = JSON.parse(jsonString);
+
 const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).join("\n");
 
 const help = ["0-5/n next choice", "N next branching point", "q quit", "p previous", "b show behaviour"].join("     ");
 
-const bin_string = "606060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632e4c697f146044575b600080fd5b3415604e57600080fd5b606b60048080359060200190919080359060200190919050506081565b6040518082815260200191505060405180910390f35b6000600190505b600082111560a7576098838260ad565b90508180600190039250506088565b92915050565b60008082148060ca5750828283850292508281151560c757fe5b04145b151560d457600080fd5b929150505600a165627a7a72305820b5ac4b0841e89c109f1ce1a7648ad4054ecc8db0d1653b0b9dda992e425298730029";
-var code_arr = []
-for(let i=0; i<bin_string.length; i+=2) {
-  code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
-}
-var pc_to_inst_map = [];
-let pc=0;
-let inst_c = 1;
-while(pc < code_arr.length) {
-  if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
-    let size = code_arr[pc] - 96;
-    for(let i = 0; i <= size; i++) {
-      pc_to_inst_map.push(inst_c);
-    }
-    pc += size;
-  } else {
-    pc_to_inst_map.push(inst_c);
-  }
-  pc++;
-  inst_c++;
-}
-// pc_to_inst_map.forEach((e,i) => {
-// console.log(i,e);
-// })
-
-const srcmap = "26:277:1:-;;;;;;;;;;;;;;;;;;;;;;;;166:135;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;216:6;236:1;232:5;;245:50;256:1;252;:5;245:50;;;275:9;279:1;282;275:3;:9::i;:::-;271:13;;259:3;;;;;;;;245:50;;;166:135;;;;:::o;45:116::-;97:6;128:1;123;:6;:30;;;;152:1;147;142;138;:5;134:9;;;133:15;;;;;;;;:20;123:30;115:39;;;;;;;;45:116;;;;:::o";
-const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol";
-var last = [0,0,0,0];
-const srcmapArr = srcmap
-  .split(";")
-  .map(e => {
-    if(e === "") return last
-    let tmp = e.split(":")
-      .map(o => parseInt(o))
-      .forEach((o, i) => {
-        if(typeof o === "number" && o > 0) last[i] = o;
-      });
-    return last.slice();
-  })
-  // .map(e => e.split(":").map(o => parseInt(o)))
-var source = fs.readFileSync(src_filepath).toString();
-
-const getCodeStringFromPc = pc => {
-  // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
-  var cpos = srcmapArr[pc_to_inst_map[pc]];
-  var str = (source.slice(0, cpos[0]) + clc.blue(source.slice(cpos[0], cpos[0]+cpos[1])) + source.slice(cpos[0]+cpos[1]));
-  return str;
-}
+// const bin_string = "606060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632e4c697f146044575b600080fd5b3415604e57600080fd5b606b60048080359060200190919080359060200190919050506081565b6040518082815260200191505060405180910390f35b6000600190505b600082111560a7576098838260ad565b90508180600190039250506088565b92915050565b60008082148060ca5750828283850292508281151560c757fe5b04145b151560d457600080fd5b929150505600a165627a7a72305820b5ac4b0841e89c109f1ce1a7648ad4054ecc8db0d1653b0b9dda992e425298730029";
+// var code_arr = []
+// for(let i=0; i<bin_string.length; i+=2) {
+//   code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
+// }
+// var pc_to_inst_map = [];
+// let pc=0;
+// let inst_c = 1;
+// while(pc < code_arr.length) {
+//   if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
+//     let size = code_arr[pc] - 96;
+//     for(let i = 0; i <= size; i++) {
+//       pc_to_inst_map.push(inst_c);
+//     }
+//     pc += size;
+//   } else {
+//     pc_to_inst_map.push(inst_c);
+//   }
+//   pc++;
+//   inst_c++;
+// }
+// // pc_to_inst_map.forEach((e,i) => {
+// // console.log(i,e);
+// // })
+//
+// const srcmap = "26:277:1:-;;;;;;;;;;;;;;;;;;;;;;;;166:135;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;216:6;236:1;232:5;;245:50;256:1;252;:5;245:50;;;275:9;279:1;282;275:3;:9::i;:::-;271:13;;259:3;;;;;;;;245:50;;;166:135;;;;:::o;45:116::-;97:6;128:1;123;:6;:30;;;;152:1;147;142;138;:5;134:9;;;133:15;;;;;;;;:20;123:30;115:39;;;;;;;;45:116;;;;:::o";
+// const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol";
+// var last = [0,0,0,0];
+// const srcmapArr = srcmap
+//   .split(";")
+//   .map(e => {
+//     if(e === "") return last
+//     let tmp = e.split(":")
+//       .map(o => parseInt(o))
+//       .forEach((o, i) => {
+//         if(typeof o === "number" && o > 0) last[i] = o;
+//       });
+//     return last.slice();
+//   })
+//   // .map(e => e.split(":").map(o => parseInt(o)))
+// var source = fs.readFileSync(src_filepath).toString();
+//
+// const getCodeStringFromPc = pc => {
+//   // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
+//   var cpos = srcmapArr[pc_to_inst_map[pc]];
+//   var str = (source.slice(0, cpos[0]) + clc.blue(source.slice(cpos[0], cpos[0]+cpos[1])) + source.slice(cpos[0]+cpos[1]));
+//   return str;
+// }
 
 
 
@@ -288,6 +291,7 @@ const getNode = path => {
 visited = {};
 var crashHash = ("crash" in json[0]) && hash(json[0].crash) || "";
 var crashRule = ("crash" in json[0]) && json[0].crash_rule || "";
+var crashMsg  = ("crash" in json[0]) && json[0].exception || "";
 // TODO - why does behaviour is ounly drawn once
 const drawBehaviour = () => {
   const genBehaviourPath = (prefix, o) => {
@@ -329,12 +333,13 @@ const draw = path => {
 
   console.log(nav + "\n");
   drawStep(id);
-  console.log(getCodeStringFromPc(V[id].generatedTop.ethereum.evm.txExecState.pc));
+  // console.log(getCodeStringFromPc(V[id].generatedTop.ethereum.evm.txExecState.pc));
   if(isCrash) {
     // handle broken state
     let {from, to, filepath} = parseRule(crashRule);
     let ruleString = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).trim();
     console.log(clc.red("\nCrash occurred during rule:\n") + ruleString);
+    console.log("\n" + crashMsg.split("\n").slice(1).join("\n"));
   } else if(current_step >= total_steps - 1) {
     console.log("\nBranching:\n  " + v.children.map((c,i) => i + ". " + c.rule).join("\n  "));
   } else {
