@@ -203,6 +203,7 @@ Object.keys(E).forEach(id => {
   E[id] = _.uniqBy(E[id], edge => edge.id);
 })
 let initial_id = hash(json[0].initialTerm);
+let target_id  = hash(json[0].targetTerm);
 
 var visited = {};
 let propagate = (o) => {
@@ -303,7 +304,8 @@ const drawBehaviour = () => {
       .map((child, i) => genBehaviourPath(prefix + "." + i, child))
       .reduce((a,e) => a.concat(e), []);
     } else {
-      if(o.id == crashHash) return [prefix + "💥"]
+      if(o.id == crashHash) return [prefix + " 💥"]
+      if(o.steps[o.steps.length - 1] == target_id) return [prefix + clc.green(" ✓")]
       return [prefix];
     }
   }
@@ -317,16 +319,17 @@ const draw = path => {
   // let cstep = path.length > 0 && path[path.length - 1].cstep || 0;
   let id = v.steps[current_step];
   let isCrash = id === crashHash;
+  let isSuccess = id === target_id;
 
   let tw = process.stdout.columns; // total width
   let prefix = (tw - help.length) / 2
   console.log(" ".repeat(prefix) + help+"\n"+"-".repeat(tw));
 
   let format_step = "step: " + current_step + "/" + total_steps + "  ";
-  let format_crash = (isCrash ? " 💥" : "")
+  let format_feedback = (isCrash ? " 💥" : "") + (isSuccess ? clc.green(" ✓") : "")
   let format_path = 'root.' + path.slice(1).map(o => `${o.branch}`).join(".");
 
-  let lhs = 'Behaviour: ' + format_path + format_crash;
+  let lhs = 'Behaviour: ' + format_path + format_feedback;
   let rhs = format_step;
 
   let nav = lhs + " ".repeat(tw - (lhs.length + rhs.length)) + rhs;
