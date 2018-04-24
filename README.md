@@ -5,11 +5,13 @@ modified K-framework debugger.
 
 ## SetUp
 
-```git clone git@github.com:dapphub/kdebug.git
+```
+git clone git@github.com:dapphub/kdebug.git
 cd kdebug
 make
 ```
 
 ## Usage
 use it with the modified k-framework client
+
 go to the directory where your `debug.json` is stored and execute `kdebug`
