@@ -37,15 +37,22 @@ const json = JSON.parse(jsonString);
 
 const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).filter(l => l != "").join("\n");
 
-const help = (s_r, s_c) => [
-  "0-5/n next choice",
-  "N next branching point",
-  "q quit",
-  "p previous",
-  "b show behaviour",
-  `C toggle constraint (${s_c ? "T" : "F"})`,
-  `R toggle rule (${s_r ? "T" : "F"})`
-].join("     ");
+const help = (s_r, s_c, slice) => {
+  let h_ = [
+    "0-5/n next choice",
+    "N next branching point",
+    "q quit",
+    "p previous",
+    "b show behaviour",
+    `C toggle constraint (${s_c ? "T" : "F"})`,
+    `R toggle rule (${s_r ? "T" : "F"})`
+  ];
+  let h_a = h_.slice(0, Math.floor(h_.length / 2));
+  let h_b = h_.slice(Math.floor(h_.length / 2));
+  let h_as = h_a.join("     ");
+  let h_bs = h_b.join("     ");
+  return [h_as, h_bs];
+}
 
 // const bin_string = "606060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632e4c697f146044575b600080fd5b3415604e57600080fd5b606b60048080359060200190919080359060200190919050506081565b6040518082815260200191505060405180910390f35b6000600190505b600082111560a7576098838260ad565b90508180600190039250506088565b92915050565b60008082148060ca5750828283850292508281151560c757fe5b04145b151560d457600080fd5b929150505600a165627a7a72305820b5ac4b0841e89c109f1ce1a7648ad4054ecc8db0d1653b0b9dda992e425298730029";
 // var code_arr = []
@@ -319,9 +326,12 @@ var draw = path => {
   let tw = process.stdout.columns; // total width
 
 // help
-  let help_string = help(show_rule, show_constraint);
-  let prefix = (tw - help_string.length) / 2
-  console.log(" ".repeat(prefix) + help_string + "\n" + "-".repeat(tw));
+  let help_strings = help(show_rule, show_constraint, 2);
+  let help_display = help_strings.map(help_string => {
+    let prefix = (tw - help_string.length) / 2
+    console.log(" ".repeat(prefix) + help_string );
+  })
+  console.log("-".repeat(tw));
 
 // behaviour
   let step_counter = path.length;
@@ -357,19 +367,19 @@ var draw = path => {
   } else {
     constraint = V[node_id].constraint;
   }
-  if(show_constraint) console.log("\nconstraint:\n  "+constraint.split("\n").join("\n  "));
+  if(show_constraint) console.log(`\n${clc.bold("constraint")}:\n  `+constraint.split("\n").join("\n  "));
 
 // Rule
   if(show_rule) {
     let rule = step.rule in R && R[step.rule] || "";
-    if(rule && rule.string) console.log(`rule:\n  ` + rule.string);
+    if(rule && rule.string) console.log(`${clc.bold("rule")}:\n  ` + rule.string);
   }
 
   let next_steps = E[node_id];
 // Branching
   if(next_steps && next_steps.length > 1) {
     let branching_string = next_steps.map(({rule}, i) => i + ". " + R[rule].string).join("\n  ");
-    console.log(`\nbranching: ${next_steps.length}\n  ${branching_string}`);
+    console.log(`\n${clc.bold("branching")}: ${next_steps.length}\n  ${branching_string}`);
   }
 
 // terminal
