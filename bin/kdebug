@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-// XXX  - steps seem to indicate the previous steps (or next one?)
-//      - clean up path
-//        I do need more cognitive abiity for this, lol
-// TODO - path should never be empty
-// TODO - can draw behaviour only one
-// TODO - draw initial state by default
 const xml2json = require("xml2json");
 
 const fs = require("fs");
@@ -31,77 +25,76 @@ var stdin = process.stdin;
 stdin.setRawMode( true );
 stdin.resume();
 stdin.setEncoding( 'utf8' );
+const tw = process.stdout.columns; // total width
 
 const jsonString = fs.readFileSync("./debug.json").toString();
 const json = JSON.parse(jsonString);
 
 const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).filter(l => l != "").join("\n");
 
-const help = (s_r, s_c, slice) => {
-  let h_ = [
-    "0-5/n next choice",
-    "N next branching point",
-    "q quit",
-    "p previous",
-    "b show behaviour",
-    `C toggle constraint (${s_c ? "T" : "F"})`,
-    `R toggle rule (${s_r ? "T" : "F"})`
-  ];
-  let h_a = h_.slice(0, Math.floor(h_.length / 2));
-  let h_b = h_.slice(Math.floor(h_.length / 2));
-  let h_as = h_a.join("     ");
-  let h_bs = h_b.join("     ");
-  return [h_as, h_bs];
-}
+const source_path = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/out/ExponentNaive.sol.json";
+const contract_name = "exp";
+const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol"; // TODO - get rid of this
+const contract_search_regex = new RegExp("\\:" + contract_name);
 
-// const bin_string = "606060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632e4c697f146044575b600080fd5b3415604e57600080fd5b606b60048080359060200190919080359060200190919050506081565b6040518082815260200191505060405180910390f35b6000600190505b600082111560a7576098838260ad565b90508180600190039250506088565b92915050565b60008082148060ca5750828283850292508281151560c757fe5b04145b151560d457600080fd5b929150505600a165627a7a72305820b5ac4b0841e89c109f1ce1a7648ad4054ecc8db0d1653b0b9dda992e425298730029";
-// var code_arr = []
-// for(let i=0; i<bin_string.length; i+=2) {
-//   code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
-// }
-// var pc_to_inst_map = [];
-// let pc=0;
-// let inst_c = 1;
-// while(pc < code_arr.length) {
-//   if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
-//     let size = code_arr[pc] - 96;
-//     for(let i = 0; i <= size; i++) {
-//       pc_to_inst_map.push(inst_c);
-//     }
-//     pc += size;
-//   } else {
-//     pc_to_inst_map.push(inst_c);
-//   }
-//   pc++;
-//   inst_c++;
-// }
-// // pc_to_inst_map.forEach((e,i) => {
-// // console.log(i,e);
-// // })
-//
-// const srcmap = "26:277:1:-;;;;;;;;;;;;;;;;;;;;;;;;166:135;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;216:6;236:1;232:5;;245:50;256:1;252;:5;245:50;;;275:9;279:1;282;275:3;:9::i;:::-;271:13;;259:3;;;;;;;;245:50;;;166:135;;;;:::o;45:116::-;97:6;128:1;123;:6;:30;;;;152:1;147;142;138;:5;134:9;;;133:15;;;;;;;;:20;123:30;115:39;;;;;;;;45:116;;;;:::o";
-// const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol";
-// var last = [0,0,0,0];
-// const srcmapArr = srcmap
-//   .split(";")
-//   .map(e => {
-//     if(e === "") return last
-//     let tmp = e.split(":")
-//       .map(o => parseInt(o))
-//       .forEach((o, i) => {
-//         if(typeof o === "number" && o > 0) last[i] = o;
-//       });
-//     return last.slice();
-//   })
-//   // .map(e => e.split(":").map(o => parseInt(o)))
-// var source = fs.readFileSync(src_filepath).toString();
-//
-// const getCodeStringFromPc = pc => {
-//   // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
-//   var cpos = srcmapArr[pc_to_inst_map[pc]];
-//   var str = (source.slice(0, cpos[0]) + clc.blue(source.slice(cpos[0], cpos[0]+cpos[1])) + source.slice(cpos[0]+cpos[1]));
-//   return str;
-// }
+const source_json = JSON.parse(fs.readFileSync(source_path));
+
+const contract_location = Object.keys(source_json.contracts).find(s => contract_search_regex.test(s));
+
+const bin_string = source_json.contracts[contract_location]["bin-runtime"];
+const srcmap = source_json.contracts[contract_location]["srcmap-runtime"];
+
+var code_arr = []
+for(let i=0; i<bin_string.length; i+=2) {
+  code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
+}
+var pc_to_inst_map = [];
+let pc=0;
+let inst_c = 1;
+while(pc < code_arr.length) {
+  if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
+    let size = code_arr[pc] - 96;
+    for(let i = 0; i <= size; i++) {
+      pc_to_inst_map.push(inst_c);
+    }
+    pc += size;
+  } else {
+    pc_to_inst_map.push(inst_c);
+  }
+  pc++;
+  inst_c++;
+}
+// pc_to_inst_map.forEach((e,i) => {
+// console.log(i,e);
+// })
+
+var last = [0, 0, 0, 0];
+const srcmapArr = srcmap
+  .split(";")
+  .map(e => {
+    if(e === "") return last
+    let tmp = e.split(":")
+      .map(o => parseInt(o))
+      .forEach((o, i) => {
+        if(typeof o === "number" && o > 0) last[i] = o;
+      });
+    return last.slice();
+  })
+  // .map(e => e.split(":").map(o => parseInt(o)))
+var source = fs.readFileSync(src_filepath).toString();
+
+const getCodeStringFromPc = pc => {
+  let hide_color = 244;
+  let show_color = 255;
+  // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
+  var cpos = srcmapArr[pc_to_inst_map[pc]];
+  let hide = str => clc.xterm(hide_color)(str.split("\n").join("\n"))
+  let show = str => clc.xterm(show_color)(str.split("\n").join("\n"))
+  var str = (hide(source.slice(0, cpos[0])) + show(source.slice(cpos[0], cpos[0]+cpos[1])) + hide(source.slice(cpos[0]+cpos[1])));
+  str = str.split("\n").map(s => "  " + s + " ".repeat(tw - 2 - clc.getStrippedLength(s))).join("\n");
+  // str = clc.bgXterm(236)(str);
+  return str;
+}
 
 
 
@@ -124,7 +117,11 @@ var step_position = 0;
 // build Nodes
 const V = json.nodes;
 Object.keys(V).forEach(key => {
-  V[key].term = _.omit(xml2json.toJson(V[key].term, {object: true}), omits).generatedTop
+  let term = _.omit(xml2json.toJson(V[key].term, {object: true}), omits).generatedTop;
+  if(term.ethereum.evm.txExecState.wordStack.length > tw / 2) {
+    term.ethereum.evm.txExecState.wordStack = term.ethereum.evm.txExecState.wordStack.split(":").join("\n");
+  }
+  V[key].term = term;
 })
 
 
@@ -171,164 +168,86 @@ const target  = V[json.proofs[0].targetTerm].term;
 const initial_id = json.proofs[0].initialTerm;
 const target_id  = json.proofs[0].targetTerm;
 
-// var visited   = {};
-// TODO - refactor: no more behaviour object. but! filter branching edges
-// const propagate = (o) => {
-//   let id = o.id;
-//   visited[id] = true;
-//   let steps = [];
-//   steps.push(id);
-//   while((E[id] || []).length === 1) {
-//     steps.push(E[id][0]);
-//     visited[id] = true;
-//     id = E[id][0].to;
-//   }
-//   o.steps = steps;
-//   // TODO - rename cid to edge
-//   o.children = (E[id] || [])
-//   .filter(cid => !visited[cid.to])
-//   .map(cid => {
-//     o_ = ({
-//       term: V[cid.to].term,
-//       constraint: V[cid.to].constraint,
-//       id: cid.to
-//     })
-//     // TODO - export to build rule
-//     if(cid.rule) {
-//       let {from, to, filepath} = R(cid.rule);
-//       let ruleString = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).trim();
-//       o_.rule = ruleString;
-//     }
-//     return propagate(o_);
-//   });
-//   return o;
-// }
-//
-// // TODO - remove id from behaviour
-// const behaviour = propagate({
-//   term: initial,
-//   id: initial_id
-// });
 
-
-// ----------------
-//
-//
-//
-// let c = hash(json[0].initialTerm);
-// let history = [];
-
-// Look for the reverse path:
-// let endHash = hash(json[0].targetTerm);
-
-// Object.keys(E)
-// .forEach(id => {
-//   let es = E[id];
-//   if(es.indexOf(endHash) > -1) {
-//     console.log("found: "+id);
-//   }
-// })
-
-
-
-
-// drawStep(c);
-
-// {
-//   branch: number  current branch as choosen from last
-//   total:  number  total last choices
-// }
-// let path = [];
-// path.push({
-//   type: 0,
-//   total: 0
-// })
-
-
-// const getNode = path => {
-//   if(path.length === 1) {
-//     return behaviour;
-//   } else {
-//     return _.at(behaviour, 'children' + path.slice(1).map(s => `[${s.branch}]`).join('.children'))[0];
-//   }
-// }
-
-// visited = {};
-var crashHash = ("crash" in json.proofs[0]) && hash(json.proofs[0].crash) || "";
+var crashHash = ("crash" in json.proofs[0]) && json.proofs[0].crash || "";
 var crashRule = ("crash" in json.proofs[0]) && json.proofs[0].crash_rule || "";
 var crashMsg  = ("crash" in json.proofs[0]) && json.proofs[0].exception || "";
-// TODO - why does behaviour is ounly drawn once
-// const drawBehaviour = () => {
-//   const genBehaviourPath = (prefix, o) => {
-//     visited[o.id] = true;
-//     var children = (o.children || [])
-//       .filter(edge => !visited[edge.id]);
-//     if(children.length > 0) {
-//       return children
-//       .map((child, i) => genBehaviourPath(prefix + "." + i, child))
-//       .reduce((a,e) => a.concat(e), []);
-//     } else {
-//       if(o.id == crashHash) return [prefix + " 💥"]
-//       if(o.steps[o.steps.length - 1] == target_id) return [prefix + clc.green(" ✓")]
-//       return [prefix];
-//     }
-//   }
-//   console.log(genBehaviourPath("", behaviour).join("\n"));
-// }
-// var current_step = 0;
-var current_element = initial_id;
 
-// const draw = path => {
-//   v = getNode(path);
-//   let total_steps = v.steps.length;
-//   // let cstep = path.length > 0 && path[path.length - 1].cstep || 0;
-//   let id = v.steps[current_step].to;
-//   let isCrash = id === crashHash;
-//   let isSuccess = id === target_id;
-//
-//   let tw = process.stdout.columns; // total width
-//   let prefix = (tw - help.length) / 2
-//   console.log(" ".repeat(prefix) + help+"\n"+"-".repeat(tw));
-//
-//   let format_step = "step: " + current_step + "/" + total_steps + "  ";
-//   let format_feedback = (isCrash ? " 💥" : "") + (isSuccess ? clc.green(" ✓") : "")
-//   let format_path = 'root.' + path.slice(1).map(o => `${o.branch}`).join(".");
-//
-//   let lhs = 'Behaviour: ' + format_path + format_feedback;
-//   let rhs = format_step;
-//
-//   let nav = lhs + " ".repeat(tw - (lhs.length + rhs.length)) + rhs;
-//
-//   console.log(nav + "\n");
-//   drawStep(id);
-//   // console.log(getCodeStringFromPc(V[id].generatedTop.ethereum.evm.txExecState.pc));
-//   if(isCrash) {
-//     // handle broken state
-//     let {from, to, filepath} = parseRule(crashRule);
-//     let ruleString = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).trim();
-//     console.log(clc.red("\nCrash occurred during rule:\n") + ruleString);
-//     console.log("\n" + crashMsg.split("\n").slice(1).join("\n"));
-//   } else if(current_step >= total_steps - 1) {
-//     console.log("\nBranching:\n  " + v.children.map((c,i) => i + ". " + c.rule).join("\n  "));
-//   } else {
-//     // TODO - display rule, which will be taken for the next step
-//   }
-// }
+var behaviour = "";
+const genBehaviour = () => {
+  let frontier = [{
+    id: initial_id,
+    path: "",
+    leave: false
+  }];
+  let leaves = [];
+  let terminate = false;
+  let _visited = {
+    [initial_id]: true
+  };
+  while (frontier.length > 0) {
+    let next_frontier = [];
+    frontier.forEach(e => {
+      let next_steps = (E[e.id] || []);
 
-var show_rule = true;
-var show_constraint = true;
+      if(next_steps.length == 0) {
+        e.leave = true;
+        if( e.id === target_id ) e.path += clc.green(" ✓");
+        if( e.id === crashHash ) e.path += " 💥";
+        leaves.push(e);
+        return null;
+      }
+
+      let next_frontier_steps = next_steps
+        .map((step, i) => ({
+          id: step.to,
+          path: e.path + (next_steps.length > 1 ? i + "." : ""),
+          leave: false
+        }))
+      next_frontier = next_frontier.concat(next_frontier_steps);
+    });
+    frontier = next_frontier;
+  }
+  behaviour = leaves
+  .map(branch => branch.path)
+  .sort()
+  .join("\n")
+}
+genBehaviour();
+
+var show_rule       = false;
+var show_constraint = false;
+var show_source     = false;
+
+const help = (s_r, s_c, s_s, slice) => {
+  let format_toggle = is => is ? clc.green("T") : clc.red("F");
+  let h_ = [
+    "0-5/n next choice",
+    "N next branching point",
+    "q quit",
+    "p previous",
+    "b show behaviour",
+    `C toggle constraint (${format_toggle(s_c)})`,
+    `R toggle rule (${format_toggle(s_r)})`,
+    `S toggle source (${format_toggle(s_s)})`,
+  ];
+  let h_a = h_.slice(0, Math.floor(h_.length / 2));
+  let h_b = h_.slice(Math.floor(h_.length / 2));
+  let h_as = h_a.join("     ");
+  let h_bs = h_b.join("     ");
+  return [h_as, h_bs];
+}
 
 var draw = path => {
   let step = path[path.length - 1].step;
   let node_id = step.to;
   let isSuccess = node_id == target_id;
   let isCrash   = node_id == crashHash;
-  let tw = process.stdout.columns; // total width
 
 // help
-  let help_strings = help(show_rule, show_constraint, 2);
+  let help_strings = help(show_rule, show_constraint, show_source, 2);
   let help_display = help_strings.map(help_string => {
-    let prefix = (tw - help_string.length) / 2
+    let prefix = (tw - clc.getStrippedLength(help_string)) / 2
     console.log(" ".repeat(prefix) + help_string );
   })
   console.log("-".repeat(tw));
@@ -355,6 +274,8 @@ var draw = path => {
     term = formatStep(V[node_id].term, {});
   }
   console.log(term);
+// source code
+  if(show_source) console.log(`\n${clc.bold(clc.underline("s")+"ource")}:\n` + getCodeStringFromPc(V[node_id].term.ethereum.evm.txExecState.pc));
 
 // TODO - constraint
   let constraint;
@@ -367,12 +288,18 @@ var draw = path => {
   } else {
     constraint = V[node_id].constraint;
   }
-  if(show_constraint) console.log(`\n${clc.bold("constraint")}:\n  `+constraint.split("\n").join("\n  "));
+  constraint = constraint
+    .split("\n")
+    .join("")
+    .split("#And")
+    .map(s => "  " + s.replace(/ ==K true/g,"").trim())
+    .join("\n")
+  if(show_constraint) console.log(`\n${clc.bold(clc.underline("c")+"onstraint")}:\n  `+constraint.split("\n").join("\n  "));
 
 // Rule
   if(show_rule) {
     let rule = step.rule in R && R[step.rule] || "";
-    if(rule && rule.string) console.log(`${clc.bold("rule")}:\n  ` + rule.string);
+    if(rule && rule.string) console.log(`\n${clc.bold(clc.underline("r") + "ule")}:\n  ` + rule.string);
   }
 
   let next_steps = E[node_id];
@@ -385,6 +312,13 @@ var draw = path => {
 // terminal
   if(isSuccess) {
     console.log(clc.green(` ✓ Target Term Reached!`));
+  }
+
+// crash
+  if(isCrash) {
+    let ruleString = parseRule(crashRule).string;
+    console.log(clc.red("\nCrash occurred during rule:\n") + ruleString);
+    console.log("\n" + crashMsg.split("\n").slice(1).join("\n"));
   }
 }
 
@@ -410,6 +344,14 @@ const doStepState = (key) => {
     case "4":
     case "5":
       let index = parseInt(key) || 0;
+      while(steps && steps.length === 1) {
+        path.push({
+          type: "step",
+          step: steps[0]
+        })
+        steps = E[steps[0].to];
+      }
+      if(steps.length <= index) console.error("wrong index")
       path.push({
         type: "branch",
         branch: index,
@@ -443,15 +385,13 @@ const doStepState = (key) => {
       }
       break;
     case "P":
-      if(path.length > 1) {
+      if(path.length > 1) path.pop();
+      while(path.length > 1 && E[path[path.length - 1].step.to].length == 1) {
         path.pop();
-        current_step = getNode(path).steps.length - 1;
-      } else {
-        current_step = 0;
       }
       break;
     case "b":
-      drawBehaviour();
+      console.log(behaviour);
       break;
     case "r":
     case "R":
@@ -460,6 +400,10 @@ const doStepState = (key) => {
     case "C":
     case "c":
       show_constraint = !show_constraint;
+      break;
+    case "S":
+    case "s":
+      show_source = !show_source;
       break;
     case "\u0003":
     case "q":
@@ -473,7 +417,6 @@ const doStepState = (key) => {
 }
 
 clear();
-// drawStep(current_element);
 draw(path);
 
 stdin.on( 'data', function (key) {
