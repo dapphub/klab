@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// TODO - external src + bytecode analyzer
+//        allow to place "breakpoints?"/ pc instructions which shold be highlighted/ never hit
 const xml2json = require("xml2json");
 
 const fs = require("fs");
@@ -32,69 +34,7 @@ const json = JSON.parse(jsonString);
 
 const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).filter(l => l != "").join("\n");
 
-const source_path = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/out/ExponentNaive.sol.json";
-const contract_name = "exp";
-const src_filepath = "/Users/mhhf/dh/verified-smart-contracts/dappsys/exponent-naive/src/ExponentNaive.sol"; // TODO - get rid of this
-const contract_search_regex = new RegExp("\\:" + contract_name);
-
-const source_json = JSON.parse(fs.readFileSync(source_path));
-
-const contract_location = Object.keys(source_json.contracts).find(s => contract_search_regex.test(s));
-
-const bin_string = source_json.contracts[contract_location]["bin-runtime"];
-const srcmap = source_json.contracts[contract_location]["srcmap-runtime"];
-
-var code_arr = []
-for(let i=0; i<bin_string.length; i+=2) {
-  code_arr.push(parseInt(bin_string.slice(i, i+2), 16));
-}
-var pc_to_inst_map = [];
-let pc=0;
-let inst_c = 1;
-while(pc < code_arr.length) {
-  if(code_arr[pc] >= 96 && code_arr[pc] <= 127) {
-    let size = code_arr[pc] - 96;
-    for(let i = 0; i <= size; i++) {
-      pc_to_inst_map.push(inst_c);
-    }
-    pc += size;
-  } else {
-    pc_to_inst_map.push(inst_c);
-  }
-  pc++;
-  inst_c++;
-}
-// pc_to_inst_map.forEach((e,i) => {
-// console.log(i,e);
-// })
-
-var last = [0, 0, 0, 0];
-const srcmapArr = srcmap
-  .split(";")
-  .map(e => {
-    if(e === "") return last
-    let tmp = e.split(":")
-      .map(o => parseInt(o))
-      .forEach((o, i) => {
-        if(typeof o === "number" && o > 0) last[i] = o;
-      });
-    return last.slice();
-  })
-  // .map(e => e.split(":").map(o => parseInt(o)))
-var source = fs.readFileSync(src_filepath).toString();
-
-const getCodeStringFromPc = pc => {
-  let hide_color = 244;
-  let show_color = 255;
-  // console.log("pc", pc, "inst", pc_to_inst_map[pc], "srcmap", srcmapArr[pc_to_inst_map[pc]]);
-  var cpos = srcmapArr[pc_to_inst_map[pc]];
-  let hide = str => clc.xterm(hide_color)(str.split("\n").join("\n"))
-  let show = str => clc.xterm(show_color)(str.split("\n").join("\n"))
-  var str = (hide(source.slice(0, cpos[0])) + show(source.slice(cpos[0], cpos[0]+cpos[1])) + hide(source.slice(cpos[0]+cpos[1])));
-  str = str.split("\n").map(s => "  " + s + " ".repeat(tw - 2 - clc.getStrippedLength(s))).join("\n");
-  // str = clc.bgXterm(236)(str);
-  return str;
-}
+const { getCodeStringFromPc } = require("../lib/srchandler.js");
 
 
 
@@ -105,7 +45,36 @@ const getCodeStringFromPc = pc => {
 const omits = [
   "generatedTop.ethereum.evm.txExecState.program",
   "generatedTop.ethereum.evm.txExecState.programBytes",
-  "generatedTop.ethereum.evm.callStack"
+  "generatedTop.ethereum.evm.txExecState.previousGas",
+  "generatedTop.ethereum.evm.txExecState.gas",
+  "generatedTop.ethereum.evm.callStack",
+  "generatedTop.ethereum.evm.gasPrice",
+  "generatedTop.ethereum.evm.origin",
+  "generatedTop.ethereum.evm.previousHash",
+  "generatedTop.ethereum.evm.ommersHash",
+  "generatedTop.ethereum.evm.coinbase",
+  "generatedTop.ethereum.evm.stateRoot",
+  "generatedTop.ethereum.evm.transactionsRoot",
+  "generatedTop.ethereum.evm.receiptsRoot",
+  "generatedTop.ethereum.evm.logsBloom",
+  "generatedTop.ethereum.evm.difficulty",
+  "generatedTop.ethereum.evm.number",
+  "generatedTop.ethereum.evm.gasLimit",
+  "generatedTop.ethereum.evm.gasUsed",
+  "generatedTop.ethereum.evm.timestamp",
+  "generatedTop.ethereum.evm.extraData",
+  "generatedTop.ethereum.evm.mixHash",
+  "generatedTop.ethereum.evm.blockNonce",
+  "generatedTop.ethereum.evm.ommerBlockHeaders",
+  "generatedTop.ethereum.evm.blockhash",
+  "generatedTop.ethereum.evm.substate",
+  "generatedTop.ethereum.evm.touchedAccounts",
+  "generatedTop.ethereum.evm.callLog",
+  "generatedTop.ethereum.evm.substateStack",
+  "generatedTop.ethereum.evm.interimStates",
+  "generatedTop.ethereum.evm.callDepth",
+  "generatedTop.ethereum.evm.output",
+  "generatedTop.ethereum.network"
 ];
 
 
@@ -194,6 +163,7 @@ const genBehaviour = () => {
         e.leave = true;
         if( e.id === target_id ) e.path += clc.green(" ✓");
         if( e.id === crashHash ) e.path += " 💥";
+        if( V[e.id].term.k === "#exception" ) e.path += clc.red(" ✗")
         leaves.push(e);
         return null;
       }
@@ -218,6 +188,7 @@ genBehaviour();
 var show_rule       = false;
 var show_constraint = false;
 var show_source     = false;
+var show_debug      = false;
 
 const help = (s_r, s_c, s_s, slice) => {
   let format_toggle = is => is ? clc.green("T") : clc.red("F");
@@ -276,6 +247,9 @@ var draw = path => {
   console.log(term);
 // source code
   if(show_source) console.log(`\n${clc.bold(clc.underline("s")+"ource")}:\n` + getCodeStringFromPc(V[node_id].term.ethereum.evm.txExecState.pc));
+
+// debug
+  if(show_debug) console.log(`\ndebug:\nnode_id: ${node_id}\npath length: ${path.length}`);
 
 // TODO - constraint
   let constraint;
@@ -409,15 +383,16 @@ const doStepState = (key) => {
     case "q":
       process.exit();
       break;
+    case "d":
+    case "D":
+      show_debug = !show_debug;
+      break;
     default:
       console.log("key: " + key);
   }
 
   draw(path);
 }
-
-clear();
-draw(path);
 
 stdin.on( 'data', function (key) {
   clear();
@@ -428,3 +403,6 @@ stdin.on( 'data', function (key) {
     state = "step";
   }
 })
+
+clear();
+draw(path);
