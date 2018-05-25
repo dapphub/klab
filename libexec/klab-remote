@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+const fs = require("fs");
+var WebSocketClient = require('websocket').client;
+
+const args = process.argv.slice(2);
+if(args.length !== 2) {
+  console.log("Usage: klab remote <spec.ini> <lemmas.k>");
+  process.exit();
+}
+
+const config = JSON.parse(fs.readFileSync("config.json"));
+
+const spec   = fs.readFileSync(args[0]).toString();
+const lemmas = fs.readFileSync(args[1]).toString();
+const bin_runtime = fs.readFileSync(config["bin-runtime"]).toString();
+
+const state_ = {
+  steps: []
+};
+const piping = false;
+// i need initt and targett information before i can pipe
+// rsteps to the display this is a buffer that does this
+const handler = (msg) => {
+  if(piping) {
+    return null;
+  }
+  switch(msg.type) {
+    case "initt":
+      state_.initt = msg.data[0];
+      break;
+    case "targett":
+      state_.targett = msg.data[0];
+      break;
+    case "rstep":
+      state_.steps.push(msg.data);
+      if("initt" in state_ && "targett" in state_) {
+        piping = true;
+      }
+      break;
+  }
+}
+
+var client = new WebSocketClient();
+
+client.on('connectFailed', function(error) {
+  console.log('Connect Error: ' + error.toString());
+});
+
+client.on('connect', function(connection) {
+  console.log('initializing...');
+  connection.on('error', function(error) {
+    console.log("Connection Error: " + error.toString());
+  });
+  connection.on('close', function() {
+    console.log('echo-protocol Connection Closed');
+  });
+  connection.on('message', function(message) {
+    // TODO - collect all messages to an ongoing steps and show klab run
+    if (message.type === 'utf8') {
+      let msg = JSON.parse(message.utf8Data);
+      handler(msg);
+    }
+  });
+
+  connection.sendUTF(JSON.stringify({
+    type: "run",
+    data: {
+      spec,
+      lemmas,
+      bin_runtime,
+      replay: false
+    }
+  }))
+});
+
+client.connect(`ws://${config.host}`, 'echo-protocol');

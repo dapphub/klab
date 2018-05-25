@@ -1,0 +1,278 @@
+#!/usr/bin/env node
+// TODO - external src + bytecode analyzer
+//        allow to place "breakpoints?"/ pc instructions which shold be highlighted/ never hit
+const usage = `
+Usage:
+  kdebug <spec>
+
+Options:
+  --remote
+  --no-replay
+`
+
+const {docopt} = require("docopt");
+const xml2json = require("xml2json");
+
+// const fs = require("fs");
+const _ = require("lodash");
+const jsondiffpatch = require("jsondiffpatch").create({
+   textDiff: {
+        // default 60, minimum string length (left and right sides) to use text diff algorythm: google-diff-match-patch
+        minLength: 10
+    }
+});
+const clc = require('cli-color');
+const clear = require("cli-clear");
+const crypto = require('crypto');
+const hash = string => {
+  var md5sum = crypto.createHash('md5');
+  md5sum.update(string);
+  var d = md5sum.digest('hex');
+  return d;
+}
+
+const { formatStep } = require("./../lib/formatter.js");
+const {formatMemory} = require("./../lib/unwrapper.js");
+
+var stdin = process.stdin;
+stdin.setRawMode( true );
+stdin.resume();
+stdin.setEncoding( 'utf8' );
+const tw = process.stdout.columns; // total width
+
+const cmd = docopt(usage);
+
+// const jsonString = fs.readFileSync(cmd["<spec>"]).toString();
+// const json = JSON.parse(jsonString);
+
+const getFileExcerpt = (path, from, to) => fs.readFileSync(path).toString().split("\n").slice(from - 1, to).filter(l => l != "").join("\n");
+
+const { getCodeStringFromPc } = require("../lib/srchandler.js");
+
+const settings = JSON.parse(fs.readFileSync("kdebug_sic_rpow.json"));
+
+
+const V = {};
+const getNode = key => {
+  if(key in V) return V[key];
+  let node = JSON.parse(fs.readFileSync(`nodes/${key}.json`));
+  // console.log(node.term.replace(/\<\-/g,"--").replace(/\&/g, "And"));
+  let clean_term_string = node.term.replace(/\<\-/g,"--").replace(/\&/g, "And").replace(/s\<Word/g,"sLessWord")
+  let term = xml2json.toJson(clean_term_string, {object: true})
+  V[key] = {
+    term,
+    constraint: node.constraint
+  };
+  return V[key];
+}
+
+// build Edges
+const E = {};
+json.proofs[0].steps
+.forEach(o => {
+  if(!(o.from in E)) E[o.from] = [];
+  E[o.from].push(o);
+})
+
+Object.keys(E).forEach(id => {
+  E[id] = _.uniqBy(E[id], edge => edge.to);
+})
+
+// build Rules
+const parseRule = ruleString => {
+  const pos_regex = /Location\((\d+)\,\d+\,(\d+)\,\d+\)/;
+  const src_regex = /Source\(Source\(([^\)]+)\)/;
+  const location = ruleString.match(pos_regex);
+  const filepath = ruleString.match(src_regex)[1];
+  const from = location[1];
+  const to = location[2];
+  // let string = fs.readFileSync(filepath).toString();
+  let string = clc.xterm(0)(`${filepath} ${from}-${to}\n     `) + getFileExcerpt(filepath, parseInt(from), parseInt(to)).split("\n").join("\n    ").trim();
+  if(string.split("\n").length > 6) {
+    string = string.split("\n").slice(0, 3)
+    .concat([clc.red("  [...]")])
+    .concat(string.split("\n").slice(-3))
+    .join("\n")
+  }
+
+  return {
+    from,
+    to,
+    filepath,
+    string
+  };
+}
+
+const R = {};
+const getRule = key => {
+  if(key in R) return R[key];
+  let rule = fs.readFileSync(`rules/${key}.json`).toString();
+  R[key] = parseRule(rule);
+  return R[key];
+}
+
+const initial_id = json.proofs[0].initialTerm;
+const target_id  = json.proofs[0].targetTerm;
+
+var crashHash = ("crash" in json.proofs[0]) && json.proofs[0].crash || "";
+var crashRule = ("crash" in json.proofs[0]) && json.proofs[0].crash_rule || "";
+var crashMsg  = ("crash" in json.proofs[0]) && json.proofs[0].exception || "";
+
+var show = {
+  rule: false,
+  constraint: false,
+  source: false,
+  debug: false,
+  behaviour: false,
+  trim: false,
+  memory: false
+};
+
+const help = (show, slice) => {
+  let format_toggle = is => is ? clc.green("T") : clc.red("F");
+  let h_ = [
+    "0-5/n next choice",
+    "N next branching point",
+    "Ctrl-c quit",
+    "p previous",
+    `${clc.underline("b")}ehaviour (${format_toggle(show.behaviour)})`,
+    `${clc.underline("c")}onstraint (${format_toggle(show.constraint)})`,
+    `${clc.underline("r")}ule (${format_toggle(show.rule)})`,
+    `${clc.underline("s")}ource (${format_toggle(show.source)})`,
+    `${clc.underline("m")}memory (${format_toggle(show.memory)})`,
+  ];
+  let h_a = h_.slice(0, Math.floor(h_.length / 2));
+  let h_b = h_.slice(Math.floor(h_.length / 2));
+  let h_as = h_a.join("     ");
+  let h_bs = h_b.join("     ");
+  return [h_as, h_bs];
+}
+
+
+var path = [];
+path.push({
+  type: "step",
+  step: {
+    from: "",
+    to: initial_id,
+    rule: "",
+    step: 0
+  }
+})
+
+var state = "step"; // step, behaviour
+const doStepState = (key) => {
+  let id = path[path.length - 1].step.to;
+  let steps = E[id];
+  switch(key) {
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+      let index = parseInt(key) || 0;
+      while(steps && steps.length === 1) {
+        path.push({
+          type: "step",
+          step: steps[0]
+        })
+        steps = E[steps[0].to];
+      }
+      if(steps.length <= index) console.error("wrong index")
+      path.push({
+        type: "branch",
+        branch: index,
+        step: steps[index]
+      })
+      break;
+    case "n":
+      if(steps && steps.length === 1) {
+        path.push({
+          type: "step",
+          step: steps[0]
+        });
+      }
+      break;
+    // case "N":
+    //   while(steps && steps.length === 1) {
+    //     path.push({
+    //       type: "step",
+    //       step: steps[0]
+    //     })
+    //     let node_id = steps[0].to;
+    //     let node = getNode(node_id);
+    //     if(node.term.generatedTop.k === "#execute") break;
+    //     steps = E[steps[0].to];
+    //   }
+    //   break;
+    case "\u000e":
+      while(steps && steps.length === 1) {
+        path.push({
+          type: "step",
+          step: steps[0]
+        })
+        steps = E[steps[0].to];
+      }
+      break;
+    case "p":
+      if(path.length > 1) {
+        path.pop();
+      }
+      break;
+    case "\u0010": //CTRL-p
+      if(path.length > 1) path.pop();
+      while(path.length > 1 && E[path[path.length - 1].step.to].length == 1) {
+        path.pop();
+      }
+      break;
+    case "b":
+    case "B":
+      show.behaviour = !show.behaviour;
+      break;
+    case "m":
+    case "M":
+      show.memory = !show.memory;
+      break;
+    case "t":
+    case "T":
+      show.trim = !show.trim;
+      break;
+    case "r":
+    case "R":
+      show.rule = !show.rule;
+      break;
+    case "C":
+    case "c":
+      show.constraint = !show.constraint;
+      break;
+    case "S":
+    case "s":
+      show.source = !show.source;
+      break;
+    case "\u0003":
+      process.exit();
+      break;
+    case "d":
+    case "D":
+      show.debug = !show.debug;
+      break;
+    default:
+      console.log("key: " + key + " "+key.split("").map(s => s.charCodeAt(0).toString(16)).join(""));
+  }
+}
+
+stdin.on('data', function (key,a) {
+  doStepState(key)
+  clear();
+  draw({
+    path,
+    show
+  });
+})
+
+clear();
+draw({
+  path,
+  show
+});

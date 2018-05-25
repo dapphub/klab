@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+const xs = require("xstream").default;
+const {run} = require("@cycle/run");
+const {docopt} = require("docopt");
+const fs = require("fs");
+
+const cliDriver = require("../lib/cliDriver.js")
+const remoteDriver = require("../lib/remoteDriver.js")
+const main = require("../lib/main.js");
+
+const usage = `
+Usage:
+  kdebug run [options]
+
+Options:
+  --no-replay               No replay
+`
+
+const cmd = docopt(usage, {
+  argv: ["run"].concat(process.argv.slice(2))
+});
+
+const config = JSON.parse(fs.readFileSync("./config.json"));
+// read the spec files
+[
+  "spec",
+  "lemmas",
+  "bin_runtime",
+  "source",
+  "sourcemap"
+].forEach(filetype => {
+  let content = fs.readFileSync(config[filetype]).toString()
+  config[filetype] = content;
+})
+
+// const Settings = {
+//   config
+// };
+
+config.replay = !cmd["--no-replay"];
+
+const drivers = {
+  CLI: cliDriver,
+  Remote: remoteDriver,
+  Settings: () => xs.of(config)
+};
+
+run(main, drivers)

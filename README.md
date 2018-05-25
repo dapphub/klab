@@ -15,3 +15,6 @@ make
 use it with the modified k-framework client
 
 go to the directory where your `debug.json` is stored and execute `kdebug`
+
+# TODO
+* remote should only be a flag, default should be local
