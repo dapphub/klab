@@ -6,6 +6,7 @@ const fs = require("fs");
 
 const cliDriver = require("../lib/cliDriver.js")
 const remoteDriver = require("../lib/remoteDriver.js")
+const localDriver  = require("../lib/localDriver.js");
 const main = require("../lib/main.js");
 
 const usage = `
@@ -14,6 +15,7 @@ Usage:
 
 Options:
   --no-replay               No replay
+  --remote
 `
 
 const cmd = docopt(usage, {
@@ -33,15 +35,16 @@ const config = JSON.parse(fs.readFileSync("./config.json"));
   config[filetype] = content;
 })
 
-// const Settings = {
-//   config
-// };
+const kDriver = cmd["--remote"]
+  ? remoteDriver(config.host)
+  : localDriver
+  ;
 
 config.replay = !cmd["--no-replay"];
 
 const drivers = {
   CLI: cliDriver,
-  Remote: remoteDriver,
+  Remote: kDriver,
   Settings: () => xs.of(config)
 };
 

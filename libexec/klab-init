@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "initializing..."
-RESSOURCES_PATH=$(dirname $(realpath $0))/../ressources
+RESSOURCES_PATH=$(dirname $(realpath $0))/../resources
 
 # init config
 cp $RESSOURCES_PATH/config_template.json config.json
