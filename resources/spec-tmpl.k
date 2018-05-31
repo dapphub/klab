@@ -10,7 +10,7 @@
       <evm>
         <output> {OUTPUT} </output>
         <statusCode> {STATUSCODE} </statusCode>
-        <callStack> _ => _ </callStack>
+        <callStack> _ </callStack>
         <interimStates> _ </interimStates>
         <touchedAccounts> _ => _ </touchedAccounts>
 
@@ -24,11 +24,11 @@
           <callData> {CALLDATA} </callData>
 
           <callValue> 0 </callValue>
-          <wordStack> {WORDSTACK} </wordStack>
-          <localMem> {LOCALMEM} </localMem>
-          <pc> {PC} </pc>
+          <wordStack> .WordStack => _ </wordStack>
+          <localMem> .Map => _ </localMem>
+          <pc> 0 => _ </pc>
           <gas> {GAS} </gas>
-          <memoryUsed> {MEMORYUSED} </memoryUsed>
+          <memoryUsed> 0 => _ </memoryUsed>
           <previousGas> _ => _ </previousGas>
 
           <static> false </static> // NOTE: non-static call
@@ -55,7 +55,7 @@
         <number> _ </number>
         <gasLimit> _ </gasLimit>
         <gasUsed> _ </gasUsed>
-        <timestamp> NOW </timestamp> // block.timestamp // now
+        <timestamp> _ </timestamp>
         <extraData> _ </extraData>
         <mixHash> _ </mixHash>
         <blockNonce> _ </blockNonce>
@@ -73,7 +73,7 @@
             <balance> _ </balance>
             <code> #parseByteStack({CODE}) </code>
             <storage>
-{STORAGE}
+              {STORAGE}
             </storage>
             <nonce> _ </nonce>
           </account>
@@ -88,8 +88,5 @@
     requires 0 <=Int ACCT_ID    andBool ACCT_ID    <Int (2 ^Int 160)
      andBool 0 <=Int CALLER_ID  andBool CALLER_ID  <Int (2 ^Int 160)
      andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)
-     andBool 0 <=Int NOW        andBool NOW        <Int (2 ^Int 256)
      andBool 0 <=Int CALL_DEPTH andBool CALL_DEPTH <Int 1024
-{REQUIRES}
-{ENSURES}
-{ATTRIBUTE}
+     {REQUIRES}

@@ -11,7 +11,7 @@ const main = require("../lib/main.js");
 
 const usage = `
 Usage:
-  kdebug run [options]
+  klab run [options]
 
 Options:
   --no-replay               No replay

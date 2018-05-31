@@ -20,11 +20,9 @@ git clone git@github.com:dapphub/kdebug.git
 cd kdebug
 make
 ```
-Create a working directory e.g. `~/wd`
 
 Export path variables e.g. save them in `~/.profiles`
 ```
-export KLAB_WD_PATH=/path/to/wd
 export KLAB_K_PATH=/path/to/k
 export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
