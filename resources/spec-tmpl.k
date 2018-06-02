@@ -24,9 +24,9 @@
           <callData> {CALLDATA} </callData>
 
           <callValue> 0 </callValue>
-          <wordStack> .WordStack => _ </wordStack>
+          <wordStack> {WORDSTACK} </wordStack>
           <localMem> .Map => _ </localMem>
-          <pc> 0 => _ </pc>
+          <pc> {PC} </pc>
           <gas> {GAS} </gas>
           <memoryUsed> 0 => _ </memoryUsed>
           <previousGas> _ => _ </previousGas>
