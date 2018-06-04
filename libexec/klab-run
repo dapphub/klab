@@ -44,7 +44,7 @@ config.replay = !cmd["--no-replay"];
 
 const drivers = {
   CLI: cliDriver,
-  Remote: kDriver,
+  K: kDriver,
   Settings: () => xs.of(config)
 };
 

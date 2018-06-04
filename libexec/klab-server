@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+const {run} = require("@cycle/run");
+const serverDriver = require("../lib/serverDriver.js");
+const localDriver  = require("../lib/localDriver.js");
+
+const main = ({Server, K}) => {
+
+  return {
+    Server: K,
+    K: Server
+  };
+}
+
+const drivers = {
+  Server: serverDriver(),
+  K: localDriver
+};
+
+run(main, drivers)
