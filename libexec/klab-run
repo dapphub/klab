@@ -28,12 +28,8 @@ if (fs.existsSync(config.source + ".json")) {
     config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
     contract_path = "src" + config.source.replace('.','') + config.source.replace('./',':').replace('.sol','')
     contract_json = config.solJson.contracts[contract_path]
-    config["bin_runtime"] = contract_json["bin-runtime"];
-    config["sourcemap"] = contract_json["srcmap-runtime"];
-    console.log(config["bin_runtime"])
-//    console.log(JSON.parse(config.solJson.contracts).runtimepath)
-//    config.bin_runtime = config.solJson.contracts.runtimepath
-				     
+    config["bin_runtime"] = contract_json["bin-runtime"].toString();
+    config["sourcemap"] = contract_json["srcmap-runtime"].toString();
 }
 else {
     throw config.source + ".json not in directory."
