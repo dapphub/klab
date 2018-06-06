@@ -5,7 +5,7 @@ modified K-framework debugger.
 
 ## Requirements
 You will need modified versions of evm-semantics, which shps with the modiefied k:
-* https://github.com/dapphub/evm-semantics
+* https://github.com/dapphub/evm-semantics use the `klab` branch
 
 Install them with:
 ```
