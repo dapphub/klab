@@ -4,10 +4,10 @@ modified K-framework debugger.
 **This is a hacky version for internal usage, if you have questions ask @denis at dapphub.chat**
 
 ## Requirements
-You will need modified versions of evm-semantics, which shps with the modiefied k:
+You will need a modified version of evm-semantics, containing a modified version of k:
 * https://github.com/dapphub/evm-semantics use the `klab` branch
 
-Install them with:
+Install it with:
 ```
 make deps
 make
@@ -28,6 +28,10 @@ export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
 
 ## Usage
-go your project directory and run:
+Write a `spec.ini` file with the property you want to prove and put it in a directory together
+with the solidity source code file together with the corresponding `.sol.json`.
+From the same directory, run:
 
 `klab run --no-repeat`
+ 
+ to start the klab interactive tool
