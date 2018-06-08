@@ -16,6 +16,7 @@ Usage:
 Options:
   --no-replay               No replay
   --remote
+  --inspect=<id>
 `
 
 const cmd = docopt(usage, {
@@ -39,6 +40,9 @@ const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)
   : localDriver
   ;
+
+const inspect = cmd["--inspect"];
+if(inspect) config.inspect = inspect;
 
 config.replay = !cmd["--no-replay"];
 
