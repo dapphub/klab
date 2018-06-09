@@ -23,18 +23,33 @@ const cmd = docopt(usage, {
   argv: ["run"].concat(process.argv.slice(2))
 });
 
+
 const config = JSON.parse(fs.readFileSync("./config.json"));
+if (fs.existsSync(config.source + ".json")) {
+    config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
+    contract_path = "src" + config.source.replace('.','') + config.source.replace('./',':').replace('.sol','')
+    contract_json = config.solJson.contracts[contract_path]
+    config["bin_runtime"] = contract_json["bin-runtime"].toString();
+    config["sourcemap"] = contract_json["srcmap-runtime"].toString();
+}
+else {
+    throw config.source + ".json not in directory."
+}
+
+    
+
 // read the spec files
 [
   "spec",
   "lemmas",
-  "bin_runtime",
+//  "bin_runtime",
   "source",
-  "sourcemap"
+//  "sourcemap"
 ].forEach(filetype => {
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
 })
+
 
 const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)
