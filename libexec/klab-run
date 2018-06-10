@@ -7,7 +7,16 @@ const fs = require("fs");
 const cliDriver = require("../lib/cliDriver.js")
 const remoteDriver = require("../lib/remoteDriver.js")
 const localDriver  = require("../lib/localDriver.js");
-const main = require("../lib/main.js");
+const main = require("../lib/main.js")
+const testPath = path => {
+  try {
+    fs.accessSync(path, fs.constants.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 
 const usage = `
 Usage:
@@ -25,7 +34,7 @@ const cmd = docopt(usage, {
 
 
 const config = JSON.parse(fs.readFileSync("./config.json"));
-if (fs.existsSync(config.source + ".json")) {
+if (testPath(config.source + ".json")) {
     config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
     contract_path = config.source.replace('/','').replace('.','') + config.source.replace('./',':').replace('.sol','')
     contract_json = config.solJson.contracts[contract_path]
@@ -33,18 +42,17 @@ if (fs.existsSync(config.source + ".json")) {
     config["sourcemap"] = contract_json["srcmap-runtime"].toString();
 }
 else {
-    throw config.source + ".json not in directory."
+    config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
+    config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
 }
 
     
 
-// read the spec files
+// READ the spec files
 [
   "spec",
   "lemmas",
-//  "bin_runtime",
   "source",
-//  "sourcemap"
 ].forEach(filetype => {
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
