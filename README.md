@@ -34,4 +34,6 @@ From the same directory, run:
 
 `klab run --no-repeat`
  
- to start the klab interactive tool
+ to start the klab interactive tool.
+ 
+[Example usage](../blob/master/examples)
