@@ -32,7 +32,7 @@ Write a `spec.ini` file with the property you want to prove and put it in a dire
 with the solidity source code file together with the corresponding `.sol.json`.
 From the same directory, run:
 
-`klab run --no-repeat`
+`klab run`
  
  to start the klab interactive tool.
  
