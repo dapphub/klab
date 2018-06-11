@@ -12,13 +12,6 @@ const jsondiffpatch = require("jsondiffpatch").create({
 });
 const clc = require('cli-color');
 var clear = require("cli-clear");
-const crypto = require('crypto');
-const hash = string => {
-  var md5sum = crypto.createHash('md5');
-  md5sum.update(string);
-  var d = md5sum.digest('hex');
-  return d;
-}
 
 const { formatStep } = require("./../lib/formatter.js");
 
@@ -28,14 +21,28 @@ stdin.resume();
 stdin.setEncoding( 'utf8' );
 const tw = process.stdout.columns; // total width
 
-const jsonString = fs.readFileSync("./debug.json").toString();
-const json = JSON.parse(jsonString);
+const config = JSON.parse(fs.readFileSync("./config.json"));
+[
+  "spec",
+  "lemmas",
+  "bin_runtime",
+  "source",
+  "sourcemap"
+].forEach(filetype => {
+  let content = fs.readFileSync(config[filetype]).toString()
+  config[filetype] = content;
+})
 
 const {
   getCodeStringFromPc,
+  get_pc_to_inst_map,
+  genSrcmapArr
+} = require("../lib/srchandler.js");
+const {
   instructions,
   pc_to_inst_map
-} = require("../lib/srchandler.js");
+} = get_pc_to_inst_map(config.bin_runtime)
+const srcmapArr = genSrcmapArr(config.sourcemap);
 const inst_to_pc = instructions.map((inst, i) => pc_to_inst_map.indexOf(i));
 
 const state = {
@@ -53,7 +60,7 @@ const draw = () => {
     .slice(from, to)
     .map((s, i) => (from + i === state.inst ? "> " : "  ") + r(hex(inst_to_pc[from + i])) + "  " + r(hex(from + i)) + "  " + (s.length > 20 ? s.slice(0, 20) + "..." : s))
     .join("\n")
-  str = str +"\n\n"+ getCodeStringFromPc(pc)
+  str = str +"\n\n"+ getCodeStringFromPc(config, pc, true, pc_to_inst_map, srcmapArr)
 
   let status_line = ` PC: ${pc} (0x${hex(pc)})`;
   status_line += " ".repeat(tw - status_line.length);
@@ -91,3 +98,4 @@ stdin.on( 'data', function (key, e) {
 
 clear();
 draw();
+
