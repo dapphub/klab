@@ -12,6 +12,14 @@ const jsondiffpatch = require("jsondiffpatch").create({
 });
 const clc = require('cli-color');
 var clear = require("cli-clear");
+const testPath = path => {
+  try {
+    fs.accessSync(path, fs.constants.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 const { formatStep } = require("./../lib/formatter.js");
 
@@ -22,12 +30,25 @@ stdin.setEncoding( 'utf8' );
 const tw = process.stdout.columns; // total width
 
 const config = JSON.parse(fs.readFileSync("./config.json"));
+if (testPath(config.source + ".json")) {
+    config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
+    contract_path = config.source.replace('/','').replace('.','') + config.source.replace('./',':').replace('.sol','')
+    contract_json = config.solJson.contracts[contract_path]
+    config["bin_runtime"] = contract_json["bin-runtime"].toString();
+    config["sourcemap"] = contract_json["srcmap-runtime"].toString();
+}
+else {
+    config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
+    config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
+}
+
+    
+
+// READ the spec files
 [
   "spec",
   "lemmas",
-  "bin_runtime",
   "source",
-  "sourcemap"
 ].forEach(filetype => {
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
