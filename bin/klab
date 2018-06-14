@@ -1,2 +1,2 @@
-#!/bin/sh
+#!/bin/bash
 PATH=${0%/*/*}/libexec:$PATH "${0##*/}-${1-help}" "${@:2}"
