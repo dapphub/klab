@@ -1,7 +1,7 @@
-## Kdebug
-modified K-framework debugger.
+## KLab
+A symbolic execution engine for EVM and explorer for K-framework reachability proofs.
 
-**This is a hacky version for internal usage, if you have questions ask @denis at dapphub.chat**
+**This is an early alpha version for internal usage. Direct any questions in an issue or at  https://dapphub.chat/channel/k-framework .
 
 ## Requirements
 You will need a modified version of evm-semantics, containing a modified version of k:
@@ -36,4 +36,4 @@ From the same directory, run:
  
  to start the klab interactive tool.
  
-[Example usage](../blob/master/examples)
+[Example usage](../master/examples)
