@@ -27,6 +27,11 @@ export KLAB_K_PATH=/path/to/k
 export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
 
+You also need to set the temporary directory to use, for example:
+```
+export TMPDIR=/tmp
+```
+
 ## Usage
 Write a `spec.ini` file with the property you want to prove and put it in a directory together
 with the solidity source code file together with the corresponding `.sol.json`.
