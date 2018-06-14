@@ -32,7 +32,7 @@
           <previousGas> _ => _ </previousGas>
 
           <static> false </static> // NOTE: non-static call
-          <callDepth> CALL_DEPTH </callDepth>
+          <callDepth> {CALLDEPTH} </callDepth>
         </callState>
 
         <substate>
@@ -65,7 +65,9 @@
       </evm>
 
       <network>
-        <activeAccounts> SetItem(ACCT_ID) _:Set </activeAccounts>
+        <activeAccounts> SetItem(ACCT_ID) _:Set
+        {ACTIVEACCOUNTS}
+        </activeAccounts>
 
         <accounts>
           <account>
@@ -77,7 +79,8 @@
             </storage>
             <nonce> _ </nonce>
           </account>
-       // ... // TODO: fix
+          {ACCOUNTS}
+          ...
         </accounts>
 
         <txOrder> _ </txOrder>
@@ -90,3 +93,4 @@
      andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)
      andBool 0 <=Int CALL_DEPTH andBool CALL_DEPTH <Int 1024
      {REQUIRES}
+     {ATTRIBUTE}

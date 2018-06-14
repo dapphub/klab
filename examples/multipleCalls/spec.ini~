@@ -1,0 +1,26 @@
+[calling]
+k: #execute => #halt
+statusCode: _ => EVMC_SUCCESS
+output: _ => _
+callData: #abiCallData("raiseTemp", #uint256(X))
+localMem: _
+pc: 0 => _
+wordStack: .WordStack => _
+gas: G => _
+log: _
+refund: _
+storage: #hashedLocation({COMPILER}, 0, .IntList) |-> CALLEE
+requires:
+    andBool 0 <=Int CALLEE andBool CALLEE <Int pow160
+    andBool 0 <=Int X
+    andBool X <Int pow256
+    andBool G >Int 33000
+accounts:
+        <account>
+        <acctID> CALLEE </acctID>
+        <balance> _ </balance>
+        <code> #parseByteStack("608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806375657f15146044575b600080fd5b348015604f57600080fd5b50606c60048036038101908080359060200190929190505050606e565b005b8060005401600081905550505600a165627a7a723058202e956b2563df73d017838c82ca597218be8d407a06993354c22438aa788477080029") </code>
+        <storage> #hashedLocation({COMPILER}, 0, .IntList) |-> (0 => X) </storage>
+        <nonce> _ </nonce>
+        </account>
+attribute:
