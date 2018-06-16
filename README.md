@@ -23,7 +23,6 @@ make
 
 Export path variables e.g. save them in `~/.profiles`
 ```
-export KLAB_K_PATH=/path/to/k
 export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
 
@@ -38,7 +37,7 @@ with the solidity source code file together with the corresponding `.sol.json`.
 From the same directory, run:
 
 `klab run`
- 
+
  to start the klab interactive tool.
- 
+
 [Example usage](../master/examples)
