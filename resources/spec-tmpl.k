@@ -91,6 +91,5 @@
     requires 0 <=Int ACCT_ID    andBool ACCT_ID    <Int (2 ^Int 160)
      andBool 0 <=Int CALLER_ID  andBool CALLER_ID  <Int (2 ^Int 160)
      andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)
-     andBool 0 <=Int CALL_DEPTH andBool CALL_DEPTH <Int 1024
      {REQUIRES}
      {ATTRIBUTE}
