@@ -21,10 +21,15 @@ cd kdebug
 make
 ```
 
-Export path variables e.g. save them in `~/.profiles`
+Export a path variable (e.g. save them in `~/.profiles`) pointing to the evm-semantics directory:
 ```
 export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
+If you want to use a custom version of K you can use the `KLAB_K_PATH` variable:
+```
+export KLAB_K_PATH=/path/to/k
+```
+
 
 You also need to set the temporary directory to use, for example:
 ```

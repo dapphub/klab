@@ -7,7 +7,7 @@ contract Callee {
 }
 
 contract easyNest {
-  Callee callee = new Callee();
+  Callee callee;
   function raiseTemp(uint x) public {
     callee.tempDelta(x);
   }
