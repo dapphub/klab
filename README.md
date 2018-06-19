@@ -42,7 +42,7 @@ with the solidity source code file together with the corresponding `.sol.json`.
 From the same directory, run:
 
 `klab run`
- 
+
  to start the klab interactive tool.
- 
+
 [Example usage](../master/examples)
