@@ -6,7 +6,7 @@ const fs = require("fs");
 
 const cliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
-const localDriver  = require("../lib/Driver/localDriver.js");
+const localDriver  = require("../lib/driver/localDriver.js");
 const main = require("../lib/main.js")
 const testPath = path => {
   try {
