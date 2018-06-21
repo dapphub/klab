@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const {run} = require("@cycle/run");
-const serverDriver = require("../lib/serverDriver.js");
-const localDriver  = require("../lib/localDriver.js");
+const serverDriver = require("../lib/Driver/serverDriver.js");
+const localDriver  = require("../lib/Driver/localDriver.js");
 
 const main = ({Server, K}) => {
 

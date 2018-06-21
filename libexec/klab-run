@@ -4,9 +4,9 @@ const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
 
-const cliDriver = require("../lib/cliDriver.js")
-const remoteDriver = require("../lib/remoteDriver.js")
-const localDriver  = require("../lib/localDriver.js");
+const cliDriver = require("../lib/driver/cliDriver.js")
+const remoteDriver = require("../lib/driver/remoteDriver.js")
+const localDriver  = require("../lib/Driver/localDriver.js");
 const main = require("../lib/main.js")
 const testPath = path => {
   try {
@@ -46,7 +46,7 @@ else {
     config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
 }
 
-    
+
 
 // READ the spec files
 [
