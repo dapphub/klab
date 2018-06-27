@@ -3,7 +3,7 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
-
+const path = require("path");
 const cliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
 const localDriver  = require("../lib/driver/localDriver.js");
@@ -32,7 +32,6 @@ const cmd = docopt(usage, {
   argv: ["run"].concat(process.argv.slice(2))
 });
 
-
 const config = JSON.parse(fs.readFileSync("./config.json"));
 if (testPath(config.source + ".json")) {
     config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
@@ -57,6 +56,25 @@ else {
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
 })
+
+
+//Check for a file of trusted lemmas (shortcuts) in the config
+let shortcuts = '';
+if (testPath(config["shortcuts"])) {
+    shortcuts = fs.readFileSync(config.shortcuts).toString();
+}
+config.shortcuts = shortcuts;
+
+//Check for a special z3 prelude to include or default to basic.smt2
+let z3prelude;
+if (testPath(config["z3prelude"])) {
+    z3prelude = path.join(process.cwd(),config.z3prelude);
+}
+else {
+    z3prelude = path.join(process.env.KLAB_EVMS_PATH, "./.build/k/k-distribution/include/z3/basic.smt2")
+}
+config.z3prelude = z3prelude;
+
 
 
 const kDriver = cmd["--remote"]

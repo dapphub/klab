@@ -39,7 +39,7 @@ def inherit_get(config, section):
                 del merged[key]
         return merged
 
-def gen(sepc_template, rule_template, spec_ini, spec_name, rule_name_list):
+def gen(sepc_template, rule_template, spec_ini, spec_name, shortcut_file, rule_name_list):
     spec_config = configparser.ConfigParser(comment_prefixes=(';'))
     spec_config.read(spec_ini)
     if 'pgm' not in spec_config:
@@ -60,6 +60,7 @@ def gen(sepc_template, rule_template, spec_ini, spec_name, rule_name_list):
     rules = delimeter.join(rule_spec_list)
     genspec = subst(spec_template, 'module', spec_name.upper())
     genspec = subst(genspec, 'rules', rules)
+    genspec = subst(genspec, 'shortcuts', shortcut_file)
     print(genspec)
 #   genspec = template
 #   for config in [ inherit_get(spec_config, name)
@@ -76,4 +77,4 @@ if __name__ == '__main__':
         sys.exit(1)
     spec_template = open(sys.argv[1], "r").read()
     rule_template = open(sys.argv[2], "r").read()
-    gen(spec_template, rule_template, sys.argv[3], sys.argv[4], sys.argv[5:])
+    gen(spec_template, rule_template, sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6:])
