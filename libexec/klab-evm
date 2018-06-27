@@ -42,7 +42,7 @@ else {
     config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
 }
 
-    
+
 
 // READ the spec files
 [

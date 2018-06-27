@@ -3,6 +3,13 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
+const keccak = require("keccak");
+const sha3 = function (str) {
+  return keccak('keccak256')
+    .update(str)
+    .digest('hex')
+    .toString()
+}
 
 const cliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
@@ -58,6 +65,13 @@ else {
   config[filetype] = content;
 })
 
+
+// proof id
+config.proofid = sha3(JSON.stringify({
+  lemmas: config.lemmas,
+  bin_runtime: config.bin_runtime,
+  spec: config.spec
+}))
 
 const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)
