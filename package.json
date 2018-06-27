@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@cycle/run": "^4.1.0",
+    "blessed": "^0.1.81",
     "chalk": "^2.3.2",
     "clear": "^0.1.0",
     "cli-clear": "^1.0.4",
