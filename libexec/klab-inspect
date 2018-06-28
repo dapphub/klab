@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+const xs = require("xstream").default;
+const {run} = require("@cycle/run");
+const {docopt} = require("docopt");
+const fs = require("fs");
+const keccak = require("keccak");
+const sha3 = function (str) {
+  return keccak('keccak256')
+    .update(str)
+    .digest('hex')
+    .toString()
+}
+
+const cliDriver = require("../lib/driver/cliDriver.js")
+const remoteDriver = require("../lib/driver/remoteDriver.js")
+const localDriver  = require("../lib/driver/localDriver.js");
+const main = require("../lib/main.js")
+const testPath = path => {
+  try {
+    fs.accessSync(path, fs.constants.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+const usage = `
+Usage:
+  klab inspect <id> [options]
+
+Options:
+  --remote
+`
+
+const cmd = docopt(usage, {
+  argv: ["inspect"].concat(process.argv.slice(2))
+});
+
+
+// proof id
+config.proofid = cmd["<id>"];
+const kDriver = cmd["--remote"]
+  ? remoteDriver(config.host)
+  : localDriver
+  ;
+
+config.inspect = true;
+
+const drivers = {
+  CLI: cliDriver,
+  K: kDriver,
+  Settings: () => xs.of(config)
+};
+
+run(main, drivers)

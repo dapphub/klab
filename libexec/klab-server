@@ -1,13 +1,21 @@
 #!/usr/bin/env node
+const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const serverDriver = require("../lib/Driver/serverDriver.js");
 const localDriver  = require("../lib/Driver/localDriver.js");
+const onionify = require('cycle-onionify').default;
 
-const main = ({Server, K}) => {
+const main = ({onion, Server, K}) => {
+
+  const initialReducer$ = xs.of(() => ({
+    peer2proof: {},
+    proof2peer: {}
+  }))
 
   return {
     Server: K,
-    K: Server
+    K: Server,
+    onion: xs.merge(initialReducer$)
   };
 }
 
@@ -16,4 +24,6 @@ const drivers = {
   K: localDriver
 };
 
-run(main, drivers)
+const wrappedMain = onionify(main);
+
+run(wrappedMain, drivers)
