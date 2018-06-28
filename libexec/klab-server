@@ -1,27 +1,176 @@
 #!/usr/bin/env node
 const xs = require("xstream").default;
+const _ = require("lodash");
 const {run} = require("@cycle/run");
 const serverDriver = require("../lib/Driver/serverDriver.js");
+const kDriver = require("../lib/Driver/kDriver.js");
+const dbDriver = require("../lib/Driver/dbDriver.js");
+const makeDriver = require("../lib/Driver/makeDriver.js");
 const localDriver  = require("../lib/Driver/localDriver.js");
 const onionify = require('cycle-onionify').default;
+const sampleCombine = require("xstream/extra/sampleCombine").default;
+const dropRepeats = require("xstream/extra/dropRepeats").default;
+const flattenConcurrently = require("xstream/extra/flattenConcurrently").default;
 
-const main = ({onion, Server, K}) => {
+const pure = require("../lib/pure.js");
+
+const broadcast = onion => stream$ => stream$
+    .compose(sampleCombine(onion.state$))
+    .map(([msg, state]) => xs.fromArray(state
+      .proof2peers[msg.proofid]
+      .map(peer => Object.assign({peer}, msg)))
+    )
+    .compose(flattenConcurrently)
+
+const main = ({onion, Server, K, Make, Db}) => {
+
+  const dequeue$ = onion.state$
+    .filter(state => state.kstate === "IDLE" && state.queue.length > 0)
+    .map(state => state.queue[0])
+  const run$ = Server
+    .filter(msg => msg.type === "run")
+    .compose(sampleCombine(onion.state$))
+  const newrun$ = run$
+    .filter(([msg, state]) => !(msg.proofid in state.proofs))
+    .map(([msg, _]) => msg)
+  // TODO - rewrite this once i have the filepath before its written
+  const oldrun$ = run$
+    .filter(([msg, state]) => (msg.proofid in state.proofs))
+    .map(([msg, _]) => msg)
+  const boot$ = K
+    .filter(msg => msg.type === "boot")
+  const dbquery$ = Server
+    .filter(msg => ["getblob"].indexOf(msg.type) > -1)
+  const kmsg$ = Db
+    .filter(msg => msg.type == "msg")
+    .map(msg => Object.assign({}, pure(msg), {
+      proofid: msg.proofid,
+      peer: msg.peer
+    }))
+  const notkmsg$ = Db
+    .filter(msg => msg.type != "msg")
+  const ok$ = Make
+    .filter(msg => msg.type === "ok");
 
   const initialReducer$ = xs.of(() => ({
-    peer2proof: {},
-    proof2peer: {}
+    kstate: "IDLE",
+    queue: [],
+    proofs: {},
+    proof2peers: {}
   }))
+  const newProofReducer$ = ok$
+    .map(msg => state => {
+      state = JSON.parse(JSON.stringify(state));
+      state.proofs[msg.proofid] = true
+      state.proof2peers[msg.proofid] = (state.proof2peers[msg.proofid] || [])
+        .concat([msg.peer])
+      return state;
+    })
+  const oldProofReducer$ = oldrun$
+    .map(msg => state => {
+      state = JSON.parse(JSON.stringify(state));
+      state.proof2peers[msg.proofid] = (state.proof2peers[msg.proofid] || [])
+        .concat([msg.peer])
+      return Object.assign({}, state)
+    })
+  const bootReducer$ = boot$
+    .map(msg => state => {
+      state = JSON.parse(JSON.stringify(state));
+      state.proofs = _.omit(state.proofs, [msg.proofid]);
+      return Object.assign({}, state)
+    })
+  const enqueueReducer$ = ok$
+    .map(msg => state => {
+      state.queue.push(msg.proofid)
+      return Object.assign({}, state)
+    })
+  const dequeueReducer$ = dequeue$
+    .map(_ => state => {
+      state.kstate = "RUNNING";
+      state.queue = state.queue.slice(1);
+      return Object.assign({}, state);
+    })
+  const disconnectedReducer$ = Server
+    .filter(msg => msg.type == "disconnected")
+    .map(msg => state => {
+      Object
+        .keys(state.proof2peers)
+        .filter(proofid => state.proof2peers[proofid].indexOf(msg.peer) > -1)
+        .forEach(proofid => {
+          state.proof2peers[proofid] =
+            state.proof2peers[proofid]
+            .filter(peer => peer != msg.peer)
+        })
+      return Object.assign({}, state);
+    })
+
+  const proof_start$ = dequeue$
+    .compose(dropRepeats())
+    .map(proofid => ({
+      type: "start",
+      proofid
+    }))
+
+  const make$ = newrun$
+    .map(msg => Object.assign({}, msg, {type: "make"}))
+
+  const parsing_tmp$ = oldrun$
+    .map(msg => ({
+      type: "status",
+      data: "parsing",
+      peer: msg.peer,
+      proofid: msg.proofid
+    }))
+  const kstatus$ = K
+    .filter(msg => msg.type === "status")
+    .compose(broadcast(onion))
+  const syncing$ = Make
+    .filter(msg => msg.type == "syncing")
+    .map(msg => ({
+      type: "subscribe",
+      proofid: msg.proofid,
+      peer: msg.peer
+    }))
+  const subscribe$ = boot$
+    .compose(broadcast(onion))
+    .map(msg => ({
+      type: "subscribe",
+      proofid: msg.proofid,
+      peer: msg.peer
+    }))
 
   return {
-    Server: K,
-    K: Server,
-    onion: xs.merge(initialReducer$)
+    Server:  xs.merge(
+      Make,
+      kstatus$,
+      kmsg$,
+      notkmsg$,
+      parsing_tmp$
+    ),
+    Make: make$,
+    K: proof_start$,
+    Db: xs.merge(
+      subscribe$,
+      syncing$,
+      dbquery$
+    ),
+    onion: xs.merge(
+      initialReducer$,
+      newProofReducer$,
+      oldProofReducer$,
+      disconnectedReducer$,
+      enqueueReducer$,
+      dequeueReducer$,
+      bootReducer$
+    )
   };
 }
 
 const drivers = {
   Server: serverDriver(),
-  K: localDriver
+  K: kDriver,
+  Make: makeDriver,
+  Db: dbDriver
 };
 
 const wrappedMain = onionify(main);
