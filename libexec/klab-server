@@ -7,6 +7,7 @@ const kDriver = require("../lib/Driver/kDriver.js");
 const dbDriver = require("../lib/Driver/dbDriver.js");
 const makeDriver = require("../lib/Driver/makeDriver.js");
 const localDriver  = require("../lib/Driver/localDriver.js");
+const makeCliDriver  = require("../lib/Driver/cliDriver.js");
 const onionify = require('cycle-onionify').default;
 const sampleCombine = require("xstream/extra/sampleCombine").default;
 const dropRepeats = require("xstream/extra/dropRepeats").default;
@@ -22,7 +23,19 @@ const broadcast = onion => stream$ => stream$
     )
     .compose(flattenConcurrently)
 
-const main = ({onion, Server, K, Make, Db}) => {
+const main = ({onion, Server, K, Make, Db, Cli}) => {
+
+  Cli
+    .filter(key => key === "\u0003")
+    .addListener({
+      next: e => process.exit()
+    })
+  const view$ = onion.state$
+    .map(state => {
+      return {
+        main: JSON.stringify(state, false, 2)
+      }
+    })
 
   const dequeue$ = onion.state$
     .filter(state => state.kstate === "IDLE" && state.queue.length > 0)
@@ -89,6 +102,14 @@ const main = ({onion, Server, K, Make, Db}) => {
       state.kstate = "RUNNING";
       state.queue = state.queue.slice(1);
       return Object.assign({}, state);
+    })
+  const idle$ = K
+    .filter(msg => msg.type == "close")
+    .map(_ => state => {
+      return {
+        ...state,
+        kstate: "IDLE"
+      };
     })
   const disconnectedReducer$ = Server
     .filter(msg => msg.type == "disconnected")
@@ -161,8 +182,10 @@ const main = ({onion, Server, K, Make, Db}) => {
       disconnectedReducer$,
       enqueueReducer$,
       dequeueReducer$,
-      bootReducer$
-    )
+      bootReducer$,
+      idle$
+    ),
+    Cli: view$
   };
 }
 
@@ -170,7 +193,8 @@ const drivers = {
   Server: serverDriver(),
   K: kDriver,
   Make: makeDriver,
-  Db: dbDriver
+  Db: dbDriver,
+  Cli: makeCliDriver()
 };
 
 const wrappedMain = onionify(main);

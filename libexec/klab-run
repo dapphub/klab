@@ -11,7 +11,7 @@ const sha3 = function (str) {
     .toString()
 }
 
-const cliDriver = require("../lib/driver/cliDriver.js")
+const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
 const localDriver  = require("../lib/driver/localDriver.js");
 const main = require("../lib/main.js")
@@ -84,7 +84,7 @@ if(inspect) config.inspect = inspect;
 config.replay = !cmd["--no-replay"];
 
 const drivers = {
-  CLI: cliDriver,
+  CLI: makeCliDriver(),
   K: kDriver,
   Settings: () => xs.of(config)
 };
