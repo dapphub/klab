@@ -1,3 +1,13 @@
+
+Klab is split in two parts: the frontend and the backend.
+
+The backend deals with the k framework [1], a python script
+by runtimeverification that compiles the k rules [2] and a custom
+caching layer. It is written for multipeer access and communicates
+over websockets.
+The frontend is a cli tool to navigate over the generated statespace.
+
+
 ## Datatypes
 ### Messages
 All messages are json objects containing the attribute *type*,
@@ -13,8 +23,6 @@ other atributes depending on the type of the message.
 * getrule
 * getz3feedback
 * inspect
-
-
 
 
 ## Backend Drivers
@@ -63,3 +71,7 @@ Sends msgs:
 * msg
 * end
 
+
+# Ressources
+[1] - [https://github.com/kframework/k/tree/state-dumping](https://github.com/kframework/k/tree/state-dumping)
+[2] - https://github.com/runtimeverification/verified-smart-contracts/blob/master/resources/gen-spec.py
