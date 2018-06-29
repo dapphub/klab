@@ -10,7 +10,7 @@ const sha3 = function (str) {
     .digest('hex')
     .toString()
 }
-
+const path = require("path"); 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
 const localDriver  = require("../lib/driver/localDriver.js");
@@ -72,6 +72,16 @@ config.proofid = sha3(JSON.stringify({
   bin_runtime: config.bin_runtime,
   spec: config.spec
 }))
+
+//Check for a special z3 prelude to include or default to basic.smt2
+let z3prelude;
+if (testPath(config["z3prelude"])) {
+    z3prelude = path.join(process.cwd(),config.z3prelude);
+}
+else {
+    z3prelude = path.join(process.env.KLAB_EVMS_PATH, "./.build/k/k-distribution/include/z3/basic.smt2")
+}
+config.z3prelude = z3prelude;
 
 const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)

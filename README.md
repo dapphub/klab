@@ -1,5 +1,5 @@
 ## KLab
-A symbolic execution engine for EVM and explorer for K-framework reachability proofs.
+GUI for exploring K-framework reachability proofs.
 
 **This is an early alpha version for internal usage. Direct any questions in an issue or at  https://dapphub.chat/channel/k-framework .
 
