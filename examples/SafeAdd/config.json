@@ -1,5 +1,6 @@
 {
   "spec": "./spec.ini",
+  "prelude": "./exp.smt2",
   "lemmas": "./lemmas.k",
   "source": "./SafeAdd.sol",
   "solJson":  "./SafeAdd.sol.json",
