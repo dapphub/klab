@@ -10,6 +10,7 @@ const sha3 = function (str) {
     .digest('hex')
     .toString()
 }
+process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
@@ -60,7 +61,9 @@ else {
   "spec",
   "lemmas",
   "source",
+  "prelude"
 ].forEach(filetype => {
+  if(!(filetype in config)) return null;
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
 })
@@ -70,7 +73,8 @@ else {
 config.proofid = sha3(JSON.stringify({
   lemmas: config.lemmas,
   bin_runtime: config.bin_runtime,
-  spec: config.spec
+  spec: config.spec,
+  prelude: config.prelude
 }))
 
 const kDriver = cmd["--remote"]
