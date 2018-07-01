@@ -31,7 +31,7 @@ Usage:
   klab run [options]
 
 Options:
-  --no-replay               No replay
+  --force               No replay
   --remote
   --inspect=<id>
 `
@@ -85,7 +85,7 @@ const kDriver = cmd["--remote"]
 const inspect = cmd["--inspect"];
 if(inspect) config.inspect = inspect;
 
-config.replay = !cmd["--no-replay"];
+config.force = cmd["--force"];
 
 const drivers = {
   CLI: makeCliDriver(),
