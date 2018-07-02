@@ -38,6 +38,7 @@ Options:
   --force               No replay
   --remote
   --inspect=<id>
+  --clean
 `
 
 const cmd = docopt(usage, {
