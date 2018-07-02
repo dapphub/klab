@@ -10,6 +10,10 @@ const sha3 = function (str) {
     .digest('hex')
     .toString()
 }
+const {
+  get_pc_to_inst_map,
+  genSrcmapArr
+} = require("../lib/srchandler.js");
 process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
@@ -77,6 +81,18 @@ config.proofid = sha3(JSON.stringify({
   prelude: config.prelude
 }))
 
+
+const {
+  instructions,
+  pc_to_inst_map
+} = get_pc_to_inst_map(config.bin_runtime)
+const inst_to_pc = instructions.map((inst, i) => pc_to_inst_map.indexOf(i));
+
+config.instructions = instructions;
+config.pc_to_inst_map = pc_to_inst_map;
+config.inst_to_pc = inst_to_pc;
+config.srcmapArr = genSrcmapArr(config.sourcemap);
+
 const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)
   : localDriver
@@ -86,6 +102,7 @@ const inspect = cmd["--inspect"];
 if(inspect) config.inspect = inspect;
 
 config.force = cmd["--force"];
+config.clean = cmd["--clean"];
 
 const drivers = {
   CLI: makeCliDriver(),
