@@ -94,6 +94,10 @@ config.pc_to_inst_map = pc_to_inst_map;
 config.inst_to_pc = inst_to_pc;
 config.srcmapArr = genSrcmapArr(config.sourcemap);
 
+config.connection = {
+  type: cmd["--remote"] ? "remote" : "local",
+  host: config.host
+}
 const kDriver = cmd["--remote"]
   ? remoteDriver(config.host)
   : localDriver
