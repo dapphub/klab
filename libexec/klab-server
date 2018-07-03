@@ -36,10 +36,10 @@ const Queue = ({onion, Make, K}) => {
   }))
   const enqueueReducer$ = Make
     .filter(msg => msg.type === "build")
-    .map(msg => state => {
-      state.queue.push(msg.proofid)
-      return Object.assign({}, state)
-    })
+    .map(msg => state => ({
+      ...state,
+      state.queue: _.unique(state.queue.concat([msg.proofid]))
+    }))
   const dequeueReducer$ = dequeue$
     .map(_ => state => {
       state.kstate = "RUNNING";
