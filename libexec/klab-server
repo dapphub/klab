@@ -89,6 +89,7 @@ const main = ({onion, Server, K, Make, Db, Cli}) => {
       proofid: msg.proofid,
       peer: msg.peer
     }))
+    .filter(msg => msg.type !== "unknown")
   const notkmsg$ = Db
     .filter(msg => msg.type != "msg")
 
