@@ -6,7 +6,6 @@ const serverDriver = require("../lib/driver/serverDriver.js");
 const kDriver = require("../lib/driver/kDriver.js");
 const dbDriver = require("../lib/driver/dbDriver.js");
 const makeDriver = require("../lib/driver/makeDriver.js");
-const localDriver  = require("../lib/driver/localDriver.js");
 const makeCliDriver  = require("../lib/driver/cliDriver.js");
 const onionify = require('cycle-onionify').default;
 const isolate = require('@cycle/isolate').default;

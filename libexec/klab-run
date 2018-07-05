@@ -18,7 +18,6 @@ process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
-const localDriver  = require("../lib/driver/localDriver.js");
 const main = require("../lib/main.js")
 const testPath = path => {
   try {
@@ -36,7 +35,6 @@ Usage:
 
 Options:
   --force               No replay
-  --remote
   --inspect=<id>
   --clean
 `
@@ -95,14 +93,11 @@ config.inst_to_pc = inst_to_pc;
 config.srcmapArr = genSrcmapArr(config.sourcemap);
 
 config.connection = {
-  type: cmd["--remote"] ? "remote" : "local",
+  type: "remote",
   host: config.host
 }
-const kDriver = cmd["--remote"]
-  ? remoteDriver(config.host)
-  : localDriver
-  ;
 
+const kDriver = remoteDriver(config.host);
 const inspect = cmd["--inspect"];
 if(inspect) config.inspect = inspect;
 
