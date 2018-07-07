@@ -137,7 +137,9 @@ const drivers = {
   K: kDriver,
   Make: makeDriver,
   Db: dbDriver,
-  Cli: makeCliDriver()
+  Cli: makeCliDriver({
+    type: "console"
+  })
 };
 
 const wrappedMain = onionify(main);
