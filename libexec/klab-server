@@ -82,7 +82,10 @@ const main = ({onion, Server, K, Make, Db, Cli}) => {
     })
 
   const dbquery$ = Server
-    .filter(msg => ["getblob"].indexOf(msg.type) > -1)
+    .filter(msg => [
+      "getblob"
+      // "getrule"
+    ].indexOf(msg.type) > -1)
   const kmsg$ = Db
     .filter(msg => msg.type == "msg")
     .map(msg => Object.assign({}, pure(msg), {
