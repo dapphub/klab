@@ -13,7 +13,7 @@ make deps
 make
 ```
 
-## SetUp
+## Setup
 
 ```
 git clone git@github.com:dapphub/kdebug.git
@@ -25,11 +25,10 @@ Export a path variable (e.g. save them in `~/.profiles`) pointing to the evm-sem
 ```
 export KLAB_EVMS_PATH=/path/to/evm-semantics
 ```
-If you want to use a custom version of K you can use the `KLAB_K_PATH` variable:
+OPTIONAL: If you want to use a custom version of K you can use the `KLAB_K_PATH` variable:
 ```
 export KLAB_K_PATH=/path/to/k
 ```
-
 
 You also need to set the temporary directory to use, for example:
 ```
@@ -37,12 +36,13 @@ export TMPDIR=/tmp
 ```
 
 ## Usage
-Write a `spec.ini` file with the property you want to prove and put it in a directory together
-with the solidity source code file together with the corresponding `.sol.json`.
+Fire up a klab server instance by running `klab server` in a terminal.
+Write a `spec.ini` reachability proof and put it in a directory together
+with the correponding solidity source code in a `.sol.json` file.
 From the same directory, run:
 
 `klab run`
 
- to start the klab interactive tool.
+ to connect to the server and start the klab interactive tool.
 
-[Example usage](../master/examples)
+To begin with, you can try out an example spec at [Example usage](../master/examples)
