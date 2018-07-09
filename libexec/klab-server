@@ -140,6 +140,7 @@ const drivers = {
   Make: makeDriver,
   Db: dbDriver,
   Cli: makeCliDriver({
+    in: false,
     type: "console"
   })
 };
