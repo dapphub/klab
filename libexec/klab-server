@@ -65,20 +65,20 @@ const Queue = ({onion, Make, K}) => {
   }
 }
 
-const main = ({onion, Server, K, Make, Db, Cli}) => {
+const main = ({onion, Server, K, Make, Db}) => {
 
-  Cli
-    .filter(key => key === "\u0003")
-    .addListener({
-      next: e => process.exit()
-    })
-
-  const view$ = onion.state$
-    .map(state => {
-      return {
-        main: JSON.stringify(state, false, 2)
-      }
-    })
+  // Cli
+  //   .filter(key => key === "\u0003")
+  //   .addListener({
+  //     next: e => process.exit()
+  //   })
+  //
+  // const view$ = onion.state$
+  //   .map(state => {
+  //     return {
+  //       main: JSON.stringify(state, false, 2)
+  //     }
+  //   })
 
   const dbquery$ = Server
     .filter(msg => [
@@ -130,7 +130,7 @@ const main = ({onion, Server, K, Make, Db, Cli}) => {
       dbquery$
     ),
     onion: queueSinks.onion,
-    Cli: view$
+    // Cli: view$
   };
 }
 
@@ -139,10 +139,10 @@ const drivers = {
   K: kDriver,
   Make: makeDriver,
   Db: dbDriver,
-  Cli: makeCliDriver({
-    in: false,
-    type: "console"
-  })
+  // Cli: makeCliDriver({
+  //   in: false,
+  //   type: "console"
+  // })
 };
 
 const wrappedMain = onionify(main);
