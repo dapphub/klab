@@ -17,8 +17,8 @@ Install it with (you will need to install the KEVM dependencies listed in the `e
 git clone 'https://github.com/dapphub/evm-semantics'
 cd evm-semantics
 git checkout klab
-make deps
-make
+make k-deps tangle-deps
+make build-java
 ```
 
 ## Setup
@@ -53,16 +53,18 @@ Finally, export the path to the `klab` executable:
 export PATH=$PATH:/path/to/klab/bin
 ```
 
-## Usage
+## Example Usage
 
 Fire up a klab server instance by running `klab server` in a terminal.
-Write a `spec.ini` reachability proof and put it in a directory together with the correponding solidity source code in a `.sol.json` file.
-From the same directory, run:
+This can be done from any directory, but the above `*PATH` variables must be set.
+
+Within a proof directory (with a `spec.ini` file), you can run `klab run` to connect to the server and request a proof.
+
+For example:
 
 ```sh
+cd examples/SafeAdd
 klab run
 ```
 
 to connect to the server and start the klab interactive tool.
-
-To begin with, you can try out an example spec at [Example usage](../master/examples).
