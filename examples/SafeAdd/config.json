@@ -4,7 +4,7 @@
   "lemmas": "./lemmas.k",
   "source": "./SafeAdd.sol",
   "solJson":  "./SafeAdd.sol.json",
-  "host": "159.89.12.113:8080",
+  "host": "localhost:8080",
   "control": {
     "0"      : "branch 0",
     "1"      : "branch 1",
