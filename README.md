@@ -20,36 +20,36 @@ To setup dependencies, run:
 
 ## Environment Setup
 
-Export a path variable (e.g. save them in `~/.profiles`) pointing to the evm-semantics directory:
+The following environment variables should be set (e.g. save them in `~/.profiles`):
 
 ```sh
 export KLAB_EVMS_PATH=/path/to/evm-semantics
+export PATH=$PATH:/path/to/klab/bin
+export TMPDIR=/tmp
 ```
 
-**OPTIONAL**: If you want to use a custom version of K you can use the `KLAB_K_PATH` variable:
+If you used the above `make deps`, you can do (from the root of the repository):
+
+```sh
+export KLAB_EVMS_PATH=$(pwd)/evm-semantics
+export PATH=$PATH:$(pwd)/bin
+export TMPDIR=/tmp
+```
+
+**OPTIONAL**: If you want to use a custom version of K you can also do:
 
 ```sh
 export KLAB_K_PATH=/path/to/k
 ```
 
-You also need to set the temporary directory to use, for example:
-
-```sh
-export TMPDIR=/tmp
-```
-
-To make klab available from the terminal, either
-export the path to the `klab` executable:
-
-```sh
-export PATH=$PATH:/path/to/klab/bin
-```
+To make klab available from the terminal, either export the path to the `klab` executable:
 
 or simply run 
 
 ```sh
 make
 ```
+
 in the klab main directory.
 
 ## Get started
