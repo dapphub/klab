@@ -9,23 +9,23 @@ Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework
 
 You will need a modified version of evm-semantics, containing a modified version of k:
 
--   <https://github.com/dapphub/evm-semantics> use the `klab` branch
+-   <https://github.com/dapphub/evm-semantics> use the `dapphub/stable` branch
 
 Install it with (you will need to install the KEVM dependencies listed in the `evm-semantics` repository):
 
 ```sh
 git clone 'https://github.com/dapphub/evm-semantics'
 cd evm-semantics
-git checkout klab
-make k-deps tangle-deps
-make build-java
+git checkout dapphub/stable
+make k-deps tangle-deps -B
+make build-java -B
 ```
 
 ## Setup
-
-Build and install the NodeJS package (requires having `npm`):
-
+To install klab, clone this repository and install it with `npm`:
 ```sh
+git clone 'https://github.com/dapphub/klab
+cd klab
 npm install
 ```
 
@@ -47,13 +47,19 @@ You also need to set the temporary directory to use, for example:
 export TMPDIR=/tmp
 ```
 
-Finally, export the path to the `klab` executable:
+To make klab available from the terminal, either
+export the path to the `klab` executable:
 
 ```sh
 export PATH=$PATH:/path/to/klab/bin
 ```
+or simply run 
+```sh
+make
+```
+in the klab main directory.
 
-## Example Usage
+## Get started
 
 Fire up a klab server instance by running `klab server` in a terminal.
 This can be done from any directory, but the above `*PATH` variables must be set.
@@ -66,5 +72,14 @@ For example:
 cd examples/SafeAdd
 klab run
 ```
-
 to connect to the server and start the klab interactive tool.
+
+## Usage
+Toggle different views by pressing any of the following keys:
+`t` - display part of the k __t__erm
+`N` - step to __n__ext k term
+`n` - step to __n__ext branching point
+`P` - step to __p__revious k term
+`p` - step to __p__revious branching point
+`b` - display __b__ehavior
+`h` - display __h__elp (TODO)
