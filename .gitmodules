@@ -1,0 +1,4 @@
+[submodule "evm-semantics"]
+	path = evm-semantics
+	url = https://github.com/dapphub/evm-semantics
+	ignore = untracked
