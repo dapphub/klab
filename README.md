@@ -76,10 +76,11 @@ to connect to the server and start the klab interactive tool.
 
 ## Usage
 Toggle different views by pressing any of the following keys:
-`t` - display part of the k __t__erm
-`N` - step to __n__ext k term
-`n` - step to __n__ext branching point
-`P` - step to __p__revious k term
-`p` - step to __p__revious branching point
-`b` - display __b__ehavior
-`h` - display __h__elp (TODO)
+
+* `t` - display part of the k **t**erm
+* `N` - step to **n**ext k term
+* `n` - step to **n**ext branching point
+* `P` - step to **p**revious k term
+* `p` - step to **p**revious branching point
+* `b` - display **b**ehavior
+* `h` - display **h**elp (TODO)
