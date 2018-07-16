@@ -47,7 +47,7 @@ To make klab available from the terminal, either export the path to the `klab` e
 or simply run 
 
 ```sh
-make
+make link
 ```
 
 in the klab main directory.
