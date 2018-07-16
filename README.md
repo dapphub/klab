@@ -5,13 +5,18 @@ GUI for exploring K-framework reachability proofs.
 **NOTE:** This is an early alpha version for internal usage.
 Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework>.
 
-## Requirements
+## Dependencies
+
+-   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics) (excluding the OCaml/Opam dependencies).
+-   `npm` for installing the JavaScript dependencies.
+
+## Setup KEVM
 
 You will need a modified version of evm-semantics, containing a modified version of k:
 
 -   <https://github.com/dapphub/evm-semantics> use the `dapphub/stable` branch
 
-Install it with (you will need to install the KEVM dependencies listed in the `evm-semantics` repository):
+Install it with:
 
 ```sh
 git clone 'https://github.com/dapphub/evm-semantics'
@@ -22,7 +27,9 @@ make build-java -B
 ```
 
 ## Setup
+
 To install klab, clone this repository and install it with `npm`:
+
 ```sh
 git clone 'https://github.com/dapphub/klab
 cd klab
@@ -53,7 +60,9 @@ export the path to the `klab` executable:
 ```sh
 export PATH=$PATH:/path/to/klab/bin
 ```
+
 or simply run 
+
 ```sh
 make
 ```
@@ -75,6 +84,7 @@ klab run
 to connect to the server and start the klab interactive tool.
 
 ## Usage
+
 Toggle different views by pressing any of the following keys:
 
 * `t` - display part of the k **t**erm
