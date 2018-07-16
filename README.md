@@ -12,29 +12,13 @@ Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework
 
 ## Setup KEVM
 
-You will need a modified version of evm-semantics, containing a modified version of k:
+To setup dependencies, run:
 
--   <https://github.com/dapphub/evm-semantics> use the `dapphub/stable` branch
+-   `make deps-kevm`: initialize KEVM submodule and build it.
+-   `make deps-npm`: install JavaScript dependencies.
+-   `make deps`: do both.
 
-Install it with:
-
-```sh
-git clone 'https://github.com/dapphub/evm-semantics'
-cd evm-semantics
-git checkout dapphub/stable
-make k-deps tangle-deps -B
-make build-java -B
-```
-
-## Setup
-
-To install klab, clone this repository and install it with `npm`:
-
-```sh
-git clone 'https://github.com/dapphub/klab
-cd klab
-npm install
-```
+## Environment Setup
 
 Export a path variable (e.g. save them in `~/.profiles`) pointing to the evm-semantics directory:
 
