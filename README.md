@@ -65,7 +65,14 @@ For example:
 cd examples/SafeAdd
 klab run
 ```
+
 to connect to the server and start the klab interactive tool.
+
+To ensure that a cached version of the proof is not being used, do:
+
+```sh
+klab run --force
+```
 
 ## Usage
 
