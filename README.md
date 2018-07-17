@@ -10,20 +10,19 @@ KLab is a client-server architecture, meaning that you need to have a KLab serve
 The server will recieve proof requests and perform them, while the client will let you explore/work on the proof.
 Ask at <https://dapphub.chat/channel/k-framework> for access to a KLab server if you do not want to setup your own.
 
-KLab Client
------------
-
-The client simple allows exploring a proof that the server has generated.
+Setting up KLab Server and Client
+---------------------------------
 
 ### Dependencies
 
+-   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies.
 -   `npm` for installing the JavaScript dependencies.
 
-Run (to install npm dependencies):
+Run (to install npm dependencies and KEVM):
 
-```sh
-make deps-npm
-```
+-   `make deps-npm`: Install npm dependencies.
+-   `make deps-kevm`: Clone and build KEVM semantics (requires have KEVM dependencies setup).
+-   `make deps`: do both.
 
 ### Environment Setup
 
@@ -33,9 +32,45 @@ Your should tell KLab where the `klab` executable lives, e.g.:
 export PATH=$PATH:/path/to/klab/bin
 ```
 
-### Running
+For running a `klab server`, you need to additionally set:
 
-Within a proof directory (with a `spec.ini` file), you can run `klab run` to connect to the server and request a proof.
+```sh
+export KLAB_EVMS_PATH=/path/to/evm-semantics
+export TMPDIR=/tmp
+```
+
+**OPTIONAL**: If you want to use a custom version of K you can also do:
+
+```sh
+export KLAB_K_PATH=/path/to/k
+```
+
+### Installing Globally
+
+To make klab available from the terminal, either export the path to the `klab` executable.
+Also provided is the following command:
+
+```sh
+make link
+```
+
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
+
+Running KLab
+------------
+
+### Run Server
+
+To start the KLab server, run:
+
+```sh
+klab server
+```
+
+### Run Client
+
+The KLab client is run in a proof directory, and will request that the KLab server execute the proof.
+From within a proof directory (with a `spec.ini` file), you can run `klab run` to connect to the server and request a proof.
 The server location is set in the proof-directory's `config.json` file, where the default is `127.0.0.1`.
 
 For example:
@@ -47,13 +82,15 @@ klab run
 
 To ensure that a cached version of the proof is not being used, you need to first:
 
--   Remove the temporary directory on the server.
+-   Remove the temporary directory on the server (printed out in the server log).
 -   Run `klab` with the `--force` option.
 
 ```sh
 rm -rf /path/to/proof/dir/on/server
 klab run --force
 ```
+
+### Key Bindings
 
 Toggle different views by pressing any of the following keys:
 
@@ -71,53 +108,3 @@ Toggle different views by pressing any of the following keys:
 -   `P` - step to **p**revious k term
 
 See file [examples/SafeAdd/config.json] for more example movement commands.
-
-KLab Server
------------
-
-In addition to the install instructions for KLab Client, do the following.
-
-### Dependencies
-
-First install all the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies.
-
-Run (to clone KEVM submodule and build it):
-
-```sh
-make deps-kevm
-```
-
-### Environment Setup
-
-The following extra environment variables should be set:
-
-```sh
-export KLAB_EVMS_PATH=/path/to/evm-semantics
-export TMPDIR=/tmp
-```
-
-**OPTIONAL**: If you want to use a custom version of K you can also do:
-
-```sh
-export KLAB_K_PATH=/path/to/k
-```
-
-### Running
-
-To start the KLab server, run:
-
-```sh
-klab server
-```
-
-Installing Globally
--------------------
-
-To make klab available from the terminal, either export the path to the `klab` executable.
-Also provided is the following command:
-
-```sh
-make link
-```
-
-This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
