@@ -78,10 +78,12 @@ klab run --force
 
 Toggle different views by pressing any of the following keys:
 
-* `t` - display part of the k **t**erm
+* `k` - display the `<k>` cell.
 * `N` - step to **n**ext k term
 * `n` - step to **n**ext branching point
 * `P` - step to **p**revious k term
 * `p` - step to **p**revious branching point
 * `b` - display **b**ehavior
 * `h` - display **h**elp (TODO)
+
+See file [examples/SafeAdd/config.json] for more example movement commands.
