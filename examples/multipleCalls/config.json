@@ -3,7 +3,7 @@
   "lemmas": "./lemmas.k",
   "source": "./easyNest.sol",
   "solJson":  "./easyNest.sol.json",
-  "host": "localhost:8080",
+  "host": "127.0.0.1:8080",
   "omit": [
     "generatedTop.ethereum.evm.callState.program",
     "generatedTop.ethereum.evm.callState.programBytes",

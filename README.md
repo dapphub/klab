@@ -1,70 +1,77 @@
-## KLab
+KLab
+====
 
 GUI for exploring K-framework reachability proofs.
 
 **NOTE:** This is an early alpha version for internal usage.
 Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework>.
 
-## Requirements
+KLab is a client-server architecture, meaning that you need to have a KLab server and a KLab client running.
+The server will recieve proof requests and perform them, while the client will let you explore/work on the proof.
+Ask at <https://dapphub.chat/channel/k-framework> for access to a KLab server if you do not want to setup your own.
 
-You will need a modified version of evm-semantics, containing a modified version of k:
+Setting up KLab Server and Client
+---------------------------------
 
--   <https://github.com/dapphub/evm-semantics> use the `dapphub/stable` branch
+### Dependencies
 
-Install it with (you will need to install the KEVM dependencies listed in the `evm-semantics` repository):
+-   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies.
+-   `npm` for installing the JavaScript dependencies.
+
+Run (to install npm dependencies and KEVM):
+
+-   `make deps-npm`: Install npm dependencies.
+-   `make deps-kevm`: Clone and build KEVM semantics (requires have KEVM dependencies setup).
+-   `make deps`: do both.
+
+### Environment Setup
+
+Your should tell KLab where the `klab` executable lives, e.g.:
 
 ```sh
-git clone 'https://github.com/dapphub/evm-semantics'
-cd evm-semantics
-git checkout dapphub/stable
-make k-deps tangle-deps -B
-make build-java -B
+export PATH=$PATH:/path/to/klab/bin
 ```
 
-## Setup
-To install klab, clone this repository and install it with `npm`:
-```sh
-git clone 'https://github.com/dapphub/klab
-cd klab
-npm install
-```
-
-Export a path variable (e.g. save them in `~/.profiles`) pointing to the evm-semantics directory:
+For running a `klab server`, you need to additionally set:
 
 ```sh
 export KLAB_EVMS_PATH=/path/to/evm-semantics
+export TMPDIR=/tmp
 ```
 
-**OPTIONAL**: If you want to use a custom version of K you can use the `KLAB_K_PATH` variable:
+**OPTIONAL**: If you want to use a custom version of K you can also do:
 
 ```sh
 export KLAB_K_PATH=/path/to/k
 ```
 
-You also need to set the temporary directory to use, for example:
+### Installing Globally
+
+To make klab available from the terminal, either export the path to the `klab` executable.
+Also provided is the following command:
 
 ```sh
-export TMPDIR=/tmp
+make link
 ```
 
-To make klab available from the terminal, either
-export the path to the `klab` executable:
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
+
+Running KLab
+------------
+
+### Run Server
+
+To start the KLab server, run:
 
 ```sh
-export PATH=$PATH:/path/to/klab/bin
+klab server
 ```
-or simply run 
-```sh
-make
-```
-in the klab main directory.
 
-## Get started
+### Run Client
 
-Fire up a klab server instance by running `klab server` in a terminal.
-This can be done from any directory, but the above `*PATH` variables must be set.
-
-Within a proof directory (with a `spec.ini` file), you can run `klab run` to connect to the server and request a proof.
+The KLab client is run in a proof directory, and will request that the KLab server execute the proof.
+From within a proof directory (with a `spec.ini` file), you can run `klab run` to connect to the server and request a proof.
+The server location is set in the proof-directory's `config.json` file, where the default is `127.0.0.1`.
 
 For example:
 
@@ -72,15 +79,32 @@ For example:
 cd examples/SafeAdd
 klab run
 ```
-to connect to the server and start the klab interactive tool.
 
-## Usage
+To ensure that a cached version of the proof is not being used, you need to first:
+
+-   Remove the temporary directory on the server (printed out in the server log).
+-   Run `klab` with the `--force` option.
+
+```sh
+rm -rf /path/to/proof/dir/on/server
+klab run --force
+```
+
+### Key Bindings
+
 Toggle different views by pressing any of the following keys:
 
-* `t` - display part of the k **t**erm
-* `N` - step to **n**ext k term
-* `n` - step to **n**ext branching point
-* `P` - step to **p**revious k term
-* `p` - step to **p**revious branching point
-* `b` - display **b**ehavior
-* `h` - display **h**elp (TODO)
+**View Commands**:
+
+-   `k` - display the `<k>` cell.
+-   `b` - display **b**ehavior
+-   `e` - display the **e**vm specific module.
+
+**Navigation Commands**:
+
+-   `n` - step to **n**ext opcode
+-   `p` - step to **p**revious opcode
+-   `N` - step to **n**ext k term
+-   `P` - step to **p**revious k term
+
+See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
