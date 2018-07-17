@@ -45,9 +45,13 @@ cd examples/SafeAdd
 klab run
 ```
 
-To ensure that a cached version of the proof is not being used, do:
+To ensure that a cached version of the proof is not being used, you need to first:
+
+-   Remove the temporary directory on the server.
+-   Run `klab` with the `--force` option.
 
 ```sh
+rm -rf /path/to/proof/dir/on/server
 klab run --force
 ```
 
