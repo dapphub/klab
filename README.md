@@ -107,4 +107,4 @@ Toggle different views by pressing any of the following keys:
 -   `N` - step to **n**ext k term
 -   `P` - step to **p**revious k term
 
-See file [examples/SafeAdd/config.json] for more example movement commands.
+See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
