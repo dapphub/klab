@@ -24,4 +24,11 @@ describe('testing KAST format', function() {
   it('visitChildren should be able to replace children with other children', function() {
     assert.deepEqual(kast.visitChildren(callData, (arg => intToken)), kast.KApply("<callData>", [intToken]))
   })
+
+  it('visitTopDown should ignore non-KApplys', function() {
+    assert.deepEqual(intToken, kast.visitTopDown(intToken, kast.omitArgs))
+  })
+  it('visitBottomUp should ignore non-KApplys', function() {
+    assert.deepEqual(intToken, kast.visitBottomUp(intToken, kast.omitArgs))
+  })
 })
