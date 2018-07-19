@@ -36,6 +36,8 @@ describe('testing KAST format', function() {
 
   it('flattenKLabel of `_:__EVM-DATA`', function() {
     assert.deepEqual(flattenedCallData, kast.visitBottomUp(callData, kast.flattenKLabel("_:__EVM-DATA")))
-    assert.deepEqual(flattenedCallData, kast.visitTopDown(callData, kast.flattenKLabel("_:__EVM-DATA")))
+  })
+  it('flattenKLabels of `_:__EVM-DATA`', function() {
+    assert.deepEqual(flattenedCallData, kast.flattenKLabels(["_:__EVM-DATA"])(callData))
   })
 })
