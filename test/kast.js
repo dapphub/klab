@@ -69,4 +69,13 @@ describe('testing KAST format', function() {
     assert.deepEqual(kast.match(wordStackPatternLinear,    wordStack) , null)
   })
 
+  it('substitution should traverse and substitute variables', function() {
+    assert.deepEqual(kast.substitute(pattern1(kast.KInt(3)),        {"x": kast.KInt(100)}), pattern1(kast.KInt(3)))
+    assert.deepEqual(kast.substitute(pattern1(kast.KVariable("x")), {"x": kast.KInt(100)}), pattern1(kast.KInt(100)))
+    assert.deepEqual(kast.substitute(pattern1(kast.KVariable("x")), {"y": kast.KInt(100)}), pattern1(kast.KVariable("x")))
+
+    assert.deepEqual(kast.substitute(kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KVariable("y")]), {"y": kast.KInt(100)                    }), kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KInt(100)]))
+    assert.deepEqual(kast.substitute(kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KVariable("y")]), {"y": kast.KInt(100) , "x": kast.KInt(3)}), kast.KApply("dummy", [pattern1(kast.KInt(3)) , kast.KInt(100)]))
+    assert.deepEqual(kast.substitute(kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KVariable("x")]), {"y": kast.KInt(100) , "x": kast.KInt(3)}), kast.KApply("dummy", [pattern1(kast.KInt(3)) , kast.KInt(3)]))
+  })
 })
