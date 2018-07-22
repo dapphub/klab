@@ -213,5 +213,13 @@ describe('testing KAST format', function() {
 
     assert.deepEqual(pattern1(kast.KInt(4)), kast.rewrite(kast.KInt(3), kast.KInt(4))(pattern1(kast.KInt(3))))
     assert.deepEqual(pattern1(kast.KInt(4)), kast.rewrite(pattern1(kast.KVariable("x")), pattern1(kast.KInt(4)))(pattern1(kast.KInt(3))))
+
+    var rewriter = kast.rewriteRequire ( kast.KApply("_:__EVM-DATA", [ kast.KVariable("x")                                        , kast.KVariable("xs") ])
+                                       , kast.KApply("_:__EVM-DATA", [ kast.KApply("_*_", [ kast.KInt(2) , kast.KVariable("x") ]) , kast.KVariable("xs") ])
+                                       , (subst => kast.isIntToken(subst["x"]))
+                                       )
+
+    assert.deepEqual(rewriter(wordStack), wordStackDoubled)
+    assert.deepEqual(rewriter(callData), callDataDoubled)
   })
 })
