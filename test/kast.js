@@ -78,4 +78,13 @@ describe('testing KAST format', function() {
     assert.deepEqual(kast.substitute(kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KVariable("y")]), {"y": kast.KInt(100) , "x": kast.KInt(3)}), kast.KApply("dummy", [pattern1(kast.KInt(3)) , kast.KInt(100)]))
     assert.deepEqual(kast.substitute(kast.KApply("dummy", [pattern1(kast.KVariable("x")) , kast.KVariable("x")]), {"y": kast.KInt(100) , "x": kast.KInt(3)}), kast.KApply("dummy", [pattern1(kast.KInt(3)) , kast.KInt(3)]))
   })
+
+  it('rewriting should do what we expect', function() {
+    assert.deepEqual(kast.KInt(4), kast.rewriteTopRequire(kast.KInt(3), kast.KInt(4), (subst => true))(kast.KInt(3)))
+    assert.deepEqual(kast.KInt(4), kast.rewriteTop(kast.KInt(3), kast.KInt(4))(kast.KInt(3)))
+    assert.deepEqual(kast.KInt(4), kast.rewrite(kast.KInt(3), kast.KInt(4))(kast.KInt(3)))
+
+    assert.deepEqual(pattern1(kast.KInt(4)), kast.rewrite(kast.KInt(3), kast.KInt(4))(pattern1(kast.KInt(3))))
+    assert.deepEqual(pattern1(kast.KInt(4)), kast.rewrite(pattern1(kast.KVariable("x")), pattern1(kast.KInt(4)))(pattern1(kast.KInt(3))))
+  })
 })
