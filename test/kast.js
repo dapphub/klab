@@ -2,10 +2,14 @@ const kast   = require('../lib/kast.js')
 const assert = require('assert')
 
 var callData
-var flattenedCallData
+var callDataFlattened
+var callDataNthByteOfFlattened
 var callDataDoubled
 
 var wordStack
+var wordStackDoubled
+var wordStackNthByteOf
+var wordStackNthByteOfFlattened
 var wordStackPatternLinear
 var wordStackPatternNonLinear
 
@@ -56,7 +60,7 @@ describe('testing KAST format', function() {
                                                     ]
                                    )
 
-    flattenedCallData = kast.KApply( "<callData>" , [ kast.KApply("_:__EVM-DATA" , [ kast.KInt(10) ,
+    callDataFlattened = kast.KApply( "<callData>" , [ kast.KApply("_:__EVM-DATA" , [ kast.KInt(10) ,
                                                                                      kast.KInt(249) ,
                                                                                      kast.KInt(213) ,
                                                                                      kast.KInt(224) ,
@@ -97,6 +101,14 @@ describe('testing KAST format', function() {
                                                                  )
                                                     ]
                                    )
+
+    callDataNthByteOfFlattened = kast.KApply( "<callData>" , [ kast.KApply("_:__EVM-DATA" , [ kast.KInt(10) ,
+                                                               kast.KApply("_:__EVM-DATA" , [ kast.KInt(249) ,
+                                                               kast.KApply("_:__EVM-DATA" , [ kast.KInt(213) ,
+                                                               kast.KApply("_:__EVM-DATA" , [ kast.KInt(224) ,
+                                                               kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(0) , kast.KInt(32)]) ,
+                                                               kast.KApply("_++__EVM-DATA" , [ kast.KApply("#padToWidth" , [kast.KInt(32) , kast.KApply("#asByteStack" , [ kast.KApply("#unsigned" , [kast.KVariable("Delta_D")])])]) , kast.KApply(".WordStack_EVM-DATA" , [])])
+                                                               ])])])])])])
 
     callDataDoubled   = kast.KApply( "<callData>" , [ kast.KApply("_:__EVM-DATA" , [ kast.KApply("_*_", [ kast.KInt(2) , kast.KInt(10)  ]) ,
                                                       kast.KApply("_:__EVM-DATA" , [ kast.KApply("_*_", [ kast.KInt(2) , kast.KInt(249) ]) ,
@@ -142,6 +154,15 @@ describe('testing KAST format', function() {
     wordStack        = kast.KApply("_:__EVM-DATA", [ kast.KInt(1) , kast.KApply("_:__EVM-DATA", [ kast.KInt(3) , kast.KApply(".WordStack_EVM-DATA", []) ]) ])
     wordStackDoubled = kast.KApply("_:__EVM-DATA", [ kast.KApply("_*_", [ kast.KInt(2) , kast.KInt(1) ]) , kast.KApply("_:__EVM-DATA", [ kast.KApply("_*_", [ kast.KInt(2) , kast.KInt(3) ]) , kast.KApply(".WordStack_EVM-DATA", []) ]) ])
 
+    wordStackNthByteOf          = kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(17) , kast.KInt(32)]) ,
+                                  kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(18) , kast.KInt(32)]) ,
+                                  kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(19) , kast.KInt(32)]) ,
+                                  kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(20) , kast.KInt(32)]) ,
+                                  kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(21) , kast.KInt(32)]) ,
+                                  kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(22) , kast.KInt(32)]) ,
+                                  kast.KApply(".WordStack_EVM", [])])])])])])])
+    wordStackNthByteOfFlattened = kast.KApply("_:__EVM-DATA" , [ kast.KApply("nthbyteof" , [kast.KVariable("V_u") , kast.KInt(17) , kast.KInt(32)]) , kast.KApply(".WordStack_EVM", [])])
+
     wordStackPatternLinear    = kast.KApply("_:__EVM-DATA", [ kast.KVariable("x") , kast.KApply("_:__EVM-DATA", [ kast.KVariable("x") , kast.KApply(".WordStack_EVM-DATA", []) ]) ])
     wordStackPatternNonLinear = kast.KApply("_:__EVM-DATA", [ kast.KVariable("x") , kast.KApply("_:__EVM-DATA", [ kast.KVariable("y") , kast.KApply(".WordStack_EVM-DATA", []) ]) ])
 
@@ -171,16 +192,16 @@ describe('testing KAST format', function() {
   })
 
   it('flattenKLabel of `_:__EVM-DATA`', function() {
-    assert.deepEqual(flattenedCallData, kast.visitBottomUp(callData, kast.flattenKLabel("_:__EVM-DATA")))
+    assert.deepEqual(callDataFlattened, kast.visitBottomUp(callData, kast.flattenKLabel("_:__EVM-DATA")))
   })
   it('flattenKLabels of `_:__EVM-DATA`', function() {
-    assert.deepEqual(flattenedCallData, kast.flattenKLabels(["_:__EVM-DATA"])(callData))
+    assert.deepEqual(callDataFlattened, kast.flattenKLabels(["_:__EVM-DATA"])(callData))
   })
 
   it('variables should match anything', function() {
     assert.deepEqual(kast.match(kast.KVariable("test"), kast.KInt(1)), {"test" : kast.KInt(1)})
     assert.deepEqual(kast.match(kast.KVariable("test"), callData), {"test" : callData})
-    assert.deepEqual(kast.match(kast.KVariable("test"), flattenedCallData), {"test" : flattenedCallData})
+    assert.deepEqual(kast.match(kast.KVariable("test"), callDataFlattened), {"test" : callDataFlattened})
   })
 
   it('simple nested pattern matches should succeed', function() {
@@ -221,5 +242,10 @@ describe('testing KAST format', function() {
 
     assert.deepEqual(rewriter(wordStack), wordStackDoubled)
     assert.deepEqual(rewriter(callData), callDataDoubled)
+  })
+
+  it('flattenNthByteOp via rewriting', function() {
+    assert.deepEqual(wordStackNthByteOfFlattened, kast.flattenNthByteOp(wordStackNthByteOf))
+    assert.deepEqual(callDataNthByteOfFlattened, kast.flattenNthByteOp(callData))
   })
 })
