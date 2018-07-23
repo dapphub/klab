@@ -75,6 +75,17 @@ requires:
 
 \normalsize
 
+Steps
+-----
+
+1.  Open README.md to follow install instructions for KLab.
+2.  Setup environment variables for the KLab server and the KLab client.
+3.  Start KLab server (`klab server`).
+4.  In directory `examples/SafeAdd`, change the spec to not pass.
+5.  Start the KLab client (`klab run --force`).
+6.  Explore the behaviour, see why the spec does not pass.
+7.  Fix the spec, re-run KLab client.
+
 Resources
 ---------
 
