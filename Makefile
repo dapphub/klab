@@ -11,6 +11,14 @@ deps-kevm:
 deps-npm:
 	npm install
 
+test_dir:=test
+test_files:=$(wildcard $(test_dir)/*.js)
+
+test: $(test_files:=.test)
+
+$(test_dir)/%.test:
+	mocha $(test_dir)/$*
+
 SHELL = bash
 dirs = {bin,libexec}
 prefix ?= /usr/local
