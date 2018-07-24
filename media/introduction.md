@@ -20,6 +20,7 @@ Motivation
 
 -   Interactively explore execution traces produced by K prover.
 -   Display information about each state.
+-   Get support on the [DappHub Chat] at <https://dapphub.chat>.
 
 Example: Safe Addition
 ======================
@@ -27,13 +28,16 @@ Example: Safe Addition
 Overview
 --------
 
--   At directory `examples/SafeAdd`.
--   Should `REVERT` if the addition overflows.
+-   In directory `examples/SafeAdd`.
 
-Solidity Implementation
------------------------
+. . .
 
-File: `examples/SafeAdd/SafeAdd.sol`
+-   If the addition does not overflow, performs regular addition.
+-   On overflow, should `REVERT`.
+
+Solidity (file: `examples/SafeAdd/SafeAdd.sol`)
+-----------------------------------------------
+
 
 ```solidity
 pragma solidity ^0.4.21;
@@ -45,8 +49,8 @@ contract SafeAdd {
 }
 ```
 
-K Spec
-------
+K Spec (file: `examples/SafeAdd/spec.ini`)
+------------------------------------------
 
 \footnotesize
 
@@ -90,12 +94,14 @@ Resources
 ---------
 
 -   [DappHub] - Developers of KLab
+-   [DappHub Chat] - Technical support for KLab
 -   [KEVM] - Semantics of EVM in K
 -   [KLab] - This tool
 -   [KFramework] - Semantic framework for programming languages
 -   [Runtime Verification] - Developers of K
 
 [DappHub]: <https://dapphub.com/>
+[DappHub Chat]: <https://dapphub.chat>
 [KEVM]: <https://github.com/kframework/evm-semantics>
 [KLab]: <https://github.com/dapphub/klab>
 [KFramework]: <https://github.com/kframework/k>
