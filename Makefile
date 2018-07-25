@@ -11,6 +11,11 @@ deps-kevm:
 deps-npm:
 	npm install
 
+media: media/introduction.pdf
+
+media/%.pdf: media/%.md
+	pandoc --from markdown --to beamer --output $@ $<
+
 SHELL = bash
 dirs = {bin,libexec}
 prefix ?= /usr/local
