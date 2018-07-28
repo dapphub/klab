@@ -37,6 +37,7 @@ Options:
   --force               No replay
   --inspect=<id>
   --clean
+  --spec=<spec>
 `
 
 const cmd = docopt(usage, {
@@ -56,7 +57,7 @@ else {
     config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
     config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
 }
-
+if(cmd["--spec"]) config.spec = cmd["--spec"]
 
 
 // READ the spec files
