@@ -38,6 +38,7 @@ Options:
   --inspect=<id>
   --clean
   --spec=<spec>
+  --headless
 `
 
 const cmd = docopt(usage, {
@@ -48,25 +49,29 @@ const cmd = docopt(usage, {
 const config = JSON.parse(fs.readFileSync("./config.json"));
 if (testPath(config.source + ".json")) {
     config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
-    contract_path = config.source.replace('/','').replace('.','') + config.source.replace('./',':').replace('.sol','')
-    contract_json = config.solJson.contracts[contract_path]
+    contract_path = config
+      .source
+      .replace('/','')
+      .replace('.','')
+    + config
+      .source
+      .replace('./',':')
+      .replace('.sol','');
+    contract_json = config.solJson.contracts[contract_path];
     config["bin_runtime"] = contract_json["bin-runtime"].toString();
     config["sourcemap"] = contract_json["srcmap-runtime"].toString();
-}
-else {
+} else {
     config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
     config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
 }
-if(cmd["--spec"]) config.spec = cmd["--spec"]
+if(cmd["--spec"]) {
+  config.spec = cmd["--spec"];
+}
+// console.log(config.spec);
 
 
 // READ the spec files
-[
-  "spec",
-  "lemmas",
-  "source",
-  "prelude"
-].forEach(filetype => {
+[ "spec", "lemmas", "source", "prelude" ].forEach(filetype => {
   if(!(filetype in config)) return null;
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
@@ -105,8 +110,13 @@ if(inspect) config.inspect = inspect;
 config.force = cmd["--force"];
 config.clean = cmd["--clean"];
 
+const CLIDriver = cmd["--headless"]
+  ? () => xs.of()
+  : makeCliDriver()
+config.headless = cmd["--headless"]
+
 const drivers = {
-  CLI: makeCliDriver(),
+  CLI: CLIDriver,
   K: kDriver,
   Settings: () => xs.of(config)
 };
