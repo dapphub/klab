@@ -128,3 +128,45 @@ If you want to use another spec as a trusted rewrite for your proof, you can sup
 ```sh
 klab run --trust myLemma.ini,myLemmasBinaries
 ```
+Troubleshooting
+---------------
+
+### KLab server requesting files at incorrect directory
+
+What it looks like:
+
+```
+$ klab server
+
+18.07.30 14-46-50: exec dfc688db4cc98b5de315bdfaa2512b84d14c3aaf3e58581ae728247097ff300d/run.sh
+18.07.30 14-47-32: out Debugg: dfc688db4cc98b5de315bdfaa2512b84d14c3aaf3e58581ae728247097ff300d
+
+fs.js:119
+throw err;
+^
+
+Error: ENOENT: no such file or directory, open '/tmp/klab/b042c99687ae5018744dc96107032b291e4a91f1ab38a6286b2aff9a78056665/abstract-semantics.k'
+at Object.openSync (fs.js:443:3)
+at Object.readFileSync (fs.js:348:35)
+at getFileExcerpt (/home/dev/src/klab/lib/rule.js:5:4)
+at Object.parseRule (/home/dev/src/klab/lib/rule.js:21:16)
+at Object.getblob (/home/dev/src/klab/lib/driver/dbDriver.js:49:19)
+at Object.next (/home/dev/src/klab/lib/driver/dbDriver.js:113:56)
+at Stream._n (/home/dev/src/klab/node_modules/xstream/index.js:797:18)
+at /home/dev/src/klab/node_modules/@cycle/run/lib/cjs/index.js:57:61
+at process._tickCallback (internal/process/next_tick.js:61:11)
+[1] [dev@arch-ehildenb klab]% klab server
+fs.js:119
+throw err;
+```
+
+Notice how it's requesting `abstract-semantics.k` from proof-hash `b042...` but we're actually running proof-hash `dfc6...`.
+This is a problem with how K caches compiled definitions, and must be [fixed upstream](https://github.com/kframework/k/issues/107).
+
+To fix this, run:
+
+```sh
+make clean && make deps
+```
+
+This will remove and recompile the KEVM semantics.
