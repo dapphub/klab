@@ -99,13 +99,25 @@ Toggle different views by pressing any of the following keys:
 -   `k` - display the `<k>` cell.
 -   `b` - display **b**ehavior
 -   `e` - display the **e**vm specific module.
+-   `d` - display the **d**ebug cells (see toggling debug cells below).
 
 **Navigation Commands**:
 
--   `n` - step to **n**ext opcode
--   `p` - step to **p**revious opcode
--   `N` - step to **n**ext k term
--   `P` - step to **p**revious k term
+-   `n`       - step to **n**ext opcode
+-   `p`       - step to **p**revious opcode
+-   `Shift+n` - step to **n**ext k term
+-   `Shift+p` - step to **p**revious k term
+-   `Ctrl+n`  - step to **n**ext branch point
+-   `Ctrl+p`  - step to **p**revious branch point
+
+**Toggling Debug Cells**:
+
+The following commands are prefixed with `:` (and are typed at the bottom of the interface).
+It's possible to toggle the debug cells view for specific cells, which prints out the JSON representation of the given cells.
+Remember, you must turn on the **d**ebug cells view to see these (above).
+
+-   `:show ethereum.evm.callState.gas` - show the contents of the `<gas>` cell in the **d**ebug cells view.
+-   `:hide ethereum.evm.callStack.pc`  - hide the contents of the `<pc>` cell in the **d**ebug cells view.
 
 See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
 
