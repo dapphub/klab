@@ -1,7 +1,14 @@
+PATH:=$(PATH):$(CURDIR)/bin
+KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
+TMPDIR=/tmp
+export PATH
+export KLAB_EVMS_PATH
+export TMPDIR
+
 default: link
 
 clean:
-	rm -fdR out/* evm-semantics
+	rm -fdR out/* evm-semantics $(TMPDIR)/klab
 	git submodule update --init -- evm-semantics
 
 deps: deps-kevm deps-npm
@@ -30,6 +37,14 @@ media: media/introduction.pdf
 
 media/%.pdf: media/%.md
 	pandoc --from markdown --to beamer --output $@ $<
+
+test_dir=examples
+tests=$(wildcard $(test_dir)/*)
+
+test: $(tests:=.test)
+
+%.test:
+	cd $* && klab run --headless
 
 SHELL = bash
 dirs = {bin,libexec}
