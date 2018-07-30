@@ -1,9 +1,13 @@
 default: link
 
+clean:
+	rm -fdR out/* evm-semantics
+	git submodule update --init -- evm-semantics
+
 deps: deps-kevm deps-npm
 
 deps-kevm:
-	git submodule update --init
+	git submodule update --init -- evm-semantics
 	cd evm-semantics \
 		&& make k-deps tangle-deps -B \
 		&& make build-java -B
@@ -36,6 +40,3 @@ files = $(shell ls -d $(dirs)/*)
 link: uninstall dirs; npm i; for x in $(files); do \
 	ln -s `pwd`/$$x $(prefix)/$$x; done
 uninstall:; rm -rf $(addprefix $(prefix)/,$(files))
-
-clean:
-	rm -fdR out/*
