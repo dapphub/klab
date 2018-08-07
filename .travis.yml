@@ -4,6 +4,6 @@ before_install:
    - brew install pandoc
    - make deps
 install:
-   - make link
+   - npm i
 script:
-   - make test
+   - make test_k
