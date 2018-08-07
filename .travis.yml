@@ -1,0 +1,8 @@
+os:
+   - osx
+before_install:
+   - make deps
+install:
+   - make link
+script:
+   - make test

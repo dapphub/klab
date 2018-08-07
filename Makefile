@@ -11,8 +11,12 @@ deps-kevm:
 deps-npm:
 	npm install
 
+test_k:
+	./test.sh
+.PHONY: start stop
+
 test_dir:=test
-test_files:=$(wildcard $(test_dir)/*.js)
+test_filles:=$(wildcard $(test_dir)/*.js)
 
 test: $(test_files:=.test)
 
