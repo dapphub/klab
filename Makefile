@@ -13,7 +13,6 @@ deps-npm:
 
 test_k:
 	./test.sh
-.PHONY: start stop
 
 test_dir:=test
 test_filles:=$(wildcard $(test_dir)/*.js)
@@ -22,6 +21,11 @@ test: $(test_files:=.test)
 
 $(test_dir)/%.test:
 	node_modules/mocha/bin/mocha $(test_dir)/$*
+
+media: media/introduction.pdf
+
+media/%.pdf: media/%.md
+	pandoc --from markdown --to beamer --output $@ $<
 
 SHELL = bash
 dirs = {bin,libexec}
