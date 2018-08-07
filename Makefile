@@ -11,13 +11,21 @@ deps-kevm:
 deps-npm:
 	npm install
 
+test_k:
+	./test.sh
+
 test_dir:=test
-test_files:=$(wildcard $(test_dir)/*.js)
+test_filles:=$(wildcard $(test_dir)/*.js)
 
 test: $(test_files:=.test)
 
 $(test_dir)/%.test:
 	node_modules/mocha/bin/mocha $(test_dir)/$*
+
+media: media/introduction.pdf
+
+media/%.pdf: media/%.md
+	pandoc --from markdown --to beamer --output $@ $<
 
 SHELL = bash
 dirs = {bin,libexec}
