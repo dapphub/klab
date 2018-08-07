@@ -1,6 +1,7 @@
 os:
    - osx
 before_install:
+   - brew install pandoc
    - make deps
 install:
    - make link
