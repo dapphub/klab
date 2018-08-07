@@ -1,10 +1,10 @@
 {
-  "spec": "./spec.ini",
+  "spec": "./spec2.ini",
   "prelude": "./exp.smt2",
   "lemmas": "./lemmas.k",
-  "source": "./SafeAdd.sol",
-  "solJson":  "./SafeAdd.sol.json",
-  "name": "SafeAdd",
+  "bin_runtime": "./D0Impl.bin-runtime",
+  "source": "./D0.sol",
+  "sourcemap": "./D0Impl.srcmap-runtime",
   "host": "127.0.0.1:8080",
   "control": {
     "0"      : "branch 0",
@@ -26,7 +26,9 @@
     "r"      : "toggle_module rule",
     "z"      : "toggle_module z3feedback",
     "k"      : "toggle_module kcell",
-    "d"      : "toggle_module debug"
+    "d"      : "toggle_module debug",
+    "t"      : "toggle_module term",
+    "m"      : "toggle_module memory"
   }
 }
 
