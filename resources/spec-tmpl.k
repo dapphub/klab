@@ -72,7 +72,7 @@
         <accounts>
           <account>
             <acctID> ACCT_ID </acctID>
-            <balance> _ </balance>
+            <balance> BAL </balance>
             <code> #parseByteStack({CODE}) </code>
             <storage>
               {STORAGE}
