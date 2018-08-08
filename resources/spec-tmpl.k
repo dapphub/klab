@@ -55,7 +55,7 @@
         <number> _ </number>
         <gasLimit> _ </gasLimit>
         <gasUsed> _ </gasUsed>
-        <timestamp> _ </timestamp>
+        <timestamp> TIMESTAMP </timestamp>
         <extraData> _ </extraData>
         <mixHash> _ </mixHash>
         <blockNonce> _ </blockNonce>
@@ -65,9 +65,7 @@
       </evm>
 
       <network>
-        <activeAccounts> SetItem(ACCT_ID) _:Set
-        {ACTIVEACCOUNTS}
-        </activeAccounts>
+        <activeAccounts> SetItem(ACCT_ID) {ACTIVEACCOUNTS} </activeAccounts>
 
         <accounts>
           <account>
