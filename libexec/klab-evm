@@ -30,16 +30,25 @@ stdin.setEncoding( 'utf8' );
 const tw = process.stdout.columns; // total width
 
 const config = JSON.parse(fs.readFileSync("./config.json"));
-if (testPath(config.source + ".json")) {
-    config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
-    contract_path = config.source.replace('/','').replace('.','') + config.source.replace('./',':').replace('.sol','')
-    contract_json = config.solJson.contracts[contract_path]
+if (testPath(config.solJson)) {
+    config.solJson = JSON.parse(fs.readFileSync(config.solJson));
+    contract_path = Object
+      .keys(config.solJson.contracts)
+      .find(name => (new RegExp(config.name + "$")).test(name))
+    // contract_path = config
+    //   .source
+    //   .replace('/','')
+    //   .replace('.','')
+    // + config
+    //   .source
+    //   .replace('./',':')
+    //   .replace('.sol','');
+    contract_json = config.solJson.contracts[contract_path];
     config["bin_runtime"] = contract_json["bin-runtime"].toString();
-    config["sourcemap"] = contract_json["srcmap-runtime"].toString();
-}
-else {
+    config["sourcemap"]   = contract_json["srcmap-runtime"].toString();
+} else {
     config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
-    config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
+    config["sourcemap"]   = fs.readFileSync(config["sourcemap"]).toString()
 }
 
 
