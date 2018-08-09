@@ -1,9 +1,11 @@
 PATH:=$(PATH):$(CURDIR)/bin
 KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
-TMPDIR=/tmp
+TMPDIR=$(CURDIR)/tmp
+KLAB_SERVER_PID_FILE=$(TMPDIR)/server.pid
 export PATH
 export KLAB_EVMS_PATH
 export TMPDIR
+export KLAB_SERVER_PID_FILE
 
 default: link
 
@@ -22,9 +24,6 @@ deps-kevm:
 deps-npm:
 	npm install
 
-test_k:
-	./test.sh
-
 test_dir:=test
 test_filles:=$(wildcard $(test_dir)/*.js)
 
@@ -42,8 +41,13 @@ test_dir=examples
 tests=$(wildcard $(test_dir)/*)
 
 test: $(tests:=.test)
+	klab server stop
 
-%.test:
+pre-test:
+	mkdir -p $(TMPDIR)
+	klab server start
+
+%.test: pre-test
 	cd $* && klab run --headless
 
 SHELL = bash
