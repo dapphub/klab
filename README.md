@@ -108,3 +108,11 @@ Toggle different views by pressing any of the following keys:
 -   `P` - step to **p**revious k term
 
 See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
+
+
+### Multiproof support
+
+If you want to use another spec as a trusted rewrite for your proof, you can supply their .ini spec along with the binaries they relate to using the `--trust` flag:
+```sh
+klab run --trust myLemma.ini,myLemmasBinaries
+```
