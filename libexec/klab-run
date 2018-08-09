@@ -37,6 +37,7 @@ Options:
   --force               No replay
   --inspect=<id>
   --clean
+  --trust=<trust-spec, trust-bin>
   --spec=<spec>
   --headless
 `
@@ -69,8 +70,16 @@ if (testPath(config.solJson)) {
 }
 
 if(cmd["--spec"]) {
-  config.spec = cmd["--spec"];
+    config.spec = cmd["--spec"];
+    
 }
+
+if(cmd["--trust"]) {
+    config.trust = true;
+    config.trustSpec = fs.readFileSync(cmd["--trust"].split(',')[0]).toString();
+    config.trustBin  = fs.readFileSync(cmd["--trust"].split(',')[1]).toString();
+}
+
 // console.log(config.spec);
 
 
@@ -111,6 +120,9 @@ const kDriver = remoteDriver(config.host);
 const inspect = cmd["--inspect"];
 if(inspect) config.inspect = inspect;
 
+config.force = cmd["--force"];
+//config.spec  = cmd["--spec" ];
+//config.trust = cmd["--trust" ];
 config.force = cmd["--force"];
 config.clean = cmd["--clean"];
 

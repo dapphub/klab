@@ -39,7 +39,7 @@ def inherit_get(config, section):
                 del merged[key]
         return merged
 
-def gen(spec_template, rule_template, spec_ini, spec_name, rule_name_list):
+def gen_rules(rule_template, spec_ini, rule_name_list):
     spec_config = configparser.ConfigParser(comment_prefixes=(';'))
     spec_config.read(spec_ini)
     if 'pgm' not in spec_config:
@@ -58,9 +58,7 @@ def gen(spec_template, rule_template, spec_ini, spec_name, rule_name_list):
         rule_spec_list.append(rule_spec)
     delimeter = "\n"
     rules = delimeter.join(rule_spec_list)
-    genspec = subst(spec_template, 'module', spec_name.upper())
-    genspec = subst(genspec, 'rules', rules)
-    print(genspec)
+    print(rules)
 #   genspec = template
 #   for config in [ inherit_get(spec_config, name)
 #                 , {'module': name.upper()}
@@ -71,9 +69,8 @@ def gen(spec_template, rule_template, spec_ini, spec_name, rule_name_list):
 #   print(genspec)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 6:
-        print("usage: <cmd> <spec-template> <rule-template> <spec_ini> <spec_name> <rule_name_list>")
+    if len(sys.argv) < 3:
+        print("usage: <rule-template> <spec_ini> <rule_name_list>")
         sys.exit(1)
-    spec_template = open(sys.argv[1], "r").read()
-    rule_template = open(sys.argv[2], "r").read()
-    gen(spec_template, rule_template, sys.argv[3], sys.argv[4], sys.argv[5:])
+    rule_template = open(sys.argv[1], "r").read()
+    gen_rules(rule_template, sys.argv[2], sys.argv[3:])
