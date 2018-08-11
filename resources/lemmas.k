@@ -302,22 +302,6 @@ rule ACCTCODE in SetItem( 1 )
       requires N =/=K 0
       [lemma]
 
-// Lemmas:
-
-rule WS ++ .WordStack => WS
-
-rule #sizeWordStack ( #padToWidth ( 32 , #asByteStack ( #unsigned ( W ) ) ) , 0) => 32
-  requires #rangeSInt(256, W)
-
-// rule #take(N, #padToWidth(N, WS) ++ WS' ) => #padToWidth(N, WS)
-
-// potentially useful
-// rule #padToWidth(N, WS) ++ WS' => #padToWidth(N + #sizeWordStack(WS'), WS ++ WS')
-// and the N, M versions of below
-
-rule #take(N, #padToWidth(N, WS) ) => #padToWidth(N, WS)
-
-// n.b. how + cases use +Int because of earlier application of +Word
 rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
   requires #rangeSInt(256, A)
   andBool #rangeSInt(256, B)
