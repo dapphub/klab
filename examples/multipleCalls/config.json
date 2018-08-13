@@ -1,10 +1,15 @@
 {
   "spec": "./spec.ini",
   "lemmas": "./lemmas.k",
-  "source": "./easyNest.sol",
-  "solJson":  "./easyNest.sol.json",
+  "implements": [
+    "dapp/out/easyNest.sol.json"
+  ],
+  "behaviour_of": "easyNest",
+  "var2name" : {
+    "CALLEE": "Callee"
+  },
+  "path_root": "dapp",
   "prelude": "exp.smt2",
-  "name":  "easyNest",
   "host": "127.0.0.1:8080",
   "control": {
     "0"      : "branch 0",
@@ -28,6 +33,5 @@
     "k"      : "toggle_module kcell",
     "d"      : "toggle_module debug"
   }
-
 }
 

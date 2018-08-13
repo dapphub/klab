@@ -2,9 +2,12 @@
   "spec": "./spec.ini",
   "prelude": "./exp.smt2",
   "lemmas": "./lemmas.k",
-  "source": "./SafeAdd.sol",
-  "solJson":  "./SafeAdd.sol.json",
-  "name": "SafeAdd",
+  "implements": [
+    "dapp/out/SafeAdd.sol.json"
+  ],
+  "behaviour_of": "SafeAdd",
+  "var2name": {},
+  "path_root": "dapp",
   "host": "127.0.0.1:8080",
   "control": {
     "0"      : "branch 0",
