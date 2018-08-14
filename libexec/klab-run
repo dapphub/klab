@@ -51,7 +51,7 @@ const config = makeConfig(config_json);
 
 if(cmd["--spec"]) {
     config.spec = cmd["--spec"];
-    
+
 }
 
 if(cmd["--trust"]) {
