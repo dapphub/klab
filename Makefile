@@ -1,11 +1,9 @@
 PATH:=$(PATH):$(CURDIR)/bin
 KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
 TMPDIR=$(CURDIR)/tmp
-KLAB_SERVER_PID_FILE=$(TMPDIR)/server.pid
 export PATH
 export KLAB_EVMS_PATH
 export TMPDIR
-export KLAB_SERVER_PID_FILE
 
 default: link
 
@@ -24,31 +22,30 @@ deps-kevm:
 deps-npm:
 	npm install
 
-test_dir:=test
-test_filles:=$(wildcard $(test_dir)/*.js)
-
-test: $(test_files:=.test)
-
-$(test_dir)/%.test:
-	node_modules/mocha/bin/mocha $(test_dir)/$*
-
 media: media/introduction.pdf
 
 media/%.pdf: media/%.md
 	pandoc --from markdown --to beamer --output $@ $<
 
 test_dir=examples
+fail_dir=examples/should_err
 tests=$(wildcard $(test_dir)/*)
+fail_tests=$(wildcard $(fail_dir)/*)
 
-test: $(tests:=.test)
-	klab server stop
+test:  $(tests:=.test)
+#	klab server stop
 
 pre-test:
 	mkdir -p $(TMPDIR)
-	klab server start
+#	klab server start
 
 %.test: pre-test
-	cd $* && klab run --headless
+	cd $* && klab run --headless --force
+
+# Tests that should fail
+%.fail_test:
+	cd $* && klab run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected" 
+
 
 SHELL = bash
 dirs = {bin,libexec}
