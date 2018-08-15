@@ -108,3 +108,20 @@ Toggle different views by pressing any of the following keys:
 -   `P` - step to **p**revious k term
 
 See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
+
+### Docker
+
+Example usage:
+```shell
+# Build server
+docker build -t klab .
+
+# Start server and mount ./examples to /docker
+docker run --rm -it -v $(pwd)/examples:/docker --name klab klab
+klab server
+
+# Start client
+docker exec -it klab bash
+cd /docker/SafeAdd
+klab run
+```
