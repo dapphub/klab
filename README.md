@@ -121,8 +121,7 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 
 See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
 
-
-### Multiproof support
+### Multiproof support (experimental)
 
 If you want to use another spec as a trusted rewrite for your proof, you can supply their .ini spec along with the binaries they relate to using the `--trust` flag:
 ```sh
@@ -170,3 +169,20 @@ make clean && make deps
 ```
 
 This will remove and recompile the KEVM semantics.
+
+### Docker
+
+Example usage:
+```shell
+# Build server
+docker build -t klab .
+
+# Start server and mount ./examples to /docker
+docker run --rm -it -v $(pwd)/examples:/docker --name klab klab
+klab server
+
+# Start client
+docker exec -it klab bash
+cd /docker/SafeAdd
+klab run
+```
