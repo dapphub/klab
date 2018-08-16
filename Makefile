@@ -33,11 +33,10 @@ tests=$(wildcard $(test_dir)/*)
 fail_tests=$(wildcard $(fail_dir)/*)
 
 test:  $(tests:=.test)
-#	klab server stop
+	pkill klab
 
 pre-test:
-	mkdir -p $(TMPDIR)
-#	klab server start
+	klab server & mkdir -p $(TMPDIR) 
 
 %.test: pre-test
 	cd $* && klab run --headless --force
