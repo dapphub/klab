@@ -1,5 +1,5 @@
 {
-  "spec": "./spec2.ini",
+  "spec": "./spec.ini",
   "prelude": "./exp.smt2",
   "lemmas": "./lemmas.k",
   "implements": [
