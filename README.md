@@ -99,12 +99,90 @@ Toggle different views by pressing any of the following keys:
 -   `k` - display the `<k>` cell.
 -   `b` - display **b**ehavior
 -   `e` - display the **e**vm specific module.
+-   `d` - display the **d**ebug cells (see toggling debug cells below).
 
 **Navigation Commands**:
 
--   `n` - step to **n**ext opcode
--   `p` - step to **p**revious opcode
--   `N` - step to **n**ext k term
--   `P` - step to **p**revious k term
+-   `n`       - step to **n**ext opcode
+-   `p`       - step to **p**revious opcode
+-   `Shift+n` - step to **n**ext k term
+-   `Shift+p` - step to **p**revious k term
+-   `Ctrl+n`  - step to **n**ext branch point
+-   `Ctrl+p`  - step to **p**revious branch point
+
+**Toggling Debug Cells**:
+
+The following commands are prefixed with `:` (and are typed at the bottom of the interface).
+It's possible to toggle the debug cells view for specific cells, which prints out the JSON representation of the given cells.
+Remember, you must turn on the **d**ebug cells view to see these (above).
+
+-   `:show ethereum.evm.callState.gas` - show the contents of the `<gas>` cell in the **d**ebug cells view.
+-   `:hide ethereum.evm.callStack.pc`  - hide the contents of the `<pc>` cell in the **d**ebug cells view.
 
 See file [config example for SafeAdd](examples/SafeAdd/config.json) for more example movement commands.
+
+### Multiproof support (experimental)
+
+If you want to use another spec as a trusted rewrite for your proof, you can supply their .ini spec along with the binaries they relate to using the `--trust` flag:
+```sh
+klab run --trust myLemma.ini,myLemmasBinaries
+```
+Troubleshooting
+---------------
+
+### KLab server requesting files at incorrect directory
+
+What it looks like:
+
+```
+$ klab server
+
+18.07.30 14-46-50: exec dfc688db4cc98b5de315bdfaa2512b84d14c3aaf3e58581ae728247097ff300d/run.sh
+18.07.30 14-47-32: out Debugg: dfc688db4cc98b5de315bdfaa2512b84d14c3aaf3e58581ae728247097ff300d
+
+fs.js:119
+throw err;
+^
+
+Error: ENOENT: no such file or directory, open '/tmp/klab/b042c99687ae5018744dc96107032b291e4a91f1ab38a6286b2aff9a78056665/abstract-semantics.k'
+at Object.openSync (fs.js:443:3)
+at Object.readFileSync (fs.js:348:35)
+at getFileExcerpt (/home/dev/src/klab/lib/rule.js:5:4)
+at Object.parseRule (/home/dev/src/klab/lib/rule.js:21:16)
+at Object.getblob (/home/dev/src/klab/lib/driver/dbDriver.js:49:19)
+at Object.next (/home/dev/src/klab/lib/driver/dbDriver.js:113:56)
+at Stream._n (/home/dev/src/klab/node_modules/xstream/index.js:797:18)
+at /home/dev/src/klab/node_modules/@cycle/run/lib/cjs/index.js:57:61
+at process._tickCallback (internal/process/next_tick.js:61:11)
+[1] [dev@arch-ehildenb klab]% klab server
+fs.js:119
+throw err;
+```
+
+Notice how it's requesting `abstract-semantics.k` from proof-hash `b042...` but we're actually running proof-hash `dfc6...`.
+This is a problem with how K caches compiled definitions, and must be [fixed upstream](https://github.com/kframework/k/issues/107).
+
+To fix this, run:
+
+```sh
+make clean && make deps
+```
+
+This will remove and recompile the KEVM semantics.
+
+### Docker
+
+Example usage:
+```shell
+# Build server
+docker build -t klab .
+
+# Start server and mount ./examples to /docker
+docker run --rm -it -v $(pwd)/examples:/docker --name klab klab
+klab server
+
+# Start client
+docker exec -it klab bash
+cd /docker/SafeAdd
+klab run
+```

@@ -1,0 +1,1 @@
+[{"constant":false,"inputs":[{"name":"x","type":"uint256"}],"name":"raiseTemp","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]

@@ -3,10 +3,11 @@
 
 
 requires "evm.k"
+requires "edsl.k"
 
 module LEMMAS
     imports EVM
-
+    imports EDSL
 
 
 
@@ -71,21 +72,113 @@ module LEMMAS
       requires 0 <=Int V andBool V <Int pow256
 
 
+    rule #asWord( nthbyteof(#unsigned(V),  0, 32)
+                : nthbyteof(#unsigned(V),  1, 32)
+                : nthbyteof(#unsigned(V),  2, 32)
+                : nthbyteof(#unsigned(V),  3, 32)
+                : nthbyteof(#unsigned(V),  4, 32)
+                : nthbyteof(#unsigned(V),  5, 32)
+                : nthbyteof(#unsigned(V),  6, 32)
+                : nthbyteof(#unsigned(V),  7, 32)
+                : nthbyteof(#unsigned(V),  8, 32)
+                : nthbyteof(#unsigned(V),  9, 32)
+                : nthbyteof(#unsigned(V), 10, 32)
+                : nthbyteof(#unsigned(V), 11, 32)
+                : nthbyteof(#unsigned(V), 12, 32)
+                : nthbyteof(#unsigned(V), 13, 32)
+                : nthbyteof(#unsigned(V), 14, 32)
+                : nthbyteof(#unsigned(V), 15, 32)
+                : nthbyteof(#unsigned(V), 16, 32)
+                : nthbyteof(#unsigned(V), 17, 32)
+                : nthbyteof(#unsigned(V), 18, 32)
+                : nthbyteof(#unsigned(V), 19, 32)
+                : nthbyteof(#unsigned(V), 20, 32)
+                : nthbyteof(#unsigned(V), 21, 32)
+                : nthbyteof(#unsigned(V), 22, 32)
+                : nthbyteof(#unsigned(V), 23, 32)
+                : nthbyteof(#unsigned(V), 24, 32)
+                : nthbyteof(#unsigned(V), 25, 32)
+                : nthbyteof(#unsigned(V), 26, 32)
+                : nthbyteof(#unsigned(V), 27, 32)
+                : nthbyteof(#unsigned(V), 28, 32)
+                : nthbyteof(#unsigned(V), 29, 32)
+                : nthbyteof(#unsigned(V), 30, 32)
+                : nthbyteof(#unsigned(V), 31, 32)
+                : .WordStack ) => #unsigned(V)
+      requires #rangeSInt(256, V)
+
+    rule #asWord( nthbyteof(keccakIntList(V),  0, 32)
+                : nthbyteof(keccakIntList(V),  1, 32)
+                : nthbyteof(keccakIntList(V),  2, 32)
+                : nthbyteof(keccakIntList(V),  3, 32)
+                : nthbyteof(keccakIntList(V),  4, 32)
+                : nthbyteof(keccakIntList(V),  5, 32)
+                : nthbyteof(keccakIntList(V),  6, 32)
+                : nthbyteof(keccakIntList(V),  7, 32)
+                : nthbyteof(keccakIntList(V),  8, 32)
+                : nthbyteof(keccakIntList(V),  9, 32)
+                : nthbyteof(keccakIntList(V), 10, 32)
+                : nthbyteof(keccakIntList(V), 11, 32)
+                : nthbyteof(keccakIntList(V), 12, 32)
+                : nthbyteof(keccakIntList(V), 13, 32)
+                : nthbyteof(keccakIntList(V), 14, 32)
+                : nthbyteof(keccakIntList(V), 15, 32)
+                : nthbyteof(keccakIntList(V), 16, 32)
+                : nthbyteof(keccakIntList(V), 17, 32)
+                : nthbyteof(keccakIntList(V), 18, 32)
+                : nthbyteof(keccakIntList(V), 19, 32)
+                : nthbyteof(keccakIntList(V), 20, 32)
+                : nthbyteof(keccakIntList(V), 21, 32)
+                : nthbyteof(keccakIntList(V), 22, 32)
+                : nthbyteof(keccakIntList(V), 23, 32)
+                : nthbyteof(keccakIntList(V), 24, 32)
+                : nthbyteof(keccakIntList(V), 25, 32)
+                : nthbyteof(keccakIntList(V), 26, 32)
+                : nthbyteof(keccakIntList(V), 27, 32)
+                : nthbyteof(keccakIntList(V), 28, 32)
+                : nthbyteof(keccakIntList(V), 29, 32)
+                : nthbyteof(keccakIntList(V), 30, 32)
+                : nthbyteof(keccakIntList(V), 31, 32)
+                : .WordStack ) => keccakIntList(V)
+
+
+rule ACCTCODE in SetItem( 1 )
+                 SetItem ( 2 )
+                 SetItem ( 3 )
+                 SetItem ( 4 )
+                 SetItem ( 5 )
+                 SetItem ( 6 )
+                 SetItem ( 7 )
+                 SetItem ( 8 )
+                 => false
+     requires 9 <=Int ACCTCODE
 
 
 
 
+    //Useful abstractions for storage related hashing
+//    syntax Int ::= symkeccak ( IntList ) [function, smtlib(smt_symkeccak)]
+   // -------------------------------------------------------
+    rule keccak(WS) => keccakIntList(wordStack2IntList(WS)) requires notBool #isConcrete(WS)
+
+    rule 0 <=Int keccakIntList(N)     => true
+    rule keccaktIntList(N) <Int pow256 => true
 
 
-
-
-
+    rule #padToWidth(32, #asByteStack( #unsigned(V) )) => #asByteStackInWidth( #unsigned(V), 32)
+      requires #rangeSInt(256, V)
 
 
     rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
       requires 0 <=Int V andBool V <Int pow256
 
-    // for Vyper
+
+    rule #padToWidth(32, #asByteStack( keccakIntList (V) )) => #asByteStackInWidth( keccakIntList (V), 32)
+
+
+
+
+   // for Vyper
     rule #padToWidth(N, #asByteStack(#asWord(WS))) => WS
       requires #noOverflow(WS) andBool N ==Int #sizeWordStack(WS)
 
@@ -208,6 +301,40 @@ module LEMMAS
       => #sizeWordStack ( WS , 0 ) +Int N
       requires N =/=K 0
       [lemma]
+
+rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
+  requires #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+  andBool #rangeSInt(256, A +Int B)
+
+rule chop(#unsigned(W)) => #unsigned(W)
+  requires #rangeSInt(256, W)
+
+rule #signed(#unsigned(W)) => W
+  requires #rangeSInt(256, W)
+
+rule #unsigned(#signed(W)) => W
+  requires #rangeUInt(256, W)
+
+rule W0 s<Word W1 => #signed(W0) <Word #signed(W1)
+
+// converse:
+rule (#signed (chop (#unsigned(A) +Int #unsigned(B)))) => A +Int B -Int pow256
+  requires notBool (#rangeSInt(256, A +Int B))
+  andBool B >=Int 0
+  andBool #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+
+rule (#signed (chop (#unsigned(A) +Int #unsigned(B)))) => A +Int B +Int pow256
+  requires notBool (#rangeSInt(256, A +Int B))
+  andBool B <=Int 0
+  andBool #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+
+rule A modInt pow160 => A
+  requires #rangeAddress(A)
+
+
 
 endmodule
 

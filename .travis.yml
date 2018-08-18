@@ -1,0 +1,9 @@
+os:
+   - osx
+before_install:
+   - brew install pandoc
+   - make deps
+install:
+   - npm i
+script:
+   - make test_k

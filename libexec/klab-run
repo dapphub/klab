@@ -10,10 +10,7 @@ const sha3 = function (str) {
     .digest('hex')
     .toString()
 }
-const {
-  get_pc_to_inst_map,
-  genSrcmapArr
-} = require("../lib/srchandler.js");
+const makeConfig = require("../lib/config.js");
 process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
@@ -37,6 +34,9 @@ Options:
   --force               No replay
   --inspect=<id>
   --clean
+  --trust=<trust-spec, trust-bin>
+  --spec=<spec>
+  --headless
 `
 
 const cmd = docopt(usage, {
@@ -44,28 +44,27 @@ const cmd = docopt(usage, {
 });
 
 
-const config = JSON.parse(fs.readFileSync("./config.json"));
-if (testPath(config.source + ".json")) {
-    config.solJson = JSON.parse(fs.readFileSync(config.source + ".json"));
-    contract_path = config.source.replace('/','').replace('.','') + config.source.replace('./',':').replace('.sol','')
-    contract_json = config.solJson.contracts[contract_path]
-    config["bin_runtime"] = contract_json["bin-runtime"].toString();
-    config["sourcemap"] = contract_json["srcmap-runtime"].toString();
-}
-else {
-    config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
-    config["sourcemap"] = fs.readFileSync(config["sourcemap"]).toString()
+// TODO - add --implements to cmd
+
+const config_json = JSON.parse(fs.readFileSync("./config.json"));
+const config = makeConfig(config_json);
+
+if(cmd["--spec"]) {
+    config.spec = cmd["--spec"];
+
 }
 
+if(cmd["--trust"]) {
+    config.trust = true;
+    config.trustSpec = fs.readFileSync(cmd["--trust"].split(',')[0]).toString();
+    config.trustBin  = fs.readFileSync(cmd["--trust"].split(',')[1]).toString();
+}
+
+// console.log(config.spec);
 
 
 // READ the spec files
-[
-  "spec",
-  "lemmas",
-  "source",
-  "prelude"
-].forEach(filetype => {
+[ "spec", "lemmas", "prelude" ].forEach(filetype => {
   if(!(filetype in config)) return null;
   let content = fs.readFileSync(config[filetype]).toString()
   config[filetype] = content;
@@ -75,22 +74,10 @@ else {
 // proof id
 config.proofid = sha3(JSON.stringify({
   lemmas: config.lemmas,
-  bin_runtime: config.bin_runtime,
+  contracts: config.contracts,
   spec: config.spec,
   prelude: config.prelude
-}))
-
-
-const {
-  instructions,
-  pc_to_inst_map
-} = get_pc_to_inst_map(config.bin_runtime)
-const inst_to_pc = instructions.map((inst, i) => pc_to_inst_map.indexOf(i));
-
-config.instructions = instructions;
-config.pc_to_inst_map = pc_to_inst_map;
-config.inst_to_pc = inst_to_pc;
-config.srcmapArr = genSrcmapArr(config.sourcemap);
+}));
 
 config.connection = {
   type: "remote",
@@ -102,10 +89,18 @@ const inspect = cmd["--inspect"];
 if(inspect) config.inspect = inspect;
 
 config.force = cmd["--force"];
+//config.spec  = cmd["--spec" ];
+//config.trust = cmd["--trust" ];
+config.force = cmd["--force"];
 config.clean = cmd["--clean"];
 
+const CLIDriver = cmd["--headless"]
+  ? () => xs.of()
+  : makeCliDriver()
+config.headless = cmd["--headless"]
+
 const drivers = {
-  CLI: makeCliDriver(),
+  CLI: CLIDriver,
   K: kDriver,
   Settings: () => xs.of(config)
 };

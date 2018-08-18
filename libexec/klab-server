@@ -23,7 +23,7 @@ const Queue = ({onion, Make, K}) => {
     .map(state => state.queue[0])
 
   const proof_start$ = dequeue$
-    .compose(dropRepeats())
+    // .compose(dropRepeats())
     .map(proofid => ({
       type: "start",
       proofid
@@ -73,12 +73,12 @@ const main = ({onion, Server, K, Make, Db}) => {
   //     next: e => process.exit()
   //   })
   //
-  // const view$ = onion.state$
-  //   .map(state => {
-  //     return {
-  //       main: JSON.stringify(state, false, 2)
-  //     }
-  //   })
+  const view$ = onion.state$
+    .map(state => {
+      return {
+        main: JSON.stringify(state, false, 2)
+      }
+    })
 
   const dbquery$ = Server
     .filter(msg => [
@@ -130,7 +130,7 @@ const main = ({onion, Server, K, Make, Db}) => {
       dbquery$
     ),
     onion: queueSinks.onion,
-    // Cli: view$
+    Cli: view$
   };
 }
 
@@ -139,10 +139,10 @@ const drivers = {
   K: kDriver,
   Make: makeDriver,
   Db: dbDriver,
-  // Cli: makeCliDriver({
-  //   in: false,
-  //   type: "console"
-  // })
+  Cli: makeCliDriver({
+    in: false,
+    type: "console"
+  })
 };
 
 const wrappedMain = onionify(main);
