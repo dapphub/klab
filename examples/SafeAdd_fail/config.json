@@ -3,9 +3,9 @@
   "prelude": "./exp.smt2",
   "lemmas": "./lemmas.k",
   "implements": [
-    "dapp/out/D0.sol.json"
+    "dapp/out/SafeAdd.sol.json"
   ],
-  "behaviour_of": "D0Impl",
+  "behaviour_of": "SafeAdd",
   "var2name": {},
   "path_root": "dapp",
   "host": "127.0.0.1:8080",
@@ -17,21 +17,19 @@
     "4"      : "branch 4",
     "5"      : "branch 5",
     "6"      : "branch 6",
-    "S-n"    : "next_k",
-    "S-p"    : "prev_k",
+    "N"      : "next_k",
+    "P"      : "prev_k",
     "n"      : "next_step",
     "p"      : "prev_step",
-    "C-n"    : "next_branch",
-    "C-p"    : "prev_branch",
+    "\u000e" : "next_branch",
+    "\u0010" : "prev_branch",
     "e"      : "toggle_module evm",
     "b"      : "toggle_module behaviour",
     "c"      : "toggle_module constraint",
     "r"      : "toggle_module rule",
-    "k"      : "toggle_module kcell",
     "z"      : "toggle_module z3feedback",
-    "d"      : "toggle_module debug",
-    "up"     : "scroll_up",
-    "down"   : "scroll_down"
+    "k"      : "toggle_module kcell",
+    "d"      : "toggle_module debug"
   }
 }
 
