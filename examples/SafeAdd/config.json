@@ -28,8 +28,9 @@
     "c"      : "toggle_module constraint",
     "r"      : "toggle_module rule",
     "z"      : "toggle_module z3feedback",
-    "k"      : "toggle_module kcell",
-    "d"      : "toggle_module debug"
+    "d"      : "toggle_module debug",
+    "k"      : "scroll_up",
+    "j"      : "scroll_down"
   }
 }
 
