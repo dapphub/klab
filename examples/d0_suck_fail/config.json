@@ -7,7 +7,7 @@
   ],
   "behaviour_of": "D0Impl",
   "var2name": {},
-  "path_root": "dapp",    
+  "path_root": "dapp",
   "host": "127.0.0.1:8080",
   "control": {
     "0"      : "branch 0",
@@ -17,21 +17,21 @@
     "4"      : "branch 4",
     "5"      : "branch 5",
     "6"      : "branch 6",
-    "N"      : "next_k",
-    "P"      : "prev_k",
+    "S-n"    : "next_k",
+    "S-p"    : "prev_k",
     "n"      : "next_step",
     "p"      : "prev_step",
-    "\u000e" : "next_branch",
-    "\u0010" : "prev_branch",
+    "C-n"    : "next_branch",
+    "C-p"    : "prev_branch",
     "e"      : "toggle_module evm",
     "b"      : "toggle_module behaviour",
     "c"      : "toggle_module constraint",
     "r"      : "toggle_module rule",
-    "z"      : "toggle_module z3feedback",
     "k"      : "toggle_module kcell",
+    "z"      : "toggle_module z3feedback",
     "d"      : "toggle_module debug",
-    "t"      : "toggle_module term",
-    "m"      : "toggle_module memory"
+    "up"     : "scroll_up",
+    "down"   : "scroll_down"
   }
 }
 
