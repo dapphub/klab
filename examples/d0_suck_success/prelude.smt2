@@ -2,33 +2,42 @@
 (set-option :smt.mbqi false)
 ;(set-option :smt.mbqi.max_iterations 15)
 
-(declare-fun pow256 () Int)
-;(assert (= pow256 115792089237316195423570985008687907853269984665640564039457584007913129639936))
-(assert (>= pow256 115792089237316195423570985008687907853269984665640564039457584007913129639936))
-(assert (<= pow256 115792089237316195423570985008687907853269984665640564039457584007913129639936))
+;; pow256 and pow255
+(define-fun pow256 () Int
+  115792089237316195423570985008687907853269984665640564039457584007913129639936)
+(define-fun pow255 () Int
+  57896044618658097711785492504343953926634992332820282019728792003956564819968)
+;; weird declaration trick (doesn't seem to be needed currently)
+;; (declare-fun pow256 () Int)
+;; (assert (>= pow256 115792089237316195423570985008687907853269984665640564039457584007913129639936))
+;; (assert (<= pow256 115792089237316195423570985008687907853269984665640564039457584007913129639936))
 
-;
-; expFunc
-;
+;; signed word arithmetic definitions:
+;; integer to word:
+(define-fun unsigned ((x Int)) Int
+  (if (>= x 0)
+      x
+    (+ x pow256)))
 
-(declare-fun expFunc (Int Int) Int)
+;; word to integer
+(define-fun signed ((x Int)) Int
+  (if (< x pow255)
+      x
+    (- x pow256)))
 
-(assert (forall ((x1 Int) (y1 Int) (x2 Int) (y2 Int))
-  (!
-    (=> (and (<= x1 x2) (<= y1 y2))
-      (<= (expFunc x1 y1) (expFunc x2 y2))
-    )
-    :pattern ((expFunc x1 y1) (expFunc x2 y2))
-  )
-))
+;; signed_abs
+(define-fun signed_abs ((x Int)) Int
+  (if (< x pow255)
+      x
+    (- pow256 x)))
 
-(assert (forall ((x Int) (y Int)) (! (=> (>= y 1) (>= (expFunc x y) x      )) :pattern ((expFunc x y)))))
-(assert (forall ((x Int) (y Int)) (! (=> (>= y 2) (>= (expFunc x y) (* x x))) :pattern ((expFunc x y)))))
+;; signed_sgn
+(define-fun signed_sgn ((x Int)) Int
+  (if (< x pow255)
+      1
+    -1))
 
-;
-; smt_rpow
-;
-
+;; smt_rpow
 (declare-fun smt_rpow (Int Int Int Int) Int)
 (assert (forall ((z Int) (x Int) (y Int) (b Int)) (! (=> (= y 1) (= (smt_rpow z x y b) (div (+ (* z x) (div b 2)) b))) :pattern ((smt_rpow z x y b)))))
 
@@ -46,24 +55,6 @@
 
 (assert (forall ((z Int) (x Int) (y Int) (b Int)) (! (=> (>= y 1) (>= (* (smt_rpow z x y b) b) (+ (* z x) (div b 2)))) :pattern ((smt_rpow z x y b)))))
 (assert (forall ((z Int) (x Int) (y Int) (b Int)) (! (=> (>= y 2) (>= (* (smt_rpow z x y b) b) (+ (* x x) (div b 2)))) :pattern ((smt_rpow z x y b)))))
-
-;;
-;; smt_div_word
-;;
-;
-;(declare-fun smt_div_word (Int Int) Int)
-;
-;(assert (forall ((x Int) (y Int))
-;  (!
-;    (=>
-;      (not (= y 0))
-;      (= (smt_div_word x y)
-;         (div x y))
-;    )
-;    :pattern ((smt_div_word x y))
-;  )
-;))
-
 ;
 ; end of prelude
 ;

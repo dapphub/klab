@@ -517,13 +517,17 @@ contract D0Impl {
       }
       function iadd(x, y) -> z {
         z := add(x, y)
-        if or(and(sgt(y, 0), iszero(sgt(z, x))),
-              and(slt(y, 0), iszero(slt(z, x)))) { revert(0, 0) }
+        // iff y <= 0 || z > x
+        if and(sgt(y, 0), iszero(sgt(z, x))) { revert(0, 0) }
+        // iff y >= 0 || z < x
+        if and(slt(y, 0), iszero(slt(z, x))) { revert(0, 0) }
       }
       function isub(x, y) -> z {
         z := sub(x, y)
-        if or(and(sgt(y, 0), iszero(sgt(x, z))),
-              and(slt(y, 0), iszero(slt(x, z)))) { revert(0, 0) }
+        // iff y >= 0 || z > x
+        if and(slt(y, 0), iszero(sgt(z, x))) { revert(0, 0) }
+        // iff y <= 0 || z < x
+        if and(sgt(y, 0), iszero(slt(z, x))) { revert(0, 0) }
       }
     }
   }

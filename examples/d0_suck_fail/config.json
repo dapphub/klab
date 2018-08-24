@@ -1,13 +1,13 @@
 {
   "spec": "./spec_fail.ini",
-  "prelude": "./exp.smt2",
+  "prelude": "./prelude.smt2",
   "lemmas": "./lemmas.k",
   "implements": [
-    "dapp/out/D0.sol.json"
+    "../../include/d0/out/D0.sol.json"
   ],
   "behaviour_of": "D0Impl",
   "var2name": {},
-  "path_root": "dapp",
+  "path_root": "../../include/d0",
   "host": "127.0.0.1:8080",
   "control": {
     "0"      : "branch 0",
