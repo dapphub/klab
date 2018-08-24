@@ -1,6 +1,6 @@
 {
   "spec": "./spec.ini",
-  "prelude": "./exp.smt2",
+  "prelude": "./prelude.smt2",
   "lemmas": "./lemmas.k",
   "implements": [
     "dapp/out/SafeAdd.sol.json"

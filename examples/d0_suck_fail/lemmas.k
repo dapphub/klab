@@ -1,3 +1,5 @@
+rule #hashedLocation("DappHub", BASE, OFFSET OFFSETS) => #hashedLocation("DappHub", keccakIntList(BASE OFFSET),       OFFSETS)
+
 rule #take(N, #padToWidth(N, X) ++ Z ) => X
 rule #asWord( #asByteStack( X ) ) => X
 
@@ -12,18 +14,6 @@ rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
   requires #rangeSInt(256, A)
   andBool #rangeSInt(256, B)
   andBool #rangeSInt(256, A +Int B)
-
-// need also?
-//rule chop (#unsigned(A)) => #unsigned(A)
-//  requires #rangeSInt(256, A)
-
-rule W0 s<Word W1 => #signed(W0) <Word #signed(W1)
-
-rule #signed(#unsigned(W)) => W
-  requires #rangeSInt(256, W)
-
-rule #unsigned(#signed(W)) => W
-  requires #rangeUInt(256, W)
 
 // lemmas to tell us that our non-overflow conditions are necessary for
 // the overflow checks in iadd and isub
@@ -62,4 +52,4 @@ rule (notBool (B <Int 0))
   requires #rangeSInt(256, A)
   andBool  #rangeSInt(256, B)
  
-rule #hashedLocation("DappHub", BASE, OFFSET OFFSETS) => #hashedLocation("DappHub", keccakIntList(BASE OFFSET),       OFFSETS)
+
