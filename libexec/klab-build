@@ -1,0 +1,366 @@
+#!/usr/bin/env node
+
+const fs            = require("fs");
+const path          = require("path");
+const marked        = require("marked");
+const clc           = require("cli-color");
+const _             = require("lodash");
+const kjson         = require("../lib/kjson.js");
+const Config        = require("../lib/config.js");
+const {
+  makePrelude,
+  makeRules,
+  makeRunScript
+}                   = require("../lib/build.js");
+const {
+  testPath,
+  ensureDirs
+}                   = require("../lib/util.js");
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = Config(config_json);
+const config_path   = process.argv[2] || config.src.specification;
+const raw_md_config = fs.readFileSync(config_path).toString()
+const raw_config    = marked.lexer(raw_md_config)
+const acts_str      = raw_config
+                      .filter(e => e.type === "code")
+                      .map(e => e.text)
+
+
+
+const make_abi_dsl = ({type, name}, i) =>
+  "#" + type + "(ABI_" + name + ")"
+const make_args = inputs => inputs && inputs.length == 0
+    && ".TypedArgs"
+    || inputs.map(make_abi_dsl).join(", ")
+
+const bound = {
+  "uint48" : name => `#rangeUInt(48, ${ name })`,
+  "uint256": name => `#rangeUInt(256, ${ name })`,
+  "int256" : name => `#rangeSInt(256, ${ name })`,
+  "bytes32": name => `#rangeBytes(32, ${ name })`,
+  "address": name => `#rangeAddress(${ name })`
+}
+const toK = str => str
+  .replace(/ \+ /g, " +Int ")
+  .replace(/ \- /g, " -Int ")
+  .replace(/ \* /g, " *Int ")
+  .replace(/ \/ /g, " /Int ")
+  .replace(/ \> /g, " >Int ")
+  .replace(/ \< /g, " <Int ")
+  .replace(/ \<\= /g, " <=Int ")
+  .replace(/ \>\= /g, " >=Int ")
+  .replace(/ \=\= /g, " ==Int ")
+  .replace(/ \=\/\= /g, " =/=Int ")
+  .replace(/ and /g, " andBool ")
+  .replace(/ or /g, " orBool ")
+  .replace(/ not /g, " notBool ")
+  .replace(/uint\(/g, "#unsigned(")
+  .replace(/bool\(/g, "bool2Word(")
+
+// searches and adds abi variables with "ABI_" prefix
+const mapInterface = (is, str) => {
+  is.forEach(([t, n]) => {
+    str = str.replace(new RegExp("([^\\w]|^)" + n + "([^\\w]|$)", "g"), (a, b, c, d) => {
+      return b + "ABI_" + n + c;
+    })
+  })
+  return str;
+}
+
+let acts = acts_str
+  .map(e => {
+    let _act = e
+      .split("\n")
+      .reduce(([c, a], l) => {
+          if(/^[^\s]/.test(l)) {
+            if(c.length > 0) a = a.concat([c])
+            c = [l]
+          } else {
+            c = c.concat([l])
+          }
+        return [c, a];
+      }, [[], []])
+    let act_arr = _act[1].concat([_act[0]])
+    let act = act_arr
+      .reduce((a, e) => {
+        let head = e[0];
+        let tail = e.slice(1)
+        if(/^behaviour/.test(head)) {
+          a.name    = head.split(" ")[1]
+          a.subject = head.split(" ")[3]
+          a.alias2contract_name = {
+            "ACCT_ID": a.subject
+          }
+          console.log("Building behaviour " + a.subject + "." + a.name)
+        } else if(/^interface/.test(head)) {
+          const interface_str = head
+            .split(" ")
+            .slice(1)
+            .join(" ");
+          const interface  = interface_str
+            .match(/\(([^\)]*)\)/)[1]
+            .split(", ")
+            .map(l => l.split(" "))
+            .filter(l => l.length > 1)
+          const _interface_types = interface
+            .reduce((a, [v, k]) => {
+              a["ABI_" + k] = v;
+              return a;
+            }, {})
+          const fname = interface_str.slice(0, interface_str.indexOf("("))
+          a.callData = `#abiCallData("${fname}", ${make_args(interface.map(([type, name]) => ({type, name})))})`
+          a.signature = fname + "(" + interface
+            .map(([t, v]) => t).join(",") + ")"
+          a.types = {
+            ...a.types,
+            ..._interface_types
+          }
+          a.interface = interface;
+        } else if(/^types/.test(head)) {
+          // TODO - address will have a contract assigned
+          //      - get it and assign ACCT_ID to it
+          let _types = tail
+            .map(l => l.trim())
+            .filter(l => l != "")
+            .map(l => l.split(":").map(i => i.trim()))
+            .map(([varname, type]) => {
+              if(/^contract/.test(type)) {
+                a.alias2contract_name = {
+                  ...a.alias2contract_name,
+                  [varname]: type.split(" ")[1]
+                }
+                return [varname, "address"];
+              } else {
+                return [varname, type];
+              }
+            })
+            .reduce((a, [k, v]) => {
+              a[k] = v;
+              return a;
+            }, {})
+          a.types = {
+            ...a.types,
+            ..._types
+          }
+        } else if(/^storage/.test(head)) {
+          let name = head.split(" ")[1] || "ACCT_ID";
+          let _storage = tail
+            .map(l => mapInterface(a.interface, l.trim()))
+            .filter(l => l != "")
+            .map(l => l.split("|->").map(i => toK(i).trim()))
+            .map(([k, v]) => {
+              if(v.indexOf("=>") > -1) {
+                v = v.split("=>").map(i => i.trim())
+              } else {
+                v = [v]
+              }
+              return [k, v];
+            })
+            .reduce((a, [k, v]) => {
+              a[k] = v;
+              return a;
+            }, {})
+          if( name !== "ACCT_ID" ) a.types[name + "_balance"] = "uint256";
+          a.storage = {
+            ...a.storage,
+            [name]: _storage
+          }
+        } else if(/^iff/.test(head)) {
+          let _iff = tail
+            .map(l => mapInterface(a.interface, toK(l).trim()))
+            .filter(l => l != "")
+          if(head.indexOf("in range") > -1) {
+            let range = bound[head.split(" in range ")[1]]
+            _iff = _iff
+              .map(l => range(l))
+          }
+          a.iff = (a.iff || []).concat( _iff )
+        } else if(/^if/.test(head)) {
+          let _if = tail
+            .map(l => mapInterface(a.interface, toK(l).trim()))
+            .filter(l => l != "")
+          a.if = (a.if || []).concat(_if)
+        } else if(/^returns/.test(head)) {
+          let returns = head.split(" ").slice(1).join(" ")
+            .split(":")
+            .map(e => e.trim())
+          let buildReturns = rs => rs.length > 0
+            ? `#asByteStackInWidthaux(${mapInterface(a.interface, toK(rs[0]))}, 31, 32, ${ buildReturns(rs.slice(1)) })`
+            : ".WordStack"
+          a.returns = buildReturns(returns)
+        }
+
+        return a;
+      }, {})
+    return act;
+  })
+
+
+const out = {};
+let behaviours = acts
+  .map(act => {
+
+    if(!act.storage) act.storage = {};
+    if(!act.storage.ACCT_ID) act.storage.ACCT_ID = []
+
+    const act_if = Object.keys(act.types)
+      .filter(name => act.types[name] in bound)
+      .map(name => {
+        let range = bound[act.types[name]]
+        return range(name)
+      })
+      .concat(act.if || [])
+
+    const storage_success = Object.keys(act.storage.ACCT_ID)
+      .map(key => key + " |-> (" + act.storage.ACCT_ID[key].join(" => ") + ")" )
+      .join("\n  " + " ".repeat(14))
+    const cond_success = (act_if || []).concat(act.iff || [])
+      .map(c => "  andBool " + c)
+      .join("\n")
+
+    const storage_fail = Object.keys(act.storage.ACCT_ID)
+      .map(key => key + " |-> (" + act.storage.ACCT_ID[key][0] + (act.storage.ACCT_ID[key].length > 1 ? " => _ " : "") + ")" )
+      .join("\n  " + " ".repeat(14))
+    const cond_fail = (act_if || [])
+      .map(c => "  andBool " + c)
+      .join("\n")
+      + "\n  andBool notBool (\n            "
+      + (act.iff || [])
+      .join("\n    andBool ") + "\n  )"
+
+    const accounts = Object.keys(act.storage)
+      .filter(name => name != "ACCT_ID")
+      .map(name => {
+        let fstore = Object.keys(act.storage[name])
+          .map(key => key + " |-> (" + act.storage[name][key].join(" => ") + ")")
+          .join("\n" + " ".repeat(12))
+
+        let contract_name = act.alias2contract_name[name];
+
+        return {account: {
+          acctID:  name,
+          balance: name + "_balance",
+          code:    `#parseByteStack("0x${config.contracts[contract_name].bin_runtime}")`,
+          storage: fstore,
+          nonce:   "_"
+        }}
+      }).concat([
+        {account: {
+          acctID:  "ACCT_ID",
+          balance: "BAL",
+          code:    `#parseByteStack("0x${config.contracts[act.subject].bin_runtime}")`,
+          storage: storage_success || "_",
+          nonce:   "_"
+        }}
+      ])
+      .concat(["..."])
+
+
+    const accounts_fail = Object.keys(act.storage)
+      .filter(name => name != "ACCT_ID")
+      .map(name => {
+        let fstore = Object.keys(act.storage[name])
+          .map(key => key + " |-> (" + act.storage[name][key][0] + (act.storage[name][key].length > 1 ? " => _ " : "") + ")" )
+          .join("\n"+" ".repeat(12))
+
+        let contract_name = act.alias2contract_name[name];
+
+        return {account: {
+          acctID:  name,
+          balance: name + "_balance",
+          code:    `#parseByteStack(0x${config.contracts[contract_name].bin_runtime})`,
+          storage: fstore,
+          nonce:   "_"
+        }}
+      }).concat([
+        {account: {
+          acctID:  "ACCT_ID",
+          balance: "BAL",
+          code:    `#parseByteStack(0x${config.contracts[act.subject].bin_runtime})`,
+          storage: storage_fail || "_",
+          nonce:   "_"
+        }}
+      ])
+
+    const activeAccounts = Object.keys(act.storage)
+      .map(name => `SetItem(${name})`)
+      .join("\n")
+    // TODO - test if only foreign storage is present, is ACCT_ID in here?
+
+    const filename = act.subject + "_" + act.name
+
+    const getTerm = ({
+      output,
+      statusCode,
+      accounts
+    }) => ({
+      "k": "#execute => #halt",
+      "ethereum.evm.callState.programBytes": `#parseByteStack("0x${config.contracts[act.subject].bin_runtime}")`,
+      "ethereum.evm.callState.program":  `#asMapOpCodes(#dasmOpCodes(#parseByteStack("0x${config.contracts[act.subject].bin_runtime}"), BYZANTIUM))`,
+      "ethereum.evm.callState.callData": act.callData,
+      "ethereum.evm.callState.callValue": "0",
+      "ethereum.evm.callState.wordStack": ".WordStack => _",
+      "ethereum.evm.callState.pc": "0 => _",
+      "ethereum.evm.callState.gas": "VGas => _",
+      "ethereum.evm.callState.callDepth": "CALL_DEPTH => _",
+      "ethereum.evm.output":             output,
+      "ethereum.evm.statusCode":         "_ => " + statusCode,
+      "ethereum.network.activeAccounts": activeAccounts,
+      "ethereum.network.accounts":       accounts,
+    })
+
+    const cases = [{
+      name: filename + "_succ",
+      spec: kjson.render({
+        "name": act.name,
+        "filename": filename + "_succ",
+        "code": "",
+        "term": getTerm({
+          output:  act.returns && ("_ => " + act.returns) || "_",
+          statusCode: "EVMC_SUCCESS",
+          accounts: accounts
+        }),
+        requires: cond_success,
+      })
+    }];
+
+    if((act.iff || []).length > 0) {
+      cases.push({
+        name: filename + "_fail",
+        spec: kjson.render({
+          "name": act.name,
+          "filename": filename + "_",
+          "term": getTerm({
+            output: "_",
+            statusCode: "EVMC_REVERT",
+            accounts: accounts_fail
+          }),
+          "requires": cond_fail
+        })
+      })
+    }
+
+    cases
+      .forEach(c=> {
+        out[c.name] = {
+          v2n: act.alias2contract_name
+        }
+      })
+    return cases;
+  })
+  .reduce((a, cs) => a.concat(cs), [])
+
+ensureDirs(["out", "out/specs"]);
+
+fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
+
+behaviours
+  .forEach(({spec, name}) => {
+    fs.writeFileSync("out/specs/proof-" + name + ".k", spec)
+  })
+
+makeRunScript();
+// RULES
+makeRules(config);
+// prelude
+makePrelude(config);

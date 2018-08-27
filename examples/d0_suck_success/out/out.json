@@ -1,0 +1,12 @@
+{
+  "D0Impl_suck_succ": {
+    "v2n": {
+      "ACCT_ID": "D0Impl"
+    }
+  },
+  "D0Impl_suck_fail": {
+    "v2n": {
+      "ACCT_ID": "D0Impl"
+    }
+  }
+}

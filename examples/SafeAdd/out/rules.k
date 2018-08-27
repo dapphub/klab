@@ -1,24 +1,11 @@
-
-
-
-
-requires "evm.k"
 requires "edsl.k"
+requires "evm.k"
 
-module LEMMAS
+module RULES
     imports EVM
     imports EDSL
 
-
-
-
-
-
-
-
-
-
-
+// VERIFICATION.k
 
     syntax Int ::= nthbyteof ( Int , Int , Int ) [function, smtlib(smt_nthbyteof)]
  // ------------------------------------------------------------------------------
@@ -302,6 +289,11 @@ rule ACCTCODE in SetItem( 1 )
       requires N =/=K 0
       [lemma]
 
+rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
+  requires #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+  andBool #rangeSInt(256, A +Int B)
+
 rule chop(#unsigned(W)) => #unsigned(W)
   requires #rangeSInt(256, W)
 
@@ -313,11 +305,31 @@ rule #unsigned(#signed(W)) => W
 
 rule W0 s<Word W1 => #signed(W0) <Word #signed(W1)
 
+// converse:
+rule (#signed (chop (#unsigned(A) +Int #unsigned(B)))) => A +Int B -Int pow256
+  requires notBool (#rangeSInt(256, A +Int B))
+  andBool B >=Int 0
+  andBool #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+
+rule (#signed (chop (#unsigned(A) +Int #unsigned(B)))) => A +Int B +Int pow256
+  requires notBool (#rangeSInt(256, A +Int B))
+  andBool B <=Int 0
+  andBool #rangeSInt(256, A)
+  andBool #rangeSInt(256, B)
+
 rule A modInt pow160 => A
   requires #rangeAddress(A)
 
 
+// ABSTRACT SEMANTICS.k
+
+  rule <k> LT W0 W1 => bool2Word(W0  <Int W1) ~> #push ... </k> [trusted]
+  rule <k> GT W0 W1 => bool2Word(W0  >Int W1) ~> #push ... </k> [trusted]
+  rule <k> EQ W0 W1 => bool2Word(W0 ==Int W1) ~> #push ... </k> [trusted]
+  rule <k> ISZERO W => bool2Word(W  ==Int 0 ) ~> #push ... </k> [trusted]
+
+
+
 
 endmodule
-
-

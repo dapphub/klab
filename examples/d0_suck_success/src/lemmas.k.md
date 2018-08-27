@@ -9,7 +9,7 @@ rule (#unsigned(A) -Word #unsigned(B)) => #unsigned(A -Int B)
   andBool #rangeSInt(256, B)
   andBool #rangeSInt(256, A -Int B)
 
-// n.b. how + cases use +Int because of earlier application of +Word 
+// n.b. how + cases use +Int because of earlier application of +Word
 rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
   requires #rangeSInt(256, A)
   andBool #rangeSInt(256, B)
@@ -22,22 +22,22 @@ rule notBool (P andBool Q) => (notBool P) orBool (notBool Q)
 rule notBool (notBool P) => P
 
 // these just encode implications
-// (¬A or B) is (A -> B) 
+// (¬A or B) is (A -> B)
 rule (notBool (0 <Int B))
     orBool
      (#signed (#unsigned(A) -Word #unsigned(B)) <Int A)
-    => (A -Int B >=Int minSInt256)	      
+    => (A -Int B >=Int minSInt256)
   requires #rangeSInt(256, A)
   andBool  #rangeSInt(256, B)
 
 rule (notBool (B <Int 0))
     orBool
      (A <Int #signed (#unsigned(A) -Word #unsigned(B)))
-    => (A -Int B <=Int maxSInt256)	      
+    => (A -Int B <=Int maxSInt256)
   requires #rangeSInt(256, A)
   andBool  #rangeSInt(256, B)
 
-// n.b. how + cases use chop and +Int because of earlier application of +Word 
+// n.b. how + cases use chop and +Int because of earlier application of +Word
 rule (notBool (0 <Int B))
     orBool
      (A <Int #signed (chop (#unsigned (A) +Int #unsigned (B))))
