@@ -47,11 +47,11 @@ pre-test:
 
 
 SHELL = bash
-dirs = {bin,libexec}
-prefix ?= /usr/local
+DIRS = {bin,libexec}
+PREFIX ?= /usr/local
 
-dirs:; mkdir -p $(prefix)/$(dirs)
-files = $(shell ls -d $(dirs)/*)
-link: uninstall dirs; npm i; for x in $(files); do \
-	ln -s `pwd`/$$x $(prefix)/$$x; done
-uninstall:; rm -rf $(addprefix $(prefix)/,$(files))
+DIRS:; mkdir -p $(PREFIX)/$(DIRS)
+files = $(shell ls -d $(DIRS)/*)
+link: uninstall DIRS; npm i; for x in $(files); do \
+	ln -s `pwd`/$$x $(PREFIX)/$$x; done
+uninstall:; rm -rf $(addprefix $(PREFIX)/,$(files))

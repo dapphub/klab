@@ -24,15 +24,19 @@ Run (to install npm dependencies and KEVM):
 -   `make deps-kevm`: Clone and build KEVM semantics (requires having KEVM dependencies setup).
 -   `make deps`: Do both (default when running `make`)
 
-### Installing Globally
+### Installing
 
-To make klab available from the terminal, you can either export the path to the `klab` executable, as explained in [Environment Setup](#environment-setup), or use:
+To make klab available from the terminal, you can either just export the path to the `klab` executable, as explained in [Environment Setup](#environment-setup), or use:
 
 ```sh
 make link
 ```
 
-This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines). You can also specify a custom directory for installation by doing:
+
+```sh
+PREFIX=/path/to/custom/prefix make link
+```
 
 ### Environment Setup
 
