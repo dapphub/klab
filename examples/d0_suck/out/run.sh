@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove --debugg --debugg-path $TMPDIR/klab --debugg-id $2 --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable $1 --def-module RULES --output-tokenize "#And _==K_ <k> #unsigned" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude ./prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))"
