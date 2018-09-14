@@ -4,13 +4,6 @@ const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
 const path = require("path");
-const keccak = require("keccak");
-const sha3 = function (str) {
-  return keccak('keccak256')
-    .update(str)
-    .digest('hex')
-    .toString()
-}
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
 
@@ -20,7 +13,8 @@ const main = require("../lib/main.js")
 const {
   testPath,
   revert,
-  read
+  read,
+  sha3
 } = require("../lib/util.js");
 
 const usage = `

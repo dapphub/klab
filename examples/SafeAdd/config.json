@@ -3,8 +3,7 @@
     "specification": "src/specification.act.md",
     "smt_prelude": "src/prelude.smt2.md",
     "rules": [
-      "src/lemmas.k.md",
-      "src/storage.k.md"
+      "src/lemmas.k.md"
     ]
   },
   "implementations": {

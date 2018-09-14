@@ -3,26 +3,18 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
-const keccak = require("keccak");
-const sha3 = function (str) {
-  return keccak('keccak256')
-    .update(str)
-    .digest('hex')
-    .toString()
-}
+const makeConfig = require("../lib/config.js");
+process.title = "klab";
 
-const cliDriver = require("../lib/driver/cliDriver.js")
+const cliDriver    = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
-const localDriver  = require("../lib/driver/localDriver.js");
-const main = require("../lib/main.js")
-const testPath = path => {
-  try {
-    fs.accessSync(path, fs.constants.F_OK);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+const main         = require("../lib/main.js")
+const {
+  testPath,
+  revert,
+  read,
+  sha3
+} = require("../lib/util.js");
 
 
 const usage = `
@@ -37,18 +29,25 @@ const cmd = docopt(usage, {
   argv: ["inspect"].concat(process.argv.slice(2))
 });
 
+const config_json = JSON.parse(fs.readFileSync("./config.json"));
+const config      = makeConfig(config_json);
+try {
+  config.out = JSON.parse(fs.readFileSync("out/out.json"))
+} catch(e) {
+}
 
 // proof id
 config.proofid = cmd["<id>"];
-const kDriver = cmd["--remote"]
-  ? remoteDriver(config.host)
-  : localDriver
-  ;
+config.connection = {
+  type: "remote",
+  host: config.host || "127.0.0.1:8080"
+}
+const kDriver = remoteDriver(config.host);
 
 config.inspect = true;
 
 const drivers = {
-  CLI: cliDriver,
+  CLI: cliDriver(),
   K: kDriver,
   Settings: () => xs.of(config)
 };

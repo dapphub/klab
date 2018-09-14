@@ -60,7 +60,7 @@ const toK = str => str
 // searches and adds abi variables with "ABI_" prefix
 const mapInterface = (is, str) => {
   is.forEach(([t, n]) => {
-    str = str.replace(new RegExp("([^\\w]|^)" + n + "([^\\w]|$)", "g"), (a, b, c, d) => {
+    str = str.replace(new RegExp("([^\\w\.]|^)" + n + "([^\\w]|$)", "g"), (a, b, c, d) => {
       return b + "ABI_" + n + c;
     })
   })
