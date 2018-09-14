@@ -1,12 +1,12 @@
 KLab
 ====
 
-GUI for exploring K-framework reachability proofs.
+A GUI for exploring K-framework reachability proofs.
 
 **NOTE:** This is an early alpha version for internal usage.
 Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework>.
 
-KLab is a client-server architecture, meaning that you need to have a KLab server and a KLab client running.
+KLab uses a client-server architecture, meaning that you'll need to have both a KLab server and a KLab client running.
 The server will recieve proof requests and perform them, while the client will let you explore/work on the proof.
 Ask at <https://dapphub.chat/channel/k-framework> for access to a KLab server if you do not want to setup your own.
 
@@ -21,18 +21,28 @@ Setting up KLab Server and Client
 Run (to install npm dependencies and KEVM):
 
 -   `make deps-npm`: Install npm dependencies.
--   `make deps-kevm`: Clone and build KEVM semantics (requires have KEVM dependencies setup).
--   `make deps`: do both.
+-   `make deps-kevm`: Clone and build KEVM semantics (requires having KEVM dependencies setup).
+-   `make deps`: Do both (default when running `make`)
+
+### Installing Globally
+
+To make klab available from the terminal, you can either export the path to the `klab` executable, as explained in [Environment Setup](#environment-setup), or use:
+
+```sh
+make link
+```
+
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
 
 ### Environment Setup
 
-Your should tell KLab where the `klab` executable lives, e.g.:
+You may wish to add the `klab` executable to the path, e.g.:
 
 ```sh
 export PATH=$PATH:/path/to/klab/bin
 ```
 
-For running a `klab server`, you need to additionally set:
+To run a `klab server`, you need to additionally set:
 
 ```sh
 export KLAB_EVMS_PATH=/path/to/evm-semantics
@@ -44,17 +54,6 @@ export TMPDIR=/tmp
 ```sh
 export KLAB_K_PATH=/path/to/k
 ```
-
-### Installing Globally
-
-To make klab available from the terminal, either export the path to the `klab` executable.
-Also provided is the following command:
-
-```sh
-make link
-```
-
-This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines).
 
 Running KLab
 ------------
