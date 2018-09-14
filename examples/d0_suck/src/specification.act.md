@@ -10,6 +10,7 @@ types
   D_u  : int256
   P    : int256
   V    : int256
+  G    : int256
   VGas : uint256
 
 storage

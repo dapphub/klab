@@ -92,6 +92,7 @@ andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)
   andBool #rangeSInt(256, D_u)
   andBool #rangeSInt(256, P)
   andBool #rangeSInt(256, V)
+  andBool #rangeSInt(256, G)
   andBool #rangeUInt(256, VGas)
   andBool VGas >Int 300000
   andBool Root ==Int CALLER_ID
