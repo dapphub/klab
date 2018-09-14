@@ -1,22 +1,17 @@
 PATH:=$(PATH):$(CURDIR)/bin
 KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
 TMPDIR=$(CURDIR)/tmp
-INSTALLDIR=$(HOME)/klab
 export PATH
 export KLAB_EVMS_PATH
 export TMPDIR
 
-default: link
+default: deps
 
 clean:
 	rm -fdR out/* evm-semantics $(TMPDIR)/klab
 	git submodule update --init -- evm-semantics
 
 deps: deps-kevm deps-npm
-
-install:
-	rm -fr $(INSTALLDIR)
-	cp -r $(CURDIR) $(INSTALLDIR)
 
 deps-kevm:
 	git submodule update --init -- evm-semantics
