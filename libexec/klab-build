@@ -343,7 +343,7 @@ let behaviours = acts
           "name": act.name,
           "filename": filename + "_fail",
           "term": getTerm({
-            output: "_",
+            output: "_ => _",
             statusCode: "EVMC_REVERT",
             accounts: accounts_fail
           }),
