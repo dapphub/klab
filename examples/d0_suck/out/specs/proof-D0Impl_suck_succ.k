@@ -14,7 +14,7 @@ rule
   <analysis> .Map </analysis>
   <ethereum>
     <evm>
-      <output> _ </output>
+      <output> .WordStack </output>
       <statusCode> _ => EVMC_SUCCESS </statusCode>
       <callStack> VCallStack </callStack>
       <interimStates> _ </interimStates>
@@ -38,7 +38,7 @@ rule
       <substate>
         <selfDestruct> VSelfDestruct </selfDestruct>
         <log> VLog </log>
-        <refund> VRefund </refund>
+        <refund> _ => VRefund </refund>
       </substate>
       <gasPrice> _ </gasPrice>
       <origin> ORIGIN_ID </origin>

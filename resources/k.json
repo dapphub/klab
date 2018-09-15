@@ -7,7 +7,7 @@
     "analysis": ".Map",
     "ethereum": {
       "evm": {
-        "output": "VOutput",
+        "output": "_ => VOutput",
         "statusCode": "VStatusCode",
         "callStack": "VCallStack",
         "interimStates": "_",
@@ -31,7 +31,7 @@
         "substate": {
           "selfDestruct": "VSelfDestruct",
           "log": "VLog",
-          "refund": "VRefund"
+          "refund": "_ => VRefund"
         },
         "gasPrice": "_",
         "origin": "ORIGIN_ID",

@@ -38,7 +38,7 @@ rule
       <substate>
         <selfDestruct> VSelfDestruct </selfDestruct>
         <log> VLog </log>
-        <refund> VRefund </refund>
+        <refund> _ => VRefund </refund>
       </substate>
       <gasPrice> _ </gasPrice>
       <origin> ORIGIN_ID </origin>

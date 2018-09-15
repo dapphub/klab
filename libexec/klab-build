@@ -14,6 +14,7 @@ const {
 }                   = require("../lib/build.js");
 const {
   testPath,
+  revert,
   ensureDirs
 }                   = require("../lib/util.js");
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
@@ -88,10 +89,10 @@ let acts = acts_str
         if(/^behaviour/.test(head)) {
           a.name    = head.split(" ")[1]
           a.subject = head.split(" ")[3]
-          a.alias2contract_name = {
+          a.varname2alias = {
             "ACCT_ID": a.subject
           }
-          console.log("Building behaviour " + a.subject + "." + a.name)
+          console.log("Parsing behaviour " + a.subject + "." + a.name)
         } else if(/^interface/.test(head)) {
           const interface_str = head
             .split(" ")
@@ -124,9 +125,9 @@ let acts = acts_str
             .filter(l => l != "")
             .map(l => l.split(":").map(i => i.trim()))
             .map(([varname, type]) => {
-              if(/^contract/.test(type)) {
-                a.alias2contract_name = {
-                  ...a.alias2contract_name,
+              if(/^address/.test(type)) {
+                a.varname2alias = {
+                  ...a.varname2alias,
                   [varname]: type.split(" ")[1]
                 }
                 return [varname, "address"];
@@ -199,6 +200,7 @@ let acts = acts_str
 const out = {};
 let behaviours = acts
   .map(act => {
+    console.log("Building behaviour " + act.subject + "." + act.name)
 
     if(!act.storage) act.storage = {};
     if(!act.storage.ACCT_ID) act.storage.ACCT_ID = []
@@ -229,18 +231,21 @@ let behaviours = acts
       .join("\n    andBool ") + "\n  )"
 
     const accounts = Object.keys(act.storage)
-      .filter(name => name != "ACCT_ID")
-      .map(name => {
-        let fstore = Object.keys(act.storage[name])
-          .map(key => key + " |-> (" + act.storage[name][key].join(" => ") + ")")
+      .filter(varname => varname != "ACCT_ID")
+      .map(varname => {
+        let fstore = Object.keys(act.storage[varname])
+          .map(key => key + " |-> (" + act.storage[varname][key].join(" => ") + ")")
           .join("\n" + " ".repeat(12))
 
-        let contract_name = act.alias2contract_name[name];
+        // if(!(act.varname2alias[varname])) revert(`Implementation of variable "${varname} : address" not found!`);
+        let alias = act.varname2alias[varname];
+        // if(!(config.implementations[alias])) revert(`Implementation of contract alias ${alias} not found!`);
+        let contract_name = alias && alias in config.implementations && config.implementations[alias].name;
 
         return {account: {
-          acctID:  name,
-          balance: name + "_balance",
-          code:    `#parseByteStack("0x${config.contracts[contract_name].bin_runtime}")`,
+          acctID:  varname,
+          balance: varname + "_balance",
+          code:    `#parseByteStack("0x${contract_name && config.contracts[contract_name].bin_runtime || ""}")`,
           storage: fstore,
           nonce:   "_"
         }}
@@ -257,18 +262,19 @@ let behaviours = acts
 
 
     const accounts_fail = Object.keys(act.storage)
-      .filter(name => name != "ACCT_ID")
-      .map(name => {
-        let fstore = Object.keys(act.storage[name])
-          .map(key => key + " |-> (" + act.storage[name][key][0] + (act.storage[name][key].length > 1 ? " => _ " : "") + ")" )
+      .filter(varname => varname != "ACCT_ID")
+      .map(varname => {
+        let fstore = Object.keys(act.storage[varname])
+          .map(key => key + " |-> (" + act.storage[varname][key][0] + (act.storage[varname][key].length > 1 ? " => _ " : "") + ")" )
           .join("\n"+" ".repeat(12))
 
-        let contract_name = act.alias2contract_name[name];
+        let alias = act.varname2alias[varname];
+        let contract_name = alias && alias in config.implementations && config.implementations[alias].name;
 
         return {account: {
-          acctID:  name,
-          balance: name + "_balance",
-          code:    `#parseByteStack(0x${config.contracts[contract_name].bin_runtime})`,
+          acctID:  varname,
+          balance: varname + "_balance",
+          code:    `#parseByteStack(0x${contract_name && config.contracts[contract_name].bin_runtime || ""})`,
           storage: fstore,
           nonce:   "_"
         }}
@@ -316,7 +322,7 @@ let behaviours = acts
         "filename": filename + "_succ",
         "code": "",
         "term": getTerm({
-          output:  act.returns && ("_ => " + act.returns) || "_",
+          output:  act.returns && ("_ => " + act.returns) || ".WordStack",
           statusCode: "EVMC_SUCCESS",
           accounts: accounts
         }),
@@ -343,7 +349,7 @@ let behaviours = acts
     cases
       .forEach(c=> {
         out[c.name] = {
-          v2n: act.alias2contract_name
+          v2n: act.varname2alias
         }
       })
     return cases;
