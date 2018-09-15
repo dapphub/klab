@@ -70,7 +70,7 @@ rule
           <storage> 0 |-> (Root)
                           9 |-> (#unsigned(V_p))
                           10 |-> (#unsigned(P))
-                          11 |-> ((#unsigned(V) => V -Int ABI_Delta_D))
+                          11 |-> ((#unsigned(V) => #unsigned(V -Int ABI_Delta_D)))
                           12 |-> (G)
                           #hashedLocation("DappHub", 4, ABI_u) |-> ((#unsigned(D_u) => #unsigned(D_u +Int ABI_Delta_D))) </storage>
           <nonce> _ </nonce>
@@ -96,8 +96,8 @@ andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)
   andBool #rangeUInt(256, VGas)
   andBool VGas >Int 300000
   andBool Root ==Int CALLER_ID
-  andBool V -Int ABI_Delta_D >Int 0
-  andBool D_u +Int ABI_Delta_D >Int 0
+  andBool V -Int ABI_Delta_D >=Int 0
+  andBool D_u +Int ABI_Delta_D >=Int 0
   andBool #rangeSInt(256, V -Int ABI_Delta_D)
   andBool #rangeSInt(256, D_u +Int ABI_Delta_D)
 
