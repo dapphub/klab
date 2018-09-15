@@ -17,6 +17,7 @@ const {
   revert,
   ensureDirs
 }                   = require("../lib/util.js");
+const warn          = str => console.log(clc.xterm(214)(str))
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
 const config_path   = process.argv[2] || config.src.specification;
@@ -237,9 +238,9 @@ let behaviours = acts
           .map(key => key + " |-> (" + act.storage[varname][key].join(" => ") + ")")
           .join("\n" + " ".repeat(12))
 
-        // if(!(act.varname2alias[varname])) revert(`Implementation of variable "${varname} : address" not found!`);
+        if(!(act.varname2alias[varname])) warn(`Implementation of variable "${varname} : address" not found!`);
         let alias = act.varname2alias[varname];
-        // if(!(config.implementations[alias])) revert(`Implementation of contract alias ${alias} not found!`);
+        if(alias && !(config.implementations[alias])) warn(`Implementation of contract alias ${alias} not found!`);
         let contract_name = alias && alias in config.implementations && config.implementations[alias].name;
 
         return {account: {
