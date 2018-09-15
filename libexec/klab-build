@@ -292,6 +292,7 @@ let behaviours = acts
           nonce:   "_"
         }}
       ])
+      .concat(["..."])
 
     const activeAccounts = Object.keys(act.storage)
       .map(name => `SetItem(${name})`)
