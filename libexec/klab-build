@@ -340,7 +340,7 @@ let behaviours = acts
         name: filename + "_fail",
         spec: kjson.render({
           "name": act.name,
-          "filename": filename + "_",
+          "filename": filename + "_fail",
           "term": getTerm({
             output: "_",
             statusCode: "EVMC_REVERT",
@@ -352,10 +352,13 @@ let behaviours = acts
     }
 
     cases
-      .forEach(c=> {
+      .forEach(c => {
         out[c.name] = {
           v2n: act.varname2alias
         }
+        // if(c.name == "Vat_move_fail") {
+        //   console.log("\n...\n"+c.spec+"\n..\n");
+        // }
       })
     return cases;
   })
