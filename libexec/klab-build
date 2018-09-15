@@ -216,14 +216,18 @@ let behaviours = acts
 
     const storage_success = Object.keys(act.storage.ACCT_ID)
       .map(key => key + " |-> (" + act.storage.ACCT_ID[key].join(" => ") + ")" )
+      .concat(["_:Map"])
       .join("\n  " + " ".repeat(14))
+      + "\n"
     const cond_success = (act_if || []).concat(act.iff || [])
       .map(c => "  andBool " + c)
       .join("\n")
 
     const storage_fail = Object.keys(act.storage.ACCT_ID)
       .map(key => key + " |-> (" + act.storage.ACCT_ID[key][0] + (act.storage.ACCT_ID[key].length > 1 ? " => _ " : "") + ")" )
+      .concat(["_:Map"])
       .join("\n  " + " ".repeat(14))
+      + "\n"
     const cond_fail = (act_if || [])
       .map(c => "  andBool " + c)
       .join("\n")
@@ -275,7 +279,7 @@ let behaviours = acts
         return {account: {
           acctID:  varname,
           balance: varname + "_balance",
-          code:    `#parseByteStack(0x${contract_name && config.contracts[contract_name].bin_runtime || ""})`,
+          code:    `#parseByteStack("0x${contract_name && config.contracts[contract_name].bin_runtime || ""}")`,
           storage: fstore,
           nonce:   "_"
         }}
@@ -283,7 +287,7 @@ let behaviours = acts
         {account: {
           acctID:  "ACCT_ID",
           balance: "BAL",
-          code:    `#parseByteStack(0x${config.contracts[act.subject].bin_runtime})`,
+          code:    `#parseByteStack("0x${config.contracts[act.subject].bin_runtime}")`,
           storage: storage_fail || "_",
           nonce:   "_"
         }}

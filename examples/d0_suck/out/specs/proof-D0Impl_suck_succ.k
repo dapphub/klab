@@ -72,7 +72,9 @@ rule
                           10 |-> (#unsigned(P))
                           11 |-> ((#unsigned(V) => #unsigned(V -Int ABI_Delta_D)))
                           12 |-> (G)
-                          #hashedLocation("DappHub", 4, ABI_u) |-> ((#unsigned(D_u) => #unsigned(D_u +Int ABI_Delta_D))) </storage>
+                          #hashedLocation("DappHub", 4, ABI_u) |-> ((#unsigned(D_u) => #unsigned(D_u +Int ABI_Delta_D)))
+                          _:Map
+           </storage>
           <nonce> _ </nonce>
         </account>
        ... 
