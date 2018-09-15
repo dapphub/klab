@@ -15,18 +15,18 @@ Setting up KLab Server and Client
 
 ### Dependencies
 
--   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies.
+-   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies. Follow the [instructions](https://github.com/dapphub/evm-semantics#system-dependencies) under the section "System Dependencies" in the `evm-semantics` repo, but don't install `evm-semantics` or `k` itself: the correct versions will be automatically installed if you follow the instructions below.
 -   `npm` for installing the JavaScript dependencies.
 
-Run (to install npm dependencies and KEVM):
+To install the remaining dependencies (the npm dependencies and KEVM):
 
--   `make deps-npm`: Install npm dependencies.
--   `make deps-kevm`: Clone and build KEVM semantics (requires having KEVM dependencies setup).
--   `make deps`: Do both (default when running `make`)
+```sh
+make deps
+```
 
 ### Installing
 
-To make klab available from the terminal, you can either just export the path to the `klab` executable, as explained in [Environment Setup](#environment-setup), or use:
+To make klab available from the terminal, you can either just export the path to the `klab` executable in `bin/`, or use:
 
 ```sh
 make link
@@ -53,7 +53,13 @@ export KLAB_EVMS_PATH=/path/to/evm-semantics
 export TMPDIR=/tmp
 ```
 
-**OPTIONAL**: If you want to use a custom version of K you can also do:
+The `evm-semantics` are located in this repo, e.g. if you cloned this repo to `/home/foo/repos/klab`, you should run:
+
+```sh
+export KLAB_EVMS_PATH=/home/foo/repos/klab/evm-semantics
+```
+
+**OPTIONAL**: If you want to use a custom version of K you can also set:
 
 ```sh
 export KLAB_K_PATH=/path/to/k
@@ -83,15 +89,7 @@ cd examples/SafeAdd
 klab run
 ```
 
-To ensure that a cached version of the proof is not being used, you need to first:
-
--   Remove the temporary directory on the server (printed out in the server log).
--   Run `klab` with the `--force` option.
-
-```sh
-rm -rf /path/to/proof/dir/on/server
-klab run --force
-```
+To ensure that a cached version of the proof is not being used, run `klab` with the `--force` option.
 
 ### Key Bindings
 
@@ -99,10 +97,14 @@ Toggle different views by pressing any of the following keys:
 
 **View Commands**:
 
--   `k` - display the `<k>` cell.
--   `b` - display **b**ehavior
--   `e` - display the **e**vm specific module.
--   `d` - display the **d**ebug cells (see toggling debug cells below).
+-   `c` - display current **c**onstraints.
+-   `k` - display `<k>` cell.
+-   `b` - display **b**ehavior tree.
+-   `e` - display **e**vm specific module.
+-   `d` - display **d**ebug cells (see toggling debug cells below).
+-   `r` - display applied K **r**ule.
+-   `z` - display **z**3 feedback from attempted rule application.
+-   `Up/Dn` - scroll view **up** and **down**.
 
 **Navigation Commands**:
 
@@ -176,7 +178,7 @@ This will remove and recompile the KEVM semantics.
 ### Docker
 
 Example usage:
-```shell
+```sh
 # Build server
 docker build -t klab .
 
