@@ -39,11 +39,11 @@ pre-test:
 	klab server & mkdir -p $(TMPDIR)
 
 %.test: pre-test
-	cd $* && klab run --headless --force
+	cd $* && klab build && klab run --headless --force
 
 # Tests that should fail
 %.fail_test:
-	cd $* && klab run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected"
+	cd $* && klab build && klab run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected"
 
 
 SHELL = bash
