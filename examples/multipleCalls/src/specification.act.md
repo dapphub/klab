@@ -5,7 +5,7 @@ interface raiseTemp(uint256 x)
 
 types
 
-  CALLEE : contract Callee
+  CALLEE : address Callee
 
 storage
 
