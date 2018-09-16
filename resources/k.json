@@ -30,7 +30,7 @@
         },
         "substate": {
           "selfDestruct": "VSelfDestruct",
-          "log": "VLog",
+          "log": "_ => VLog",
           "refund": "_ => VRefund"
         },
         "gasPrice": "_",
