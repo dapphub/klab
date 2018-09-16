@@ -26,7 +26,18 @@ const raw_config    = marked.lexer(raw_md_config)
 const acts_str      = raw_config
                       .filter(e => e.type === "code")
                       .map(e => e.text)
+                      .join("\n")
+ensureDirs(["out", "out/specs", "out/acts"]);
+fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
 
+const acts_str_arr  = acts_str
+  .split(/\nbehaviour\s/)
+  .map((s, i) => (i == 0 ? s : "behaviour " + s))
+
+
+
+// remove comments
+// console.log(acts_str.replace(/\/\/[^\n]*\n/g, ""));
 
 
 const make_abi_dsl = ({type, name}, i) =>
@@ -69,9 +80,10 @@ const mapInterface = (is, str) => {
   return str;
 }
 
-let acts = acts_str
-  .map(e => {
-    let _act = e
+let acts = acts_str_arr
+  .map(act_str => {
+    let _act = act_str
+      .replace(/\/\/[^\n]*\n/g, "")
       .split("\n")
       .reduce(([c, a], l) => {
           if(/^[^\s]/.test(l)) {
@@ -93,7 +105,8 @@ let acts = acts_str
           a.varname2alias = {
             "ACCT_ID": a.subject
           }
-          console.log("Parsing behaviour " + a.subject + "." + a.name)
+          console.log("Parsing act " + a.subject + "." + a.name)
+          fs.writeFileSync(path.join("out", "acts", a.subject + "_" + a.name + ".act"), act_str)
         } else if(/^interface/.test(head)) {
           const interface_str = head
             .split(" ")
@@ -201,7 +214,7 @@ let acts = acts_str
 const out = {};
 let behaviours = acts
   .map(act => {
-    console.log("Building behaviour " + act.subject + "." + act.name)
+    console.log("Building k-spec " + act.subject + "." + act.name)
 
     if(!act.storage) act.storage = {};
     if(!act.storage.ACCT_ID) act.storage.ACCT_ID = []
@@ -364,8 +377,6 @@ let behaviours = acts
     return cases;
   })
   .reduce((a, cs) => a.concat(cs), [])
-
-ensureDirs(["out", "out/specs"]);
 
 fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
 
