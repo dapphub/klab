@@ -17,6 +17,10 @@ storage CALLEE
 
 if
 
+  CALL_DEPTH < 250
+  10 <= CALLEE
+  CALLEE =/= ACCT_ID
+  #rangeUInt(256, BAL)
   VGas > 300000
 ```
 
