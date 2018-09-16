@@ -24,7 +24,6 @@ storage
 
 iff
 
-  VGas > 300000
   Root == CALLER_ID
   V - Delta_D >= 0
   D_u + Delta_D >= 0
@@ -34,4 +33,7 @@ iff in range int256
   V - Delta_D
   D_u + Delta_D
 
+if
+
+  VGas > 300000
 ```
