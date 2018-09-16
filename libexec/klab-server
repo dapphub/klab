@@ -130,7 +130,7 @@ const main = ({onion, Server, K, Make, Db}) => {
       dbquery$
     ),
     onion: queueSinks.onion,
-    Cli: view$
+    // Cli: view$
   };
 }
 
@@ -139,10 +139,10 @@ const drivers = {
   K: kDriver,
   Make: makeDriver,
   Db: dbDriver,
-  Cli: makeCliDriver({
-    in: false,
-    type: "console"
-  })
+  // Cli: makeCliDriver({
+  //   in: false,
+  //   type: "console"
+  // })
 };
 
 const wrappedMain = onionify(main);

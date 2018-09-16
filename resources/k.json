@@ -1,0 +1,70 @@
+{
+  "t": {
+    "k": "VKCell",
+    "exit-code": "1",
+    "mode": "NORMAL",
+    "schedule": "BYZANTIUM",
+    "analysis": ".Map",
+    "ethereum": {
+      "evm": {
+        "output": "_ => VOutput",
+        "statusCode": "VStatusCode",
+        "callStack": "VCallStack",
+        "interimStates": "_",
+        "touchedAccounts": "_ => _",
+        "callState": {
+          "program": "#asMapOpCodes(#dasmOpCodes(#parseByteStack({CODE}), BYZANTIUM))",
+          "programBytes": "#parseByteStack({CODE})",
+          "id": "ACCT_ID",
+          "caller": "CALLER_ID",
+          "callData": "VCallData",
+          "callValue": "VCallValue",
+          "wordStack": "VWordStack",
+          "localMem": ".Map => _",
+          "pc": "VPC",
+          "gas": "VGas",
+          "memoryUsed": "0 => _",
+          "previousGas": "_ => _",
+          "static": "false",
+          "callDepth": "VCallDepth"
+        },
+        "substate": {
+          "selfDestruct": "VSelfDestruct",
+          "log": "VLog",
+          "refund": "_ => VRefund"
+        },
+        "gasPrice": "_",
+        "origin": "ORIGIN_ID",
+        "previousHash": "_",
+        "ommersHash": "_",
+        "coinbase": "_",
+        "stateRoot": "_",
+        "transactionsRoot": "_",
+        "receiptsRoot": "_",
+        "logsBloom": "_",
+        "difficulty": "_",
+        "number": "_",
+        "gasLimit": "_",
+        "gasUsed": "_",
+        "timestamp": "TIME",
+        "extraData": "_",
+        "mixHash": "_",
+        "blockNonce": "_",
+        "ommerBlockHeaders": "_",
+        "blockhash": "_"
+      },
+      "network": {
+        "activeAccounts": "VActiveAccounts",
+        "accounts": [],
+        "txOrder": "_",
+        "txPending": "_",
+        "messages": "_"
+      }
+    }
+  },
+  "requires": [
+            "0 <=Int ACCT_ID    andBool ACCT_ID    <Int (2 ^Int 160)",
+    "andBool 0 <=Int CALLER_ID  andBool CALLER_ID  <Int (2 ^Int 160)",
+    "andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)"
+  ]
+}

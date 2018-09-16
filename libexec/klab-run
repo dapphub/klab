@@ -3,28 +3,19 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
-const keccak = require("keccak");
-const sha3 = function (str) {
-  return keccak('keccak256')
-    .update(str)
-    .digest('hex')
-    .toString()
-}
+const path = require("path");
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
 const main = require("../lib/main.js")
-const testPath = path => {
-  try {
-    fs.accessSync(path, fs.constants.F_OK);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
+const {
+  testPath,
+  revert,
+  read,
+  sha3
+} = require("../lib/util.js");
 
 const usage = `
 Usage:
@@ -36,6 +27,7 @@ Options:
   --clean
   --trust=<trust-spec, trust-bin>
   --spec=<spec>
+  --name=<name>
   --headless
 `
 
@@ -43,56 +35,56 @@ const cmd = docopt(usage, {
   argv: ["run"].concat(process.argv.slice(2))
 });
 
-
-// TODO - add --implements to cmd
-
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
-const config = makeConfig(config_json);
+const config      = makeConfig(config_json);
 
-if(cmd["--spec"]) {
-    config.spec = cmd["--spec"];
-
+try {
+  config.out = JSON.parse(fs.readFileSync("out/out.json"))
+} catch(e) {
 }
 
-if(cmd["--trust"]) {
-    config.trust = true;
-    config.trustSpec = fs.readFileSync(cmd["--trust"].split(',')[0]).toString();
-    config.trustBin  = fs.readFileSync(cmd["--trust"].split(',')[1]).toString();
-}
+const specs       = fs.readdirSync("out/specs");
+const spec_names  = specs.map(s => s.slice(6, -2))
 
-// console.log(config.spec);
+config.spec = cmd["--spec"] && (
+    testPath(cmd["--spec"]) && read(cmd["--spec"])
+    || revert(`spec not found at ${cmd["--spec"]}`))
+  || cmd["--name"] && (cmd["--name"] in spec_names)
+    && read("out/specs/proof-" + cmd["name"] + ".k")
+  || revert("no --spec or --name provided");
 
+config.name = cmd["--spec"] && path.basename(cmd["--spec"])
+  || cmd["--name"] && ("proof-" + name + ".k")
 
-// READ the spec files
-[ "spec", "lemmas", "prelude" ].forEach(filetype => {
-  if(!(filetype in config)) return null;
-  let content = fs.readFileSync(config[filetype]).toString()
-  config[filetype] = content;
-})
+config.rules = testPath("out/rules.k") && read("out/rules.k")
+  || revert("no rules found at out/rules.k")
 
+config.smt_prelude = testPath("out/prelude.smt2") && read("out/prelude.smt2")
+  || revert("no smt prelude file at out/prelude.mst2")
+
+// if(cmd["--trust"]) {
+//     config.trust = true;
+//     config.trustSpec = fs.readFileSync(cmd["--trust"].split(',')[0]).toString();
+//     config.trustBin  = fs.readFileSync(cmd["--trust"].split(',')[1]).toString();
+// }
 
 // proof id
 config.proofid = sha3(JSON.stringify({
-  lemmas: config.lemmas,
-  contracts: config.contracts,
-  spec: config.spec,
-  prelude: config.prelude
+  rules: config.rules,
+  spec : config.spec,
+  smt_prelude: config.smt_prelude
 }));
 
 config.connection = {
   type: "remote",
-  host: config.host
+  host: config.host || "127.0.0.1:8080"
 }
 
 const kDriver = remoteDriver(config.host);
-const inspect = cmd["--inspect"];
-if(inspect) config.inspect = inspect;
+// const inspect = cmd["--inspect"];
+// if(inspect) config.inspect = inspect;
 
 config.force = cmd["--force"];
-//config.spec  = cmd["--spec" ];
-//config.trust = cmd["--trust" ];
-config.force = cmd["--force"];
-config.clean = cmd["--clean"];
 
 const CLIDriver = cmd["--headless"]
   ? () => xs.of()
