@@ -18,9 +18,9 @@ storage
   0 |-> Root
   9 |-> uint(V_p)
   10 |-> uint(P)
-  11 |-> (uint(V) => uint(V -Int Delta_D))
+  11 |-> uint(V) => uint(V -Int Delta_D)
   12 |-> G
-  #hashedLocation("DappHub", 4, u) |-> (uint(D_u) => uint(D_u +Int Delta_D))
+  #hashedLocation("DappHub", 4, u) |-> uint(D_u) => uint(D_u +Int Delta_D)
 
 iff
 
