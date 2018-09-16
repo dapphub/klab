@@ -32,18 +32,20 @@ fail_dir=examples/should_err
 tests=$(wildcard $(test_dir)/*)
 fail_tests=$(wildcard $(fail_dir)/*)
 
+KLAB = $(CURDIR)/bin/klab
+
 test:  $(tests:=.test)
 	pkill klab
 
 pre-test:
-	klab server & mkdir -p $(TMPDIR)
+	$(KLAB) server & mkdir -p $(TMPDIR)
 
 %.test: pre-test
-	cd $* && klab build && klab run --headless --force
+	cd $* && $(KLAB) build && $(KLAB) run --headless --force
 
 # Tests that should fail
 %.fail_test:
-	cd $* && klab build && klab run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected"
+	cd $* && $(KLAB) build && $(KLAB) run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected"
 
 
 SHELL = bash
