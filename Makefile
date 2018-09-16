@@ -5,6 +5,13 @@ export PATH
 export KLAB_EVMS_PATH
 export TMPDIR
 
+# shell output colouring:
+red:=$(shell tput setaf 1)
+green:=$(shell tput setaf 2)
+yellow:=$(shell tput setaf 3)
+bold:=$(shell tput bold)
+reset:=$(shell tput sgr0)
+
 default: deps
 
 clean:
@@ -27,26 +34,36 @@ media: media/introduction.pdf
 media/%.pdf: media/%.md
 	pandoc --from markdown --to beamer --output $@ $<
 
-test_dir=examples
-fail_dir=examples/should_err
-tests=$(wildcard $(test_dir)/*)
-fail_tests=$(wildcard $(fail_dir)/*)
-
 KLAB = $(CURDIR)/bin/klab
 
-test:  $(tests:=.test)
-	pkill klab
+start-server: server.PID
+	$(info $(bold)STARTED$(reset) KLab server.)
 
-pre-test:
-	$(KLAB) server & mkdir -p $(TMPDIR)
+server.PID:
+	mkdir -p $(TMPDIR) && { nohup $(KLAB) server > nohup.out 2>&1 & echo $$! > $@; }
 
-%.test: pre-test
-	cd $* && $(KLAB) build && $(KLAB) run --headless --force
+stop-server: server.PID
+	kill -- -$$(ps -o pgid= `cat $<` | grep -o '[0-9]*') && rm $< && echo "$(bold)STOPPED$(reset) Klab server."
 
-# Tests that should fail
-%.fail_test:
-	cd $* && $(KLAB) build && $(KLAB) run --headless --force && ([ $$? -eq 0 ] && echo "error! should have failed!)!") || echo "Exits with nonzero exit code as expected"
+test_dir=examples
+test_examples=$(wildcard $(test_dir)/*)
 
+build-test: $(test_examples:=.build)
+
+%.build:
+	cd $* && $(KLAB) build
+
+# workaround for patsubst in pattern matching target below
+PERCENT := %
+
+.SECONDEXPANSION:
+
+test: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR)/examples/*/out/specs/*.k))
+	$(info $(bold)CHECKED$(reset) all test specs.)
+
+%.k.proof: %.k
+	$(info Proof $(bold)STARTING$(reset): $<)
+	@ cd $(dir $*)../../ && $(KLAB) run --headless --force --spec $< && echo "$(green)Proof $(bold)SUCCESS$(reset): $<"
 
 SHELL = bash
 DIRS = {bin,libexec}
