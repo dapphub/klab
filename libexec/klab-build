@@ -3,6 +3,7 @@
 const fs            = require("fs");
 const path          = require("path");
 const marked        = require("marked");
+const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const kjson         = require("../lib/kjson.js");
@@ -17,10 +18,24 @@ const {
   revert,
   ensureDirs
 }                   = require("../lib/util.js");
+
+const usage = `
+Usage:
+  klab build [options]
+
+Options:
+  --spec=<spec>
+  --filter=<filter>
+`
+const cmd = docopt(usage, {
+  argv: ["build"].concat(process.argv.slice(2))
+});
+
 const warn          = str => console.log(clc.xterm(214)(str))
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
-const config_path   = process.argv[2] || config.src.specification;
+const config_path   = cmd["--spec"] || config.src.specification;
+const filter_subject= cmd["--filter"] || null;
 const raw_md_config = fs.readFileSync(config_path).toString()
 const raw_config    = marked.lexer(raw_md_config)
 const acts_str      = raw_config
@@ -213,6 +228,7 @@ let acts = acts_str_arr
 
 const out = {};
 let behaviours = acts
+  .filter(act => !filter_subject || act.subject == filter_subject)
   .map(act => {
     console.log("Building k-spec " + act.subject + "." + act.name)
 
