@@ -88,7 +88,10 @@ config.force = cmd["--force"];
 
 const CLIDriver = cmd["--headless"]
   ? () => xs.of()
-  : makeCliDriver()
+  : makeCliDriver({
+    // type: "console",
+    // in: false
+  })
 config.headless = cmd["--headless"]
 
 const drivers = {
