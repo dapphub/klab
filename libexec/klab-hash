@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+const fs            = require("fs");
+const {docopt}      = require("docopt");
+
+const Config        = require("../lib/config.js");
+const {
+  testPath,
+  revert,
+  read,
+  sha3
+} = require("../lib/util.js");
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = Config(config_json);
+
+const usage = `
+Usage:
+  klab hash [options]
+
+Options:
+  --spec=<spec>
+`
+
+const cmd = docopt(usage, {
+  argv: ["hash"].concat(process.argv.slice(2))
+});
+
+config.spec = cmd["--spec"] && (
+    testPath(cmd["--spec"]) && read(cmd["--spec"])
+    || revert(`spec not found at ${cmd["--spec"]}`))
+
+
+const proofid = sha3(JSON.stringify({
+  rules: config.rules,
+  spec : config.spec,
+  smt_prelude: config.smt_prelude
+}));
+
+process.stdout.write(proofid)
