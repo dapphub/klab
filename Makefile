@@ -71,6 +71,6 @@ PREFIX ?= /usr/local
 
 DIRS:; mkdir -p $(PREFIX)/$(DIRS)
 files = $(shell ls -d $(DIRS)/*)
-link: uninstall DIRS; npm i; for x in $(files); do \
+link: uninstall DIRS; for x in $(files); do \
 	ln -s `pwd`/$$x $(PREFIX)/$$x; done
 uninstall:; rm -rf $(addprefix $(PREFIX)/,$(files))
