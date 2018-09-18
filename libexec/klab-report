@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+const fs            = require("fs");
+const marked        = require("marked");
+const Config        = require("../lib/config.js");
+
+
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = Config(config_json);
+const config_path   = config.src.specification;
+const raw_md_config = fs.readFileSync(config_path).toString()
+const tokens        = marked.lexer(raw_md_config)
+
+const act = {
+  type: "html",
+  text: "<h1>OMFG</h1>",
+  pre: false
+};
+
+const enriched_tokens = tokens
+  .reduce((a, t) => {
+    return a.concat(t.type == "code" ? [t, act]: t)
+  }, [])
+enriched_tokens.links = tokens.links;
+// console.log(JSON.stringify(enriched_tokens, false, 2));
+const html = marked.parser(enriched_tokens);
+console.log(html);
+
