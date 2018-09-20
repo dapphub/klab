@@ -87,11 +87,11 @@ const main = ({onion, Server, K, Make, Db}) => {
     ].indexOf(msg.type) > -1)
   const kmsg$ = Db
     .filter(msg => msg.type == "msg")
-    .map(msg => Object.assign({}, pure(msg), {
-      proofid: msg.proofid,
-      peer: msg.peer
-    }))
-    .filter(msg => msg.type !== "unknown")
+    // .map(msg => Object.assign({}, pure(msg), {
+    //   proofid: msg.proofid,
+    //   peer: msg.peer
+    // }))
+    // .filter(msg => msg.type !== "unknown")
   const notkmsg$ = Db
     .filter(msg => msg.type != "msg")
 
