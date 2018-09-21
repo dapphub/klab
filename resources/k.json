@@ -63,8 +63,9 @@
     }
   },
   "requires": [
-            "0 <=Int ACCT_ID    andBool ACCT_ID    <Int (2 ^Int 160)",
-    "andBool 0 <=Int CALLER_ID  andBool CALLER_ID  <Int (2 ^Int 160)",
-    "andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int (2 ^Int 160)"
+    "#rangeAddress(ACCT_ID)",
+    "andBool #rangeAddress(CALLER_ID)",
+    "andBool #rangeAddress(ORIGIN_ID)",
+    "andBool #rangeUInt(48, TIME)"
   ]
 }
