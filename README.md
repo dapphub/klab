@@ -193,6 +193,6 @@ klab run
 ```
 
 # License
-All applicable work in this repository is licensed under AGPL-3.0. Authors:
+All contributions to this repository are licensed under AGPL-3.0. Authors:
 
 * Denis Erfurt
