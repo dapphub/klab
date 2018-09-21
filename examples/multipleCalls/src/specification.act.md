@@ -17,11 +17,29 @@ storage CALLEE
 
 if
 
-  CALL_DEPTH < 250
+  CALL_DEPTH < 255
   10 <= CALLEE
   CALLEE =/= ACCT_ID
   #rangeUInt(256, BAL)
   VGas > 300000
+  
+calls
+
+  Callee.tempDelta
+  
+behaviour tempDelta of Callee
+interface tempDelta(uint256 x)
+
+storage
+
+  0 |-> 0 => x
+
+if
+
+  CALL_DEPTH < 256
+  #rangeUInt(256, BAL)
+  VGas > 300000
+
 ```
 
 

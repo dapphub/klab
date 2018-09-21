@@ -7,6 +7,7 @@ const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const Config        = require("../lib/config.js");
+const kjson         = require("../lib/kjson.js");
 const {
   makePrelude,
   makeRules,
@@ -68,13 +69,47 @@ let acts = act_objects
   .reduce((a, cs) => a.concat(cs), [])
 
 const out = acts
+  //For some reason, the above code generates a list of lists.
+  //Below applies the multiplication of the monad
   .reduce((a, act) => ({...a, [act.name]: {v2n: act.v2n, act: act.act}}), {})
-fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
 
-acts
-  .forEach(({spec, name}) => {
-    fs.writeFileSync("out/specs/proof-" + name + ".k", spec)
-  })
+
+//Add the imported rules from the calls field
+acts.forEach(rule => {
+    let imports = [];
+    rule.imports.map(name => {
+        console.log('Importing ' + name + ' to ' + rule.name + ' spec')
+        let importing = acts.filter(rul => rul.name == name)
+            .map(rule => rule.spec)
+//                  console.log(imports)
+        if (importing.length == 0) {
+            warn(`Act "${name}" not found!`);
+        }
+        imports.push(importing)
+    })
+    rule.imports = imports;
+})
+
+fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
+/*
+    if(act.calls) {
+          act.calls.map(c => {
+              let specs = acts.map(a => a.subject + "." + a.name)
+              console.log(specs)
+              let i = specs.indexOf(c)
+              if (i == -1) {
+              warn(`Act "${c}" not found!`);
+              }
+          })
+      }
+*/
+//console.log(Object.keys(acts[0]))
+//console.log(behaviours)
+acts.forEach(rule => {
+    let _rules = [rule.spec].concat(rule.imports)
+    let module = kjson.renderModule(_rules, rule.name)
+    fs.writeFileSync("out/specs/proof-" + rule.name + ".k", module)
+})
 
 makeRunScript();
 // RULES
