@@ -191,3 +191,8 @@ docker exec -it klab bash
 cd /docker/SafeAdd
 klab run
 ```
+
+# License
+All applicable work in this repository is licensed under AGPL-3.0. Authors:
+
+* Denis Erfurt
