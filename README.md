@@ -197,3 +197,4 @@ All contributions to this repository are licensed under AGPL-3.0. Authors:
 
 * Denis Erfurt
 * Everett Hildenbrandt
+* Lev Livnev
