@@ -3,23 +3,45 @@
 const fs            = require("fs");
 const marked        = require("marked");
 const Config        = require("../lib/config.js");
+const {parseAct}    = require("../lib/build.js");
+const {
+  testPath,
+  read,
+  revert
+}                   = require("../lib/util.js")
 
 
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const out           = JSON.parse(fs.readFileSync("./out/out.json"));
 const config        = Config(config_json);
 const config_path   = config.src.specification;
 const raw_md_config = fs.readFileSync(config_path).toString()
 const tokens        = marked.lexer(raw_md_config)
+const act2specs     = Object.keys(out)
+  .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
 
-const act = {
-  type: "html",
-  text: "<h1>OMFG</h1>",
-  pre: false
+const toact = code => {
+  let act_obj = parseAct(code);
+  let cases = ["succ"]
+    .concat(["fail"])
+    .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
+  // if(act_obj.iff) cases = cases.concat(["fail"])
+  let status = cases
+    .map(c => "out/status/proof-" + c + ".k")
+    .map(path => testPath(path) && JSON.parse(read(path)) || {status: "???"})
+  let links = cases
+    .map((c, i) => `<a href="player.html#${status[i].proofid}">${c}<span class="status">${status[i].status}</span></a>`)
+    .join("\n")
+  return {
+    type: "html",
+    text: links,
+    pre: false
+  }
 };
 
 const enriched_tokens = tokens
   .reduce((a, t) => {
-    return a.concat(t.type == "code" ? [t, act]: t)
+    return a.concat(t.type == "code" ? [t, toact(t.text)]: t)
   }, [])
 enriched_tokens.links = tokens.links;
 // console.log(JSON.stringify(enriched_tokens, false, 2));
