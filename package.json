@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "@cycle/history": "^6.10.0",
+    "@cycle/http": "^14.10.0",
     "@cycle/run": "^4.1.0",
+    "aws-sdk": "^2.320.0",
     "blessed": "^0.1.81",
     "chalk": "^2.3.2",
     "clear": "^0.1.0",
