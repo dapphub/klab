@@ -296,6 +296,9 @@ rule W0 s<Word W1 => #signed(W0) <Word #signed(W1)
 rule A modInt pow160 => A
   requires #rangeAddress(A)
 
+syntax Bool ::= #notPrecompileAddress ( Int ) [function]
+// ---------------------------------------
+rule #notPrecompileAddress ( X ) => 9 <=Int X
 
 // ABSTRACT SEMANTICS.k
 
