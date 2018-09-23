@@ -64,8 +64,11 @@
   },
   "requires": [
     "#rangeAddress(ACCT_ID)",
+    "andBool #notPrecompileAddress(ACCT_ID)",
     "andBool #rangeAddress(CALLER_ID)",
     "andBool #rangeAddress(ORIGIN_ID)",
-    "andBool #rangeUInt(48, TIME)"
+    "andBool #rangeUInt(48, TIME)",
+    "andBool #rangeUInt(256, BAL)",
+    "andBool VCallDepth <Int 1024"
   ]
 }
