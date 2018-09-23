@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const {
+  testPath,
+  read
+} = require("../lib/util.js");
+const pure = require("../lib/pure.js");
+
+const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
+if(!testPath(KLAB_WD_PATH)) fs.mkdirSync(KLAB_WD_PATH);
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH;
+const KLAB_K_PATH  = process.env.KLAB_K_PATH
+                || path.join(KLAB_EVMS_PATH, "./.build/k");
+
+const proofid = process.argv[2];
+
+console.log(`pruning ${proofid}`);
+const logs = read(path.join(KLAB_WD_PATH, proofid + ".log"))
+  .split("\n")
+  .filter(l => !!l)
+  // .map(l => l.split(" "))
+
+const edges = logs
+  .filter(l => ["rstep", "step", "srstep"].indexOf(l.split(" ")[1]) > -1)
+  .map(l => pure({data: l}))
+  .reduce((a, e) => {
+    a[e.from] = [...(a[e.from] || []), {
+      from: e.from,
+      to: e.to,
+      rule: e.rule
+    }]
+    return a;
+  }, {})
+
+const rules = logs
+  .filter(l => l.split(" ")[1] == "rule")
+  .map(l => l.split(" ")[3])
+  .reduce((a, ruleid) => {
+    if(!a[ruleid]) a[ruleid] = JSON.parse(read(path.join(KLAB_WD_PATH, "blobs", ruleid + ".json")));
+    return a;
+  }, {})
+
+const steps = Object.keys(rules)
+  .filter(ruleid => {
+    let tags = (rules[ruleid].term.att
+      .match(/tag\(([^\)]*)\)/g) || [])
+      .map(s => s.slice(4, -1))
+    return tags.indexOf("step") > -1
+  })
+
+console.log(JSON.stringify(edges, false, 2));
+
+// all logs:

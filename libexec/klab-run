@@ -7,6 +7,7 @@ const path = require("path");
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
 
+const makeDumpDriver = require("../lib/driver/dumpDriver.js");
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
 const main = require("../lib/main.js")
@@ -37,6 +38,7 @@ const cmd = docopt(usage, {
 
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
 const config      = makeConfig(config_json);
+const dumpDriver  = makeDumpDriver(config);
 
 try {
   config.out = JSON.parse(fs.readFileSync("out/out.json"))
@@ -97,7 +99,8 @@ config.headless = cmd["--headless"]
 const drivers = {
   CLI: CLIDriver,
   K: kDriver,
-  Settings: () => xs.of(config)
+  Settings: () => xs.of(config),
+  Dump: dumpDriver
 };
 
 run(main, drivers)
