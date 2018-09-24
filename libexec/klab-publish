@@ -1,0 +1,83 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const AWS = require('aws-sdk');
+const async = require('async');
+const {
+  testPath
+} = require("../lib/util.js");
+
+const {prune_edges} = require("../lib/publish.js");
+
+// TODO - check if env variable are set correctly
+AWS.config.update({ accessKeyId: process.env.KLAB_PUBLISH_ID, secretAccessKey: process.env.KLAB_PUBLISH_SECRET });
+const s3 = new AWS.S3();
+
+const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
+if(!testPath(KLAB_WD_PATH)) fs.mkdirSync(KLAB_WD_PATH);
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH;
+const KLAB_K_PATH  = process.env.KLAB_K_PATH
+                || path.join(KLAB_EVMS_PATH, "./.build/k");
+
+const proofid = process.argv[2];
+
+// TODO - also save branching relevant node - blobs
+//        really? maybe just the compiled behaviour
+const config = JSON.parse(fs.readFileSync(path.join(KLAB_WD_PATH, proofid, "config.json")))
+
+const {pruned_edges, initt} = prune_edges(proofid);
+
+const blobs = Object.keys(Object.keys(pruned_edges)
+  .map(ekey => pruned_edges[ekey]
+    .map(e => e.from.split("_").concat(e.to.split("_")))
+    .reduce((a, es) => a.concat(es), [])
+  )
+  .reduce((a, es) => a.concat(es), [])
+  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+
+const boot = {
+  edges: pruned_edges,
+  config,
+  initt,
+  path: [{
+    "type": "step",
+    "step": {
+      "from": "",
+      "to": initt,
+      "rule": ""
+    }
+  }]
+};
+
+const pruned_path = path.join(KLAB_WD_PATH, `boot_${proofid}.json`);
+const boot_json_str = JSON.stringify(boot);
+fs.writeFileSync(pruned_path, boot_json_str);
+console.log(`saved to ${pruned_path}`);
+console.log(`uploading`);
+
+const read = (blobid, cb) => fs.readFile(path.join(KLAB_WD_PATH, "blobs", blobid), cb)
+const push = (name, data, cb) => s3.putObject({
+  Bucket: 'dapphub-klab-player',
+  Key: name,
+  Body: data,
+  ACL: 'public-read'
+}, cb);
+
+const readAndPush = (blobid, cb) => read(blobid + ".json", (err, data) => push(blobid + ".json", data, cb))
+
+// uploade all the blobs
+async.concatLimit(blobs, 5, readAndPush, (err, res) => {
+  // upload main module
+  push(`boot_${proofid}.json`, boot_json_str, (err, res) => {
+    console.log("all done!");
+  });
+})
+
+
+
+
+// RELEVANCE CHECK
+// const l_ = logs
+//   .filter(l => ["matchrule", "rstep", "step", "srstep", "implication", "z3result", "node", "rule", "z3query"].indexOf(l.split(" ")[1]) == -1)
+// console.log(l_);

@@ -296,6 +296,9 @@ rule W0 s<Word W1 => #signed(W0) <Word #signed(W1)
 rule A modInt pow160 => A
   requires #rangeAddress(A)
 
+syntax Bool ::= #notPrecompileAddress ( Int ) [function]
+// ---------------------------------------
+rule #notPrecompileAddress ( X ) => 9 <=Int X
 
 // ABSTRACT SEMANTICS.k
 
@@ -303,3 +306,4 @@ rule A modInt pow160 => A
   rule <k> GT W0 W1 => bool2Word(W0  >Int W1) ~> #push ... </k> [trusted]
   rule <k> EQ W0 W1 => bool2Word(W0 ==Int W1) ~> #push ... </k> [trusted]
   rule <k> ISZERO W => bool2Word(W  ==Int 0 ) ~> #push ... </k> [trusted]
+
