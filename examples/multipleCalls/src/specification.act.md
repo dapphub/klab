@@ -38,8 +38,11 @@ if
 
   CALL_DEPTH < 256
   #rangeUInt(256, BAL)
-  VGas > 300000
+  VGas > 20411
 
+gas
+
+   VGas => #if ABI_x =/=Int 0 #then VGas -Int 20411 #else VGas -Int 5411 #fi
 ```
 
 
