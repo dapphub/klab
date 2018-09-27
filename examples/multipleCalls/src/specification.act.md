@@ -17,11 +17,10 @@ storage CALLEE
 
 if
 
-  CALL_DEPTH < 255
-  10 <= CALLEE
+  #notPrecompileAddress(CALLEE)
   CALLEE =/= ACCT_ID
-  #rangeUInt(256, BAL)
   VGas > 300000
+  VCallDepth < 1023
   
 calls
 
@@ -36,7 +35,6 @@ storage
 
 if
 
-  CALL_DEPTH < 256
   #rangeUInt(256, BAL)
   VGas > 20411
 
