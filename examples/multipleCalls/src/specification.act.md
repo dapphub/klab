@@ -15,12 +15,12 @@ storage CALLEE
 
   0 |-> 0 => x
 
+iff 
+  VCallDepth < 1024
+
 if
 
-  #notPrecompileAddress(CALLEE)
-  CALLEE =/= ACCT_ID
   VGas > 300000
-  VCallDepth < 1023
   
 calls
 
@@ -35,7 +35,6 @@ storage
 
 if
 
-  #rangeUInt(256, BAL)
   VGas > 20411
 
 gas
