@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const {
+  testPath,
+  read
+} = require("../lib/util.js");
+
+const proofid = process.argv[2];
+const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
+
+const config = JSON.parse(fs.readFileSync(path.join(KLAB_WD_PATH, proofid, "config.json")))
+
+const {
+  prune_edges,
+  buildDisplayInfo
+} = require("../lib/publish.js");
+
+const {pruned_edges, initt} = prune_edges(proofid);
+
+const blobs = Object.keys(Object.keys(pruned_edges)
+  .map(ekey => pruned_edges[ekey]
+    .map(e => e.from.split("_").concat(e.to.split("_")))
+    .reduce((a, es) => a.concat(es), [])
+  )
+  .reduce((a, es) => a.concat(es), [])
+  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+
+const pruned_path = path.join(KLAB_WD_PATH, `boot_${proofid}.json`);
+const blobs_data = blobs
+  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, "blobs", blobid + ".json")))])
+
+const compiled_states = blobs_data
+  .filter(([_, k]) => k.term.label == "<generatedTop>")
+  .map(([blobid, k]) => [blobid, buildDisplayInfo(k.term, config)])
+
+const constraints = blobs_data
+  .filter(([_, k]) => k.term.label != "<generatedTop>")
+
+const compiled_blobs = compiled_states.concat(constraints)
+  .reduce((a, [blobid, k]) => ({...a, [blobid]: k}), {})
+
+// console.log(JSON.stringify(compiled_blobs, false, 2));
+
+const boot = {
+  edges: pruned_edges,
+  config,
+  initt,
+  nodes: compiled_blobs,
+  path: [{
+    "type": "step",
+    "step": {
+      "from": "",
+      "to": initt,
+      "rule": ""
+    }
+  }]
+};
+
+
+const boot_json_str = JSON.stringify(boot);
+fs.writeFileSync(pruned_path, boot_json_str);
+console.log(`compiled file is: ~${Math.floor(boot_json_str.length / 10485.76) / 100} MB`);
+console.log(`saved to ${pruned_path}`);
