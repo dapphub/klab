@@ -82,8 +82,8 @@ acts.forEach(rule => {
     let imports = [];
     rule.imports.map(name => {
         console.log('Importing ' + name + ' to ' + rule.name + ' spec' + (config.trusted ? ' as a trusted lemma' : ''))
-        let importing = acts.filter(rul => rul.name == name)
-            .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : ''))
+        let importing = acts.filter(rul => rul.name == name || rul.name == name + "_fail")
+            .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : '\n'))
         if (importing.length == 0) {
             warn(`Act "${name}" not found!`);
         }
