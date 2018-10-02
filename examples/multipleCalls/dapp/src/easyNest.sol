@@ -2,7 +2,12 @@ pragma solidity ^0.4.21;
 contract Callee {
   uint temperature = 0;
   function tempDelta(uint x) public {
-    temperature = temperature + x;
+    temperature = add(temperature, x);
+  }
+  
+  function add(uint x, uint y) internal pure returns (uint z) {
+    z = x + y;
+    require(z >= x);
   }
 }
 
