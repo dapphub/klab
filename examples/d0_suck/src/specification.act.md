@@ -2,16 +2,8 @@
 ```
 behaviour suck of D0Impl
 interface suck(address u, int256 Delta_D)
-// bla
-
-  // blubb
 
 types
-```
-
-this is some stuff
-
-```
 
   Root : address
   V_p  : int256
@@ -21,10 +13,6 @@ this is some stuff
   G    : int256
   VGas : uint256
 
-```
-other suff
-
-```
 storage
 
   0 |-> Root
@@ -38,9 +26,6 @@ iff
 
   Root == CALLER_ID
   V - Delta_D >= 0
-```
-hahaha
-```
   D_u + Delta_D >= 0
 
 iff in range int256
