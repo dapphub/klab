@@ -7,6 +7,7 @@ const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const Config        = require("../lib/config.js");
+const kjson         = require("../lib/kjson.js");
 const {
   makePrelude,
   makeRules,
@@ -27,6 +28,7 @@ Usage:
 Options:
   --spec=<spec>
   --filter=<filter>
+  --trust
 `
 const cmd = docopt(usage, {
   argv: ["build"].concat(process.argv.slice(2))
@@ -45,6 +47,8 @@ const acts_str      = raw_config
                       .join("\n\n")
 ensureDirs(["out", "out/specs", "out/acts"]);
 fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
+
+config.trusted = cmd["--trust"];
 
 const acts_str_arr  = acts_str
   .split(/\nbehaviour\s/)
@@ -68,14 +72,33 @@ let acts = act_objects
   .reduce((a, cs) => a.concat(cs), [])
 
 const out = acts
+  //For some reason, the above code generates a list of lists.
+  //Below applies the multiplication of the monad
   .reduce((a, act) => ({...a, [act.name]: {v2n: act.v2n, act: act.act}}), {})
+
+
+//Add the imported rules from the calls field
+acts.forEach(rule => {
+    let imports = [];
+    rule.imports.map(name => {
+        console.log('Importing ' + name + ' to ' + rule.name + ' spec' + (config.trusted ? ' as a trusted lemma' : ''))
+        let importing = acts.filter(rul => rul.name == name || rul.name == name + "_fail")
+            .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : '\n'))
+        if (importing.length == 0) {
+            warn(`Act "${name}" not found!`);
+        }
+        imports.push(importing)
+    })
+    rule.imports = imports;
+})
+
+acts.forEach(rule => {
+    let _rules = [rule.spec].concat(rule.imports)
+    let module = kjson.renderModule(_rules, rule.name)
+    fs.writeFileSync("out/specs/proof-" + rule.name + ".k", module)
+})
+
 fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
-
-acts
-  .forEach(({spec, name}) => {
-    fs.writeFileSync("out/specs/proof-" + name + ".k", spec)
-  })
-
 makeRunScript();
 // RULES
 makeRules(config);
