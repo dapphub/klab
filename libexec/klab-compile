@@ -15,7 +15,7 @@ const config = JSON.parse(fs.readFileSync(path.join(KLAB_WD_PATH, proofid, "conf
 const {
   prune_edges,
   buildDisplayInfo
-} = require("../lib/publish.js");
+} = require("../lib/compile.js");
 
 const {pruned_edges, initt} = prune_edges(proofid);
 
