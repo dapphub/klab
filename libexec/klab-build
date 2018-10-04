@@ -11,10 +11,12 @@ const {
   makePrelude,
   makeRules,
   makeRunScript,
+  getActs,
   parseAct,
   buildAct
 }                   = require("../lib/build.js");
 const {
+  read,
   testPath,
   revert,
   ensureDirs
@@ -37,23 +39,15 @@ const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
 const config_path   = cmd["--spec"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
-const raw_md_config = fs.readFileSync(config_path).toString()
-const raw_config    = marked.lexer(raw_md_config)
-const acts_str      = raw_config
-                      .filter(e => e.type === "code")
-                      .map(e => e.text)
-                      .join("\n\n")
+
+const raw_md_config = read(config_path)
+
 ensureDirs(["out", "out/specs", "out/acts"]);
-fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
-
-const acts_str_arr  = acts_str
-  .split(/\nbehaviour\s/)
-  .map((s, i) => (i == 0 ? s : "behaviour " + s))
+// TODO - do i need this?
+// fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
 
 
-
-// remove comments
-// console.log(acts_str.replace(/\/\/[^\n]*\n/g, ""));
+const acts_str_arr = getActs(raw_md_config);
 
 
 // searches and adds abi variables with "ABI_" prefix
