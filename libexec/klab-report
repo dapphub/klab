@@ -154,11 +154,14 @@ const cleanupCode = code => {
   const behaviour_title = `behaviour ${act_obj.name} of ${act_obj.subject}`
   const iface_args = act_obj.interface.map(i => i[0] + " " + i[1]).join(", ");
   const interface = `interface ${act_obj.fname}(${iface_args})`;
-  const iff = "iff\n" + act_obj
-    .iff_orig
-    .map(s => "  " + s)
-    .join("\n")
-    .replace(/\/\/ doc:/g, "// ")
+  var iff = "";
+  if(act_obj.iff_orig) {
+    iff = "\niff\n" + act_obj
+      .iff_orig
+      .map(s => "  " + s)
+      .join("\n")
+      .replace(/\/\/ doc:/g, "// ")
+  }
 
   var if_ = "";
   if(act_obj.if_orig) {
@@ -181,7 +184,7 @@ const cleanupCode = code => {
   ];
   if(returns != "") display.push(returns)
   if(storages_blocks != "") display.push("\n" + storages_blocks)
-  if(iff != "") display.push("\n" + iff)
+  if(iff != "") display.push(iff)
   if(if_ != "") display.push(if_)
 
   const code_ = display
