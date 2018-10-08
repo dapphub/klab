@@ -137,6 +137,7 @@ const cleanupCode = code => {
         .map(key => {
           let rewrites = act_obj.storage[subjectName][key];
           let def = getStorageDef(key);
+          if(!def) throw new Error(`Storage key ${key} not declared!`)
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
           let storage_str = "  "
             + key
