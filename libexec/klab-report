@@ -175,18 +175,18 @@ const cleanupCode = code => {
 
   var returns = "";
   if(act_obj.returns) {
-    returns += "\nreturns\n" + act_obj
-      .returns;
+    returns += "\nreturns  " + act_obj
+      .returns.join(" ");
   }
 
   const display = [
     behaviour_title,
     interface
   ];
-  if(returns != "") display.push(returns)
   if(storages_blocks != "") display.push("\n" + storages_blocks)
   if(iff != "") display.push(iff)
   if(if_ != "") display.push(if_)
+  if(returns != "") display.push(returns)
 
   const code_ = display
     .join("\n")
