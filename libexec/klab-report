@@ -1,27 +1,49 @@
 #!/usr/bin/env node
 
+// TODO - include returns in output
+
 const fs            = require("fs");
+const path          = require("path")
 const marked        = require("marked");
 const Config        = require("../lib/config.js");
 const {parseAct}    = require("../lib/build.js");
 const {
   testPath,
   read,
-  revert
+  revert,
+  render
 }                   = require("../lib/util.js")
 
-
-const config_json   = JSON.parse(fs.readFileSync("./config.json"));
-const out           = JSON.parse(fs.readFileSync("./out/out.json"));
+const config_json   = JSON.parse(read("./config.json"));
+const out           = JSON.parse(read("./out/out.json"));
 const config        = Config(config_json);
 const config_path   = config.src.specification;
-const raw_md_config = fs.readFileSync(config_path).toString()
+const rule_paths    = config.src.rules;
+const raw_md_config = read(config_path)
+const raw_rules     = rule_paths.map(p => read(p)).join("\n\n")
+const rules         = marked
+  .lexer(raw_rules)
+  .filter(block => block.type === "code")
+  .map(block => block.text)
+  .join("\n\n")
 const tokens        = marked.lexer(raw_md_config)
 const act2specs     = Object.keys(out)
   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
+const badge = (name, status) => `<div class="badge">
+  <div class="name">
+    <span>
+      ${name}
+    </span>
+  </div>
+  <div class="status ${status == "SUCCESS" ? "green" : (status == "???" ? "yellow" : "red") }">
+    <span>
+      ${status}
+    </span>
+  </div>
+</div>`
 
-const toact = code => {
-  let act_obj = parseAct(code);
+const getBadges = code => {
+  let act_obj = parseAct(code, true);
   let cases = ["succ"]
     .concat(["fail"])
     .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
@@ -30,21 +52,168 @@ const toact = code => {
     .map(c => "out/status/proof-" + c + ".k")
     .map(path => testPath(path) && JSON.parse(read(path)) || {status: "???"})
   let links = cases
-    .map((c, i) => `<a href="player.html#${status[i].proofid}">${c}<span class="status">${status[i].status}</span></a>`)
+    .map((c, i) => `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c, status[i].status)}</a>`)
     .join("\n")
   return {
     type: "html",
-    text: links,
+    text: `<div class="actstatus">${links}</div>`,
     pre: false
   }
 };
 
+// returns the storage def object
+// Array of "lines"
+const getBlock = block => {
+  // clean Terminals
+  let T = str => str
+         .slice(1, -1)
+         .replace(/\[|\]|\(|\)|\.|\#|\$|\-|\_/g, e => "\\" + e)
+  // memorize Nonterminals
+  let NT = "(.*)"
+  // decide if `str` is terminal
+  let isT = str => /^\"[^\"]*\"$/.test(str)
+  // test syntax
+  let regex = "^"
+    + block[0]
+    .split(" ")
+    // remove k junk
+    .slice(3, -1)
+    // reduce all Terminals and Nonterminals to a regex
+    .reduce((a, e, i) => a
+      // whitespace possible between args
+      + (i > 0 ? "\\s*" : "")
+      // add terminal or memorize NT
+      + (isT(e) ? T(e) : NT)
+      , "")
+    + "$";
+  let test = str => (new RegExp(regex)).test(str)
+  let getArgs = str => str.match(new RegExp(regex)).slice(1)
+  let act = str => (block
+    .find(line => /^\s*\/\/\sact\:/.test(line)) || "")
+    .replace(/^\s*\/\/\sact\:\s*/, "")
+    .replace(/\$(\d+)/g, (_, d) => getArgs(str)[d])
+  let doc = str => (block
+    .find(line => /^\s*\/\/\sdoc\:/.test(line)) || "")
+    .replace(/^\s*\/\/\sdoc\:\s*/, "")
+    .replace(/\$(\d+)/g, (_, d) => getArgs(str)[d])
+  return {
+    test,
+    getArgs,
+    act,
+    doc
+  }
+}
+
+const storage_def = rules
+  .split(/\n(\ \t)*\n/)
+  .filter(block => block !== undefined)
+  .filter(block => /^syntax/.test(block))
+  .map(block => block.split("\n"))
+  .reduce((a, block) => {
+    return a.concat(getBlock(block));
+  }, [])
+const getStorageDef = str => storage_def.find(def => def.test(str))
+
+
+const cleanupCode = code => {
+  let act_obj = parseAct(code, true);
+
+  // build storage
+  // fold subjects
+  let storages_blocks = Object
+    .keys(act_obj.storage)
+    .map(subjectName => {
+      // TODO - export this one level higher - all storages
+      let max_key_length = Object
+        .keys(act_obj.storage[subjectName])
+        .map(key => key.length)
+        .reduce((a, l) => Math.max(a, l), 0);
+      let max_lhs_length = Object
+        .keys(act_obj.storage[subjectName])
+        .map(key => act_obj.storage[subjectName][key][0].length)
+        .reduce((a, l) => Math.max(a, l), 0);
+      let storage = Object
+        .keys(act_obj.storage[subjectName])
+        .map(key => {
+          let rewrites = act_obj.storage[subjectName][key];
+          let def = getStorageDef(key);
+          rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
+          let storage_str = "  "
+            + key
+            + " ".repeat(max_key_length - key.length)
+            + " |-> "
+            + rewrites.join(" => ")
+          let comment_str = "  // " + def.doc(key) // + def.getArgs(key).join(" ... ")
+          return comment_str + "\n" + storage_str;
+        })
+        .join("\n")
+      return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage;
+    })
+    .join("\n\n")
+
+  const behaviour_title = `behaviour ${act_obj.name} of ${act_obj.subject}`
+  const iface_args = act_obj.interface.map(i => i[0] + " " + i[1]).join(", ");
+  const interface = `interface ${act_obj.fname}(${iface_args})`;
+  const iff = "iff\n" + act_obj
+    .iff_orig
+    .map(s => "  " + s)
+    .join("\n")
+    .replace(/\/\/ doc:/g, "// ")
+
+  var if_ = "";
+  if(act_obj.if_orig) {
+    if_ += "\nif\n" + act_obj
+      .if_orig
+      .map(s => "  " + s)
+      .join("\n")
+      .replace(/\/\/ doc:/g, "// ")
+  }
+
+  var returns = "";
+  if(act_obj.returns) {
+    returns += "\nreturns\n" + act_obj
+      .returns;
+  }
+
+  const display = [
+    behaviour_title,
+    interface
+  ];
+  if(returns != "") display.push(returns)
+  if(storages_blocks != "") display.push("\n" + storages_blocks)
+  if(iff != "") display.push("\n" + iff)
+  if(if_ != "") display.push(if_)
+
+  const code_ = display
+    .join("\n")
+    .replace(/^(\ |\t)*\/\/(.*)\n/gm, (_1, _2, l) => `<span class="comment">${l}</span>`)
+    .replace(/\s*\`[^\?\`]*\?([^\:\`]*)\:[^\`]*\`\s*/g, (_1, s) => s.trim() == "" ? " " : ` ${s.trim()} `)
+    .replace(/\`([^\`]*)\`/g, (_, s) => `<span class="var">${s}</span>`)
+
+  // console.log(JSON.stringify(act_obj, false, 2));
+  // console.log(code_);
+  return "<pre><code>" + code_ + "</code></pre>";
+}
+
 const enriched_tokens = tokens
   .reduce((a, t) => {
-    return a.concat(t.type == "code" ? [t, toact(t.text)]: t)
+    return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.text)}, getBadges(t.text)]: t)
   }, [])
 enriched_tokens.links = tokens.links;
-// console.log(JSON.stringify(enriched_tokens, false, 2));
-const html = marked.parser(enriched_tokens);
-console.log(html);
 
+const body = marked.parser(enriched_tokens);
+const htmlTemplate = read(path.join(__dirname, "../resources/report.tmp.html"));
+
+const report = render(htmlTemplate, {
+  body,
+  title: "da'title"
+})
+
+
+// console.log(storage_def);
+
+
+
+
+
+console.log(report);
