@@ -121,7 +121,7 @@ const cleanupCode = code => {
   // build storage
   // fold subjects
   let storages_blocks = Object
-    .keys(act_obj.storage)
+    .keys(act_obj.storage || {})
     .map(subjectName => {
       // TODO - export this one level higher - all storages
       let max_key_length = Object
