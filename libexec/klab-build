@@ -6,6 +6,7 @@ const marked        = require("marked");
 const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
+const kjson         = require("../lib/kjson.js");
 const Config        = require("../lib/config.js");
 const {
   makePrelude,
