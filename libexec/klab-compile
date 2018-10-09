@@ -5,13 +5,15 @@ const fs = require("fs");
 const path = require("path");
 const {
   testPath,
-  read
+  read,
+  ensureDir
 } = require("../lib/util.js");
 
 const proofid = process.argv[2];
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 
-const config = JSON.parse(fs.readFileSync(path.join(KLAB_WD_PATH, proofid, "config.json")))
+const config = JSON.parse(fs.readFileSync("config.json"))
+
 
 const {
   prune_edges,
@@ -28,7 +30,8 @@ const blobs = Object.keys(Object.keys(pruned_edges)
   .reduce((a, es) => a.concat(es), [])
   .reduce((a, blob) => {a[blob] = true; return a;}, {}))
 
-const pruned_path = path.join(KLAB_WD_PATH, `boot_${proofid}.json`);
+ensureDir("out/log");
+const pruned_path = path.join("out", "log", `boot_${proofid}.json`);
 const blobs_data = blobs
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, "blobs", blobid + ".json")))])
 
