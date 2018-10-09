@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// TODO - compile needs to carry on the act
 
 const fs = require("fs");
 const path = require("path");
