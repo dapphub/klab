@@ -74,7 +74,7 @@ const getBlock = block => {
   let isT = str => /^\"[^\"]*\"$/.test(str)
   // test syntax
   let regex = "^"
-    + block[0]
+    + block.find(str => /^syntax/.test(str))
     .split(" ")
     // remove k junk
     .slice(3, -1)
@@ -107,7 +107,7 @@ const getBlock = block => {
 const storage_def = rules
   .split(/\n(\ \t)*\n/)
   .filter(block => block !== undefined)
-  .filter(block => /^syntax/.test(block))
+  .filter(block => /^(\s*\/\/[^\n]*\n)*syntax/.test(block))
   .map(block => block.split("\n"))
   .reduce((a, block) => {
     return a.concat(getBlock(block));
