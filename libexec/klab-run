@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
+// TODO - klab run should send the config.json to the server
 
 const makeDumpDriver = require("../lib/driver/dumpDriver.js");
 const makeCliDriver = require("../lib/driver/cliDriver.js")
