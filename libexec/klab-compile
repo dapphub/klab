@@ -12,6 +12,7 @@ const {
 } = require("../lib/util.js");
 
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
+const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const Config        = require("../lib/config.js");
@@ -30,7 +31,7 @@ const cmd = docopt(usage, {
 });
 
 try {
-  config.out = JSON.parse(fs.readFileSync("out/out.json"))
+  config.out = JSON.parse(fs.readFileSync(path.join(KLAB_OUT, "out.json")))
 } catch(e) {
 }
 
@@ -41,11 +42,11 @@ config.spec = cmd["--spec"] && (
 config.name = cmd["--spec"] && path.basename(cmd["--spec"])
   || cmd["--name"] && ("proof-" + name + ".k")
 
-config.rules = testPath("out/rules.k") && read("out/rules.k")
-  || revert("no rules found at out/rules.k")
+config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
+  || revert(`no rules found at ${KLAB_OUT}/rules.k`)
 
-config.smt_prelude = testPath("out/prelude.smt2") && read("out/prelude.smt2")
-  || revert("no smt prelude file at out/prelude.mst2")
+config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
+  || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
 
 
 const proofid = sha3(JSON.stringify({
@@ -69,8 +70,8 @@ const blobs = Object.keys(Object.keys(pruned_edges)
   .reduce((a, es) => a.concat(es), [])
   .reduce((a, blob) => {a[blob] = true; return a;}, {}))
 
-ensureDir("out/log");
-const pruned_path = path.join("out", "log", `boot_${proofid}.json`);
+ensureDir(path.join(KLAB_OUT, "log"));
+const pruned_path = path.join(KLAB_OUT, "log", `boot_${proofid}.json`);
 const blobs_data = blobs
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, "blobs", blobid + ".json")))])
 

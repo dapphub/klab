@@ -33,6 +33,8 @@ Options:
   --headless
 `
 
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+
 const cmd = docopt(usage, {
   argv: ["run"].concat(process.argv.slice(2))
 });
@@ -42,28 +44,28 @@ const config      = makeConfig(config_json);
 const dumpDriver  = makeDumpDriver(config);
 
 try {
-  config.out = JSON.parse(fs.readFileSync("out/out.json"))
+  config.out = JSON.parse(fs.readFileSync(path.join(KLAB_OUT, "out.json")))
 } catch(e) {
 }
 
-const specs       = fs.readdirSync("out/specs");
+const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
 const spec_names  = specs.map(s => s.slice(6, -2))
 
 config.spec = cmd["--spec"] && (
     testPath(cmd["--spec"]) && read(cmd["--spec"])
     || revert(`spec not found at ${cmd["--spec"]}`))
   || cmd["--name"] && (cmd["--name"] in spec_names)
-    && read("out/specs/proof-" + cmd["name"] + ".k")
+    && read(path.join(KLAB_OUT, `specs/proof-${cmd["name"]}.k`))
   || revert("no --spec or --name provided");
 
 config.name = cmd["--spec"] && path.basename(cmd["--spec"])
   || cmd["--name"] && ("proof-" + name + ".k")
 
-config.rules = testPath("out/rules.k") && read("out/rules.k")
-  || revert("no rules found at out/rules.k")
+config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
+  || revert(`no rules found at ${KLAB_OUT}/rules.k`)
 
-config.smt_prelude = testPath("out/prelude.smt2") && read("out/prelude.smt2")
-  || revert("no smt prelude file at out/prelude.mst2")
+config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
+  || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
 
 // if(cmd["--trust"]) {
 //     config.trust = true;
