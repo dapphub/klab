@@ -90,7 +90,7 @@ acts.forEach(rule => {
 acts.forEach(rule => {
     let _rules = [rule.spec].concat(rule.imports)
     let module = kjson.renderModule(_rules, rule.name)
-    fs.writeFileSync(path.join(KLAB_OUT, "specs", `proof-${rule.name}.k`, module)
+    fs.writeFileSync(path.join(KLAB_OUT, "specs", `proof-${rule.name}.k`), module)
 })
 
 fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
