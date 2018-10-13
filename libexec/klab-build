@@ -23,6 +23,8 @@ const {
   ensureDirs
 }                   = require("../lib/util.js");
 
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+
 const usage = `
 Usage:
   klab build [options]
@@ -44,7 +46,7 @@ const filter_subject= cmd["--filter"] || null;
 
 const raw_md_config = read(config_path)
 
-ensureDirs(["out", "out/specs", "out/acts"]);
+ensureDirs([KLAB_OUT, path.join(KLAB_OUT, "specs"), path.join(KLAB_OUT, "acts")]);
 // TODO - do i need this?
 // fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
 
@@ -86,12 +88,19 @@ acts.forEach(rule => {
 })
 
 acts.forEach(rule => {
-    let _rules = [rule.spec].concat(rule.imports)
-    let module = kjson.renderModule(_rules, rule.name)
-    fs.writeFileSync("out/specs/proof-" + rule.name + ".k", module)
+  let _rules      = [rule.spec].concat(rule.imports)
+  let module      = kjson.renderModule(_rules, rule.name)
+  let module_path = path.join(KLAB_OUT, "specs", `proof-${rule.name}.k`)
+
+  let old_module  = "";
+  if(testPath(module_path)) old_module = read(module_path);
+  if(old_module != module) {
+    console.log("write to " + module_path);
+    fs.writeFileSync(module_path, module);
+  }
 })
 
-fs.writeFileSync("out/out.json", JSON.stringify(out, false, 2))
+fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
 makeRunScript();
 // RULES
 makeRules(config);

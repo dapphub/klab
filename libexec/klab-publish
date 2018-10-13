@@ -13,6 +13,7 @@ const {
 } = require("../lib/util.js");
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
+const KLAB_OUT      = process.env.KLAB_OUT || "out";
 
 const usage = `
 Usage:
@@ -27,7 +28,7 @@ const cmd = docopt(usage, {
 });
 
 try {
-  config.out = JSON.parse(fs.readFileSync("out/out.json"))
+  config.out = JSON.parse(fs.readFileSync(path.join(KLAB_OUT, "out.json")))
 } catch(e) {
 }
 
@@ -38,11 +39,11 @@ config.spec = cmd["--spec"] && (
 config.name = cmd["--spec"] && path.basename(cmd["--spec"])
   || cmd["--name"] && ("proof-" + name + ".k")
 
-config.rules = testPath("out/rules.k") && read("out/rules.k")
-  || revert("no rules found at out/rules.k")
+config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT,"rules.k"))
+  || revert("no rules found at ${KLAB_OUT}/rules.k")
 
-config.smt_prelude = testPath("out/prelude.smt2") && read("out/prelude.smt2")
-  || revert("no smt prelude file at out/prelude.mst2")
+config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
+  || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
 
 const proofid = sha3(JSON.stringify({
   rules: config.rules,
@@ -54,7 +55,7 @@ const proofid = sha3(JSON.stringify({
 AWS.config.update({ accessKeyId: process.env.KLAB_PUBLISH_ID, secretAccessKey: process.env.KLAB_PUBLISH_SECRET });
 const s3 = new AWS.S3();
 
-const KLAB_LOG_PATH = path.join("out", "log");
+const KLAB_LOG_PATH = path.join(KLAB_OUT, "log");
 const pruned_path = path.join(KLAB_LOG_PATH, `boot_${proofid}.json`);
 const boot_json_str = read(pruned_path);
 
