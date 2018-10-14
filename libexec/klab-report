@@ -11,7 +11,8 @@ const {
   testPath,
   read,
   revert,
-  render
+  render,
+  warn
 }                   = require("../lib/util.js")
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
 
@@ -137,17 +138,19 @@ const cleanupCode = code => {
         .keys(act_obj.storage[subjectName])
         .map(key => {
           let rewrites = act_obj.storage[subjectName][key];
-          const key_ = `#${act_obj.subject}.${key}`
+          const key_ = /^(\d|\#)/.test(key) ? key : `#${act_obj.subject}.${key}`
           const def = getStorageDef(key_);
-          if(!def) throw new Error(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
+          if(!def) {
+            warn(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
+          }
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
           let storage_str = "  "
             + key_
             + " ".repeat(max_key_length - key.length)
             + " |-> "
             + rewrites.join(" => ")
-          let comment_str = "  // " + def.doc(key) // + def.getArgs(key).join(" ... ")
-          return comment_str + "\n" + storage_str;
+          let comment_str = def && ("  // " + def.doc(key) + "\n") || ""
+          return comment_str + storage_str;
         })
         .join("\n")
       return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage;
