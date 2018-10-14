@@ -89,10 +89,7 @@ const getBlock = block => {
       , "")
     + "$";
   let test = str => (new RegExp(regex)).test(str)
-  let getArgs = str => {
-    console.log(regex, str);
-    return str.match(new RegExp(regex)).slice(1)
-  }
+  let getArgs = str => str.match(new RegExp(regex)).slice(1)
   let act = str => (block
     .find(line => /^\s*\/\/\sact\:/.test(line)) || "")
     .replace(/^\s*\/\/\sact\:\s*/, "")
