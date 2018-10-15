@@ -138,7 +138,7 @@ const cleanupCode = code => {
         .keys(act_obj.storage[subjectName])
         .map(key => {
           let rewrites = act_obj.storage[subjectName][key];
-          const key_ = /^(\d|\#)/.test(key) ? key : `#${act_obj.subject}.${key}`
+          const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act_obj.subject : subjectName}.${key}`
           const def = getStorageDef(key_);
           if(!def) {
             warn(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
