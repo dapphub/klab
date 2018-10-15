@@ -145,7 +145,7 @@ const cleanupCode = code => {
           }
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
           let storage_str = "  "
-            + key_
+            + key
             + " ".repeat(max_key_length - key.length)
             + " |-> "
             + rewrites.join(" => ")
