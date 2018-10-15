@@ -13,7 +13,7 @@ const {
 } = require("../lib/util.js");
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
-const KLAB_OUT      = process.env.KLAB_OUT;
+const KLAB_OUT      = process.env.KLAB_OUT || "out";
 
 const usage = `
 Usage:

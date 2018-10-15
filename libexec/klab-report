@@ -11,9 +11,10 @@ const {
   testPath,
   read,
   revert,
-  render
+  render,
+  warn
 }                   = require("../lib/util.js")
-const KLAB_OUT      = process.env.KLAB_OUT;
+const KLAB_OUT      = process.env.KLAB_OUT || "out";
 
 const config_json   = JSON.parse(read("./config.json"));
 const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
@@ -137,16 +138,19 @@ const cleanupCode = code => {
         .keys(act_obj.storage[subjectName])
         .map(key => {
           let rewrites = act_obj.storage[subjectName][key];
-          let def = getStorageDef(key);
-          if(!def) throw new Error(`Storage key ${key} not declared!`)
+          const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act_obj.subject : subjectName}.${key}`
+          const def = getStorageDef(key_);
+          if(!def) {
+            warn(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
+          }
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
           let storage_str = "  "
             + key
             + " ".repeat(max_key_length - key.length)
             + " |-> "
             + rewrites.join(" => ")
-          let comment_str = "  // " + def.doc(key) // + def.getArgs(key).join(" ... ")
-          return comment_str + "\n" + storage_str;
+          let comment_str = def && ("  // " + def.doc(key_) + "\n") || ""
+          return comment_str + storage_str;
         })
         .join("\n")
       return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage;
