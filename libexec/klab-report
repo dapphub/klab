@@ -49,7 +49,7 @@ const badge = (name, status) => `<div class="badge">
 const getBadges = code => {
   let act_obj = parseAct(code, true);
   let cases = ["succ"]
-    .concat(["fail"])
+    .concat(act_obj.iff ? ["fail"] : [])
     .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
   // if(act_obj.iff) cases = cases.concat(["fail"])
   let status = cases
