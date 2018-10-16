@@ -190,7 +190,9 @@ const cleanupCode = code => {
   var returns = "";
   if(act_obj.returns) {
     returns += "\nreturns " + act_obj
-      .returns.join(" : ");
+      .returns
+      .map(s => s.trim())
+      .join(" : ");
   }
 
   const display = [
