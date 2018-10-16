@@ -173,8 +173,8 @@ const cleanupCode = code => {
       .iff_orig
       .map(s => "  " + s)
       .join("\n")
-      .replace(/\/\/ doc:/g, "// ")
-      .replace(/\/\/ act:/g, "// ")
+      .replace(/\/\/ doc:/g, "//")
+      .replace(/\/\/ act:/g, "//")
   }
 
   var if_ = "";
@@ -183,14 +183,16 @@ const cleanupCode = code => {
       .if_orig
       .map(s => "  " + s)
       .join("\n")
-      .replace(/\/\/ doc:/g, "// ")
-      .replace(/\/\/ act:/g, "// ")
+      .replace(/\/\/ doc:/g, "//")
+      .replace(/\/\/ act:/g, "//")
   }
 
   var returns = "";
   if(act_obj.returns) {
     returns += "\nreturns " + act_obj
-      .returns.join(" : ");
+      .returns
+      .map(s => s.trim())
+      .join(" : ");
   }
 
   const display = [
@@ -204,7 +206,7 @@ const cleanupCode = code => {
 
   const code_ = display
     .join("\n")
-    .replace(/^(\ |\t)*\/\/(.*)\n/gm, (_1, _2, l) => `<span class="comment">${l}</span>`)
+    .replace(/\/\/(.*)\n/gm, (_1, _2, l) => `<span class="comment">//${_2}</span>\n`)
     .replace(/\s*\`[^\?\`]*\?([^\:\`]*)\:[^\`]*\`\s*/g, (_1, s) => s.trim() == "" ? " " : ` ${s.trim()} `)
     .replace(/\`([^\`]*)\`/g, (_, s) => `<span class="var">${s}</span>`)
 
