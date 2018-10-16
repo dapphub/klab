@@ -8,6 +8,7 @@ const marked        = require("marked");
 const Config        = require("../lib/config.js");
 const {parseAct}    = require("../lib/build.js");
 const {
+  getId,
   testPath,
   read,
   revert,
@@ -22,6 +23,7 @@ const config        = Config(config_json);
 const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
 const raw_md_config = read(config_path)
+const title         = path.basename(config_path, ".md");
 const raw_rules     = rule_paths.map(p => read(p)).join("\n\n")
 const rules         = marked
   .lexer(raw_rules)
@@ -47,12 +49,17 @@ const badge = (name, status) => `<div class="badge">
 const getBadges = code => {
   let act_obj = parseAct(code, true);
   let cases = ["succ"]
-    .concat(["fail"])
+    .concat(act_obj.iff ? ["fail"] : [])
     .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
   // if(act_obj.iff) cases = cases.concat(["fail"])
   let status = cases
-    .map(c => path.join(KLAB_OUT, `status/proof-${c}.k`))
-    .map(path => testPath(path) && JSON.parse(read(path)) || {status: "???"})
+    .map((c, i) => path.join(KLAB_OUT, `specs/proof-${c}.k`))
+    .map(spec_path => getId(spec_path))
+    .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
+    .map(([pid, log_path]) => testPath(log_path)
+      && {proofid: pid, status: JSON.parse(read(log_path)).status}
+      || {status: "???"}
+    )
   let links = cases
     .map((c, i) => `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c, status[i].status)}</a>`)
     .join("\n")
@@ -167,6 +174,7 @@ const cleanupCode = code => {
       .map(s => "  " + s)
       .join("\n")
       .replace(/\/\/ doc:/g, "// ")
+      .replace(/\/\/ act:/g, "// ")
   }
 
   var if_ = "";
@@ -176,12 +184,13 @@ const cleanupCode = code => {
       .map(s => "  " + s)
       .join("\n")
       .replace(/\/\/ doc:/g, "// ")
+      .replace(/\/\/ act:/g, "// ")
   }
 
   var returns = "";
   if(act_obj.returns) {
-    returns += "\nreturns  " + act_obj
-      .returns.join(" ");
+    returns += "\nreturns " + act_obj
+      .returns.join(" : ");
   }
 
   const display = [
@@ -215,7 +224,7 @@ const htmlTemplate = read(path.join(__dirname, "../resources/report.tmp.html"));
 
 const report = render(htmlTemplate, {
   body,
-  title: "da'title"
+  title
 })
 
 
