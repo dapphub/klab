@@ -10,8 +10,7 @@
   "implementations": {
     "Callee": {
       "name": "Callee",
-      "solc_output": "dapp/out/easyNest.sol.json",
-      "ast": "dapp/out/easyNest.sol_json.ast"
+      "solc_output": "dapp/out/easyNest.sol.json"
     },
     "easyNest": {
       "name": "easyNest",
