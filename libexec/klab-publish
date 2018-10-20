@@ -52,7 +52,7 @@ const proofid = sha3(JSON.stringify({
 }));
 
 // TODO - check if env variable are set correctly
-AWS.config.update({ accessKeyId: process.env.KLAB_PUBLISH_ID, secretAccessKey: process.env.KLAB_PUBLISH_SECRET });
+// AWS.config.update({ accessKeyId: process.env.KLAB_PUBLISH_ID, secretAccessKey: process.env.KLAB_PUBLISH_SECRET });
 const s3 = new AWS.S3();
 
 const KLAB_LOG_PATH = path.join(KLAB_OUT, "log");

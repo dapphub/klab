@@ -10,6 +10,7 @@ const {
   ensureDir,
   sha3
 } = require("../lib/util.js");
+const { genBehaviour } = require("../lib/behavior.js");
 
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
@@ -60,7 +61,7 @@ const {
   buildDisplayInfo
 } = require("../lib/compile.js");
 
-const {pruned_edges, initt} = prune_edges(proofid);
+const {pruned_edges, initt, finished} = prune_edges(proofid);
 
 const blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]
@@ -87,11 +88,15 @@ const compiled_blobs = compiled_states.concat(constraints)
 
 // console.log(JSON.stringify(compiled_blobs, false, 2));
 
+const finished_ = finished
+  .reduce((a, node) => ({...a, [node]: true}), {});
+
 const boot = {
   edges: pruned_edges,
   config,
   initt,
   nodes: compiled_blobs,
+  finished: finished_,
   path: [{
     "type": "step",
     "step": {
@@ -102,6 +107,13 @@ const boot = {
   }]
 };
 
+const behaviour = genBehaviour({
+        nodes: [],
+        edges: [],
+        ...boot
+      });
+// console.log(JSON.stringify(behaviour, false, 2));
+boot.status = behaviour.success ? "SUCCESS" : "fail"
 
 const boot_json_str = JSON.stringify(boot);
 fs.writeFileSync(pruned_path, boot_json_str);

@@ -102,6 +102,7 @@ acts.forEach(rule => {
 })
 
 fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
+fs.writeFileSync(path.join(KLAB_OUT, "specs.manifest"), Object.keys(out).join("\n"))
 makeRunScript();
 // RULES
 makeRules(config);
