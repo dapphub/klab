@@ -78,7 +78,7 @@ You may wish to add the `klab` executable to the path, e.g.:
 export PATH=$PATH:/path/to/klab/bin
 ```
 
-To run a `klab server`, you need to additionally set:
+Prior to running `klab`, make sure the following environment variables are set:
 
 ```sh
 export KLAB_EVMS_PATH=/path/to/evm-semantics
