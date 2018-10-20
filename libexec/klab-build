@@ -75,10 +75,11 @@ const out = acts
 //Add the imported rules from the calls field
 acts.forEach(rule => {
     let imports = [];
-    rule.imports.map(name => {
+    rule.imports.forEach(name => {
         console.log('Importing ' + name + ' to ' + rule.name + ' spec' + (config.trusted ? ' as a trusted lemma' : ''))
-        let importing = acts.filter(rul => rul.name == name || rul.name == name + "_fail")
+        let importing = acts.filter(rul => rul.name.slice(0,-5) == name)
             .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : '\n'))
+            .join('')
         if (importing.length == 0) {
             warn(`Act "${name}" not found!`);
         }
