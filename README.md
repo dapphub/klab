@@ -41,30 +41,21 @@ PREFIX=/path/to/custom/prefix make link
 
 ### Environment Setup
 
-You may wish to add the `klab` executable to the path, e.g.:
+The file `env` will setup the environment for you if sourced from the root directory of the repo.
 
 ```sh
-export PATH=$PATH:/path/to/klab/bin
+source env
 ```
 
-Prior to running `klab`, make sure the following environment variables are set:
+It sets three environment variables:
 
-```sh
-export KLAB_EVMS_PATH=/path/to/evm-semantics
-export TMPDIR=/tmp
-```
+-   `PATH`: include the `klab` executable.
+-   `KLAB_EVMS_PATH`: the EVM semantics to use.
+-   `TMPDIR`: temporary directory for KLab proof cacheing.
 
-The `evm-semantics` are located in this repo, e.g. if you cloned this repo to `/home/foo/repos/klab`, you should run:
+**OPTIONAL**: If you want to use a different version of K than what the KEVM ships with, you can set:
 
-```sh
-export KLAB_EVMS_PATH=/home/foo/repos/klab/evm-semantics
-```
-
-**OPTIONAL**: If you want to use a custom version of K you can also set:
-
-```sh
-export KLAB_K_PATH=/path/to/k
-```
+-   `KLAB_K_PATH`: override implementation of K.
 
 Running KLab
 ------------
