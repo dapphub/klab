@@ -16,7 +16,8 @@ default: deps
 
 clean:
 	rm -fdR out/* evm-semantics $(TMPDIR)/klab
-	git submodule update --init -- evm-semantics
+	git submodule sync
+	git submodule update --init --remote -- evm-semantics
 
 deps: deps-kevm deps-npm
 
