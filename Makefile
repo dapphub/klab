@@ -16,13 +16,13 @@ default: deps
 
 clean:
 	rm -fdR out/* evm-semantics $(TMPDIR)/klab
-	git submodule sync
-	git submodule update --init --remote -- evm-semantics
+	git submodule update --init -- evm-semantics
 
 deps: deps-kevm deps-npm
 
 deps-kevm:
-	git submodule update --init -- evm-semantics
+	git submodule sync
+	git submodule update --init --remote -- evm-semantics
 	cd evm-semantics \
 		&& make k-deps tangle-deps -B \
 		&& make build-java -B
