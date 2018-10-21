@@ -1,3 +1,6 @@
 /node_modules/*
 /media/*.pdf
 /examples/*/behaviour.json
+/examples/*/out/*
+
+/package-lock.json
