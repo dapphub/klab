@@ -113,7 +113,7 @@ const behaviour = genBehaviour({
         ...boot
       });
 // console.log(JSON.stringify(behaviour, false, 2));
-boot.status = behaviour.success ? "SUCCESS" : "fail"
+boot.status = behaviour.success ? "pass" : "fail"
 
 const boot_json_str = JSON.stringify(boot);
 fs.writeFileSync(pruned_path, boot_json_str);
