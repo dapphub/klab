@@ -78,7 +78,11 @@ klab server
 
 ### Building proofs
 
-The KLab client is run in a proof directory, and will request that the KLab server execute the proof. Proof claims are expressed in a custom, succint [specification language](acts.md), from which K reachability rules are generated using `klab build`. Example:
+The KLab client is run in a proof directory, and will request that the KLab server execute the proof. Proof claims are expressed in a custom, succint [specification language](acts.md), from which K reachability rules are generated using `klab build`. In order to generate reachability claims, you need to provide a `.sol.json` generated from the contract you want to verify. With [solc](https://solidity.readthedocs.io/en/latest/installing-solidity.html) installed, you can generate this file by running
+```sh
+solc --combined-json=abi,bin,bin-runtime,srcmap,srcmap-runtime,ast <path-to-contract> > <path-to-output>
+```
+You need to tell `klab` where to find the `sol.json` file by specifying it under the `implementations` header in your projects `config.json`. Consult the [examples](examples) for more information. With your config pointing to the outputted evm binaries, you can run `klab build` in the same direcory:
 ```sh
 cd examples/SafeAdd
 klab build
