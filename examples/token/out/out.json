@@ -1,0 +1,14 @@
+{
+  "Token_transfer_succ": {
+    "v2n": {
+      "ACCT_ID": "Token"
+    },
+    "act": "Token_transfer.act"
+  },
+  "Token_transfer_fail": {
+    "v2n": {
+      "ACCT_ID": "Token"
+    },
+    "act": "Token_transfer.act"
+  }
+}
