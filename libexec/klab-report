@@ -39,7 +39,7 @@ const badge = (name, status) => `<div class="badge">
       ${name}
     </span>
   </div>
-  <div class="status ${status == "SUCCESS" ? "green" : (status == "???" ? "yellow" : "red") }">
+  <div class="status ${status == "pass" ? "green" : (status == "???" ? "yellow" : "red") }">
     <span>
       ${status}
     </span>
