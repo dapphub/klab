@@ -1,7 +1,6 @@
 KLab
 ====
-**NOTE:** This is a beta version for internal usage.
-Direct any questions in an issue or at <https://dapphub.chat/channel/k-framework>.
+**NOTE:** This software is still in the early stages of development. If you are confused, find some bugs, or just want some help, please file an issue or come talk to us at <https://dapphub.chat/channel/k-framework>.
 
 Klab is a tool for generating and debugging K-framework reachability proofs, tailored for formal verification of ethereum smart contracts.
 
@@ -79,7 +78,7 @@ klab server
 
 ### Building proofs
 
-The KLab client is run in a proof directory, and will request that the KLab server execute the proof. Proof claims are expressed in our custom, succint [specification](#specification-format). Run `klab build` in the directory of your specification to generate K reachability rules from the specification:
+The KLab client is run in a proof directory, and will request that the KLab server execute the proof. Proof claims are expressed in a custom, succint [specification language](acts.md), from which K reachability rules are generated using `klab build`. Example:
 ```sh
 cd examples/SafeAdd
 klab build
@@ -95,47 +94,6 @@ klab run --spec out/specs/proof-SafeAdd_add_succ.k
 
 To ensure that a cached version of the proof is not being used, run `klab` with the `--force` option.
 
-### Specification format
-Klab uses a custom, concise way of specifying the behavior of an ethereum smart contract function. These are expressed in what we call `acts`. An `act` specifies which function is being called, the typing of the relevant variables involved, specifies the return data and how the contracts storage will be updated, and the conditions for success. From such an act, two proof claims are being generated: the `success` case, which assumes the conditions for success and asserts that the execution will end successfully in the asserted state, and one `fail` case, which assumes the negation of the succcess conditions and asserts that the execution will end in a `REVERT`. Below is an example of an `act`, taken from [the formal verification of multicollateral dai](https://github.com/dapphub/k-dss).
-```
-behaviour heal of Vat
-interface heal(bytes32 u, bytes32 v, int256 rad)
-
-types
-
-    Can   : uint256
-    Dai_v : uint256
-    Sin_u : uint256
-    Debt  : uint256
-    Vice  : uint256
-
-storage
-
-    #Vat.wards(CALLER_ID) |-> Can
-    #Vat.dai(v)           |-> Dai_v => Dai_v - rad
-    #Vat.sin(u)           |-> Sin_u => Sin_u - rad
-    #Vat.debt             |-> Debt  => Debt - rad
-    #Vat.vice             |-> Vice  => Vice - rad
-
-iff
-
-    Can == 1
-
-iff in range uint256
-
-    Dai_v - rad
-    Sin_u - rad
-    Debt - rad
-    Vice - rad
-```
-The interesting part of this particular function happens under the `storage` header. The meaning of the line:
-`#Vat.dai(v)           |-> Dai_v => Dai_v - rad`
-is that in the `success` case, the value at the storage location which we call `#Vat.dai(v)` will be updated from `Dai_v` to `Dai_v - rad`.
-
-To prove this reachability claim, the k prover explores all possible execution paths starting from the precondition (whats on the left hand side of a `=>`) and the claim is proven if they all end in a state satisfying the postcondition (right hand side of the `=>`). 
-
-More information about how the k prover and the k framework in general works can be found at <http://fsl.cs.illinois.edu/FSL/papers/2016/stefanescu-park-yuwen-li-rosu-2016-oopsla/stefanescu-park-yuwen-li-rosu-2016-oopsla-public.pdf> and a detailed description of the semantics of EVM defined in K is given in <https://www.ideals.illinois.edu/handle/2142/97207>
-
 ### Key Bindings
 
 Toggle different views by pressing any of the following keys:
@@ -145,6 +103,7 @@ Toggle different views by pressing any of the following keys:
 -   `c` - display current **c**onstraints.
 -   `k` - display `<k>` cell.
 -   `b` - display **b**ehavior tree.
+-   `s` - diaplay **s**ource code.
 -   `e` - display **e**vm specific module.
 -   `m` - display **m**emory cell.
 -   `d` - display **d**ebug cells (see toggling debug cells below).
