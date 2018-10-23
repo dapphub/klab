@@ -125,7 +125,7 @@ iff in range uint256
 if
     VGas >= 100000
 ```
-Notice that we don't need to specify the *entire* 
+Notice that we don't need to specify the *entire* storage of our contract. The remaining storage locations are kept abstract, without any assumptions on what they may hold.
 
 Check out the [examples](examples) directory for more.
 
