@@ -54,7 +54,7 @@ config.spec = cmd["--spec"] && (
     || revert(`spec not found at ${cmd["--spec"]}`))
   || cmd["--name"] && (cmd["--name"] in spec_names)
     && read(path.join(KLAB_OUT, `specs/proof-${cmd["name"]}.k`))
-  || revert("no --spec or --name provided");
+  || revert("no --spec or --name provided. Try `klab run --spec out/specs/SOME_SPEC`");
 
 config.name = cmd["--spec"] && path.basename(cmd["--spec"])
   || cmd["--name"] && ("proof-" + name + ".k")

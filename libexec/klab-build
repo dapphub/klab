@@ -39,6 +39,7 @@ const cmd = docopt(usage, {
 });
 
 const warn          = str => console.log(clc.xterm(214)(str))
+if (!testPath("./config.json")) {revert("No config.json file in directory. Review `klab/examples` folder for inspiration")}
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
 const config_path   = cmd["--spec"] || config.src.specification;
