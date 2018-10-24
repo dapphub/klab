@@ -90,7 +90,7 @@ This will generate a fail and success reachability rule for each `act` of your s
 To explore a proof with the interactive klab GUI, use `klab run`, specifying which proof to explore using the `--spec` flag:
 
 ```sh
-klab run --spec out/specs/proof-SafeAdd_add_succ.k
+klab run --spec out/specs/proof-SafeAdd_add_pass.k
 ```
 
 To ensure that a cached version of the proof is not being used, run `klab` with the `--force` option.
@@ -132,7 +132,7 @@ The interesting part of this particular function happens under the `storage` hea
 `#Vat.dai(v)           |-> Dai_v => Dai_v - rad`
 is that in the `success` case, the value at the storage location which we call `#Vat.dai(v)` will be updated from `Dai_v` to `Dai_v - rad`.
 
-To prove this reachability claim, the k prover explores all possible execution paths starting from the precondition (whats on the left hand side of a `=>`) and the claim is proven if they all end in a state satisfying the postcondition (right hand side of the `=>`). 
+To prove this reachability claim, the k prover explores all possible execution paths starting from the precondition (whats on the left hand side of a `=>`) and the claim is proven if they all end in a state satisfying the postcondition (right hand side of the `=>`).
 
 More information about how the k prover and the k framework in general works can be found at <http://fsl.cs.illinois.edu/FSL/papers/2016/stefanescu-park-yuwen-li-rosu-2016-oopsla/stefanescu-park-yuwen-li-rosu-2016-oopsla-public.pdf> and a detailed description of the semantics of EVM defined in K is given in <https://www.ideals.illinois.edu/handle/2142/97207>
 
