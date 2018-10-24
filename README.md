@@ -117,7 +117,7 @@ This will generate a fail and success reachability rule for each `act` of your s
 To explore a proof with the interactive klab GUI, use `klab run`, specifying which proof to explore using the `--spec` flag:
 
 ```sh
-klab run --spec out/specs/proof-SafeAdd_add_succ.k
+klab run --spec out/specs/proof-SafeAdd_add_pass.k
 ```
 
 To ensure that a cached version of the proof is not being used, run `klab` with the `--force` option.
