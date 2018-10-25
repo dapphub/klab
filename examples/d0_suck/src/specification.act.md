@@ -32,8 +32,4 @@ iff in range int256
 
   V - Delta_D
   D_u + Delta_D
-
-if
-
-  VGas > 300000
 ```
