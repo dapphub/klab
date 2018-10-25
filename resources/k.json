@@ -68,7 +68,7 @@
     "andBool #rangeAddress(CALLER_ID)",
     "andBool #rangeAddress(ORIGIN_ID)",
     "andBool #rangeUInt(48, TIME)",
-    "andBool #rangeUInt(256, BAL)",
+    "andBool #rangeUInt(256, ACCT_ID_balance)",
     "andBool VCallDepth <=Int 1024"
   ]
 }
