@@ -10,6 +10,7 @@ process.title = "klab";
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
+const makeDumpDriver = require("../lib/driver/dumpDriver.js");
 const main = require("../lib/main.js")
 const {
   testPath,
@@ -97,10 +98,13 @@ const CLIDriver = cmd["--headless"]
   })
 config.headless = cmd["--headless"]
 
+const dumpDriver  = makeDumpDriver(config);
+
 const drivers = {
   CLI: CLIDriver,
   K: kDriver,
-  Settings: () => xs.of(config)
+  Settings: () => xs.of(config),
+  Dump: dumpDriver
 };
 
 run(main, drivers)

@@ -20,7 +20,8 @@ const {
   read,
   testPath,
   revert,
-  ensureDirs
+  ensureDirs,
+  warn
 }                   = require("../lib/util.js");
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
@@ -38,7 +39,6 @@ const cmd = docopt(usage, {
   argv: ["build"].concat(process.argv.slice(2))
 });
 
-const warn          = str => console.log(clc.xterm(214)(str))
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
 const config_path   = cmd["--spec"] || config.src.specification;
@@ -46,9 +46,12 @@ const filter_subject= cmd["--filter"] || null;
 
 const raw_md_config = read(config_path)
 
-ensureDirs([KLAB_OUT, path.join(KLAB_OUT, "specs"), path.join(KLAB_OUT, "acts")]);
-// TODO - do i need this?
-// fs.writeFileSync(path.join("out/", path.basename(config_path, ".md") + ".acts"), acts_str);
+ensureDirs([
+  KLAB_OUT,
+  path.join(KLAB_OUT, "specs"),
+  path.join(KLAB_OUT, "acts"),
+  path.join(KLAB_OUT, "gas")
+]);
 
 config.trusted = cmd["--trust"];
 
@@ -57,27 +60,68 @@ const acts_str_arr = getActs(raw_md_config);
 
 // searches and adds abi variables with "ABI_" prefix
 
-let act_objects = acts_str_arr
+let act_collection = acts_str_arr
   .map(parseAct)
 
-
-
-let acts = act_objects
-  .map(buildAct(config))
+// * build tests cases
+// * enrich with gas conditions
+// act2name
+const __a2n = act => act.subject + "_" + act.name;
+const __hasGas = name => testPath(path.join(KLAB_OUT, "gas", name + ".kast"));
+const __getGas = name => read(path.join(KLAB_OUT, "gas", name + ".kast"));
+const proof_collection = act_collection
+  // split into pass and fail cases
+  .map(act => [{
+    act: {...act},
+    name: __a2n(act) + "_pass",
+    pass: true,
+    oog: false
+  }].concat("iff" in act ? [{
+    act: {...act},
+    pass: false,
+    oog: false,
+    name: __a2n(act) + "_fail"
+  }] : [] ))
+  .reduce((a, cs) => a.concat(cs), [])
+  // enrich with gas statements
+  .map(pf => {
+    // TODO - default
+    var gas = "3000000";
+    if(__hasGas(pf.name)) {
+      pf.act.gas = __getGas(pf.name);
+      return [{...pf}, {...pf, oog: true, name: pf.name + "_oog"}]
+    } else {
+      pf.act.gas = gas;
+      return [{...pf}]
+    }
+  })
   .reduce((a, cs) => a.concat(cs), [])
 
-const out = acts
+let act_proofs = proof_collection
+  .map(buildAct(config))
+
+// let acts = act_collection
+//   .map(buildAct(config))
+//   .reduce((a, cs) => a.concat(cs), [])
+
+const out = act_proofs
   //For some reason, the above code generates a list of lists.
   //Below applies the multiplication of the monad
-  .reduce((a, act) => ({...a, [act.name]: {v2n: act.v2n, act: act.act}}), {})
+  .reduce((a, act_proof) => ({
+    ...a,
+    [act_proof.name]: {
+      v2n: act_proof.v2n,
+      act: act_proof.act
+    }
+  }), {})
 
 
 //Add the imported rules from the calls field
-acts.forEach(rule => {
+act_proofs.forEach(rule => {
     let imports = [];
     rule.imports.map(name => {
         console.log('Importing ' + name + ' to ' + rule.name + ' spec' + (config.trusted ? ' as a trusted lemma' : ''))
-        let importing = acts.filter(rul => rul.name == name || rul.name == name + "_fail")
+        let importing = act_proofs.filter(rul => rul.name == name || rul.name == name + "_fail")
             .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : '\n'))
         if (importing.length == 0) {
             warn(`Act "${name}" not found!`);
@@ -87,7 +131,7 @@ acts.forEach(rule => {
     rule.imports = imports;
 })
 
-acts.forEach(rule => {
+act_proofs.forEach(rule => {
   let _rules      = [rule.spec].concat(rule.imports)
   let module      = kjson.renderModule(_rules, rule.name)
   let module_path = path.join(KLAB_OUT, "specs", `proof-${rule.name}.k`)
