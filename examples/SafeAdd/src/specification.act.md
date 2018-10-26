@@ -7,9 +7,5 @@ iff in range uint256
 
     X + Y
 
-if
-
-    VGas > 330
-
 returns X + Y
 ```
