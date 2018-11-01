@@ -32,17 +32,17 @@ On OSX, using Homebrew, after installing the command line tools package:
 
 ```sh
 brew tap caskroom/cask caskroom/version
-brew cask install java8
+brew cask install caskroom/versions/java8
 brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
 ```
 
+### Installing
 Then, to install the remaining dependencies (the npm dependencies and KEVM):
 
 ```sh
 make deps
 ```
 
-### Installing
 
 To make klab available from the terminal, you can either just export the path to the `klab` executable in `bin/`, or use:
 
