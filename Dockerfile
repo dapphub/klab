@@ -3,7 +3,7 @@ FROM ubuntu
 # Install KEVM dependencies
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install build-essential
-RUN apt-get -y install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev
+RUN apt-get -y install git make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev
 RUN apt-get -y install z3 libz3-dev
 RUN apt-get -y install tmux
 
