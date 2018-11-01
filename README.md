@@ -14,9 +14,7 @@ Setting up KLab Server and Client
 ---------------------------------
 
 ### Dependencies
-
--   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies. Follow the [instructions](https://github.com/dapphub/evm-semantics#system-dependencies) under the section "System Dependencies" in the `evm-semantics` repo, but don't install `evm-semantics` or `k` itself: the correct versions will be automatically installed if you follow the instructions below.
--   `npm` for installing the JavaScript dependencies.
+Installing klab automatically installs `K` and `KEVM`. You will therefore need the dependencies of K.
 
 To install all of these dependencies on Ubuntu, try:
 
