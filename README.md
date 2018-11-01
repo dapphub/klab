@@ -37,9 +37,9 @@ brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
 ```
 
 ### Installing
-Then, to install the remaining dependencies (the npm dependencies and KEVM):
-
+Clone the repo and install with
 ```sh
+git clone git@github.com:dapphub/klab.git 
 make deps
 ```
 
