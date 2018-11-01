@@ -14,7 +14,8 @@ RUN apt-get -y install nodejs
 
 # build source
 WORKDIR klab
-COPY . .
+git clone https://github.com/dapphub/klab
+RUN cd klab
 RUN make deps
 
 # env setup
