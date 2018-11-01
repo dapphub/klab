@@ -1,9 +1,7 @@
 PATH:=$(PATH):$(CURDIR)/bin
 KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
-TMPDIR=$(CURDIR)/tmp
 export PATH
 export KLAB_EVMS_PATH
-export TMPDIR
 
 # shell output colouring:
 red:=$(shell tput setaf 1)
