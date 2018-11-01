@@ -50,7 +50,6 @@ To run a `klab server`, you need to additionally set:
 
 ```sh
 export KLAB_EVMS_PATH=/path/to/evm-semantics
-export TMPDIR=/tmp
 ```
 
 The `evm-semantics` are located in this repo, e.g. if you cloned this repo to `/home/foo/repos/klab`, you should run:

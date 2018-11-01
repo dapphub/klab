@@ -13,7 +13,7 @@ reset:=$(shell tput sgr0)
 default: deps
 
 clean:
-	rm -fdR out/* evm-semantics $(TMPDIR)/klab
+	rm -fdR out/* evm-semantics
 	git submodule update --init -- evm-semantics
 
 deps: deps-kevm deps-npm
@@ -38,7 +38,7 @@ start-server: server.PID
 	$(info $(bold)STARTED$(reset) KLab server.)
 
 server.PID:
-	mkdir -p $(TMPDIR) && { nohup $(KLAB) server > nohup.out 2>&1 & echo $$! > $@; }
+	TMPDIR=$(mktemp) nohup $(KLAB) server > nohup.out 2>&1 & echo $$! > $@
 
 stop-server: server.PID
 	kill -- -$$(ps -o pgid= `cat $<` | grep -o '[0-9]*') && rm $< && echo "$(bold)STOPPED$(reset) Klab server."
