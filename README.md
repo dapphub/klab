@@ -18,7 +18,27 @@ Setting up KLab Server and Client
 -   All the dependencies for the [KEVM](https://github.com/kframework/evm-semantics), excluding the Ocaml/Opam dependencies. Follow the [instructions](https://github.com/dapphub/evm-semantics#system-dependencies) under the section "System Dependencies" in the `evm-semantics` repo, but don't install `evm-semantics` or `k` itself: the correct versions will be automatically installed if you follow the instructions below.
 -   `npm` for installing the JavaScript dependencies.
 
-To install the remaining dependencies (the npm dependencies and KEVM):
+To install all of these dependencies on Ubuntu, try:
+
+```sh
+sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm
+```
+
+On ArchLinux:
+
+```sh
+sudo pacman -S  base-devel rsync opam pandoc jre8-openjdk mpfr maven z3 nodejs npm
+```
+
+On OSX, using Homebrew, after installing the command line tools package:
+
+```sh
+brew tap caskroom/cask caskroom/version
+brew cask install java8
+brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
+```
+
+Then, to install the remaining dependencies (the npm dependencies and KEVM):
 
 ```sh
 make deps
@@ -32,7 +52,7 @@ To make klab available from the terminal, you can either just export the path to
 make link
 ```
 
-This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` access on Linux machines). You can also specify a custom directory for installation by doing:
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` on Linux machines). You can also specify a custom directory for installation by doing:
 
 ```sh
 PREFIX=/path/to/custom/prefix make link
@@ -136,6 +156,14 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 
 Troubleshooting
 ---------------
+
+### Outdated npm
+
+You might have problems due to an outdated `npm`, in that case try updating it with:
+
+```sh
+npm install npm@latest -g
+```
 
 ### KLab server requesting files at incorrect directory
 
