@@ -161,6 +161,8 @@ You might have problems due to an outdated `npm`, in that case try updating it w
 
 ```sh
 npm install npm@latest -g
+npm install -g n
+n stable
 ```
 
 ### KLab server requesting files at incorrect directory
