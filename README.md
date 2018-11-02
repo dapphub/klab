@@ -39,7 +39,8 @@ brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
 ### Installing
 Clone the repo and install with
 ```sh
-git clone git@github.com:dapphub/klab.git 
+git clone git@github.com:dapphub/klab.git
+cd klab
 make deps
 ```
 
