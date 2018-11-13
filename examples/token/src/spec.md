@@ -9,8 +9,8 @@ types
 
 storage
 
-    #hashedLocation("Solidity", 0, CALLER_ID) |-> FromBal => FromBal - Value
-    #hashedLocation("Solidity", 0, To)        |-> ToBal   => ToBal + Value
+    #Token.balances[CALLER_ID] |-> FromBal => FromBal - Value
+    #Token.balances[To]        |-> ToBal => ToBal + Value
 
 iff in range uint256
     
@@ -20,3 +20,4 @@ iff in range uint256
 if
     VGas >= 100000
 ```
+
