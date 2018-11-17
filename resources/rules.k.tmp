@@ -122,6 +122,16 @@
                 : .WordStack ) => keccakIntList(V)
 
 
+    rule 0 <=Int #asWord(#bufSeg(_, _, _))                 => true
+    rule         #asWord(#bufSeg(_, _, WIDTH)) <Int pow256 => true
+
+    rule         #asWord(#bufSeg(_, _, WIDTH)) <=Int 255 => true requires WIDTH ==Int 1
+
+    rule #buf(32, #asWord(#bufSeg(BUF, START, WIDTH))) => #bufSeg(BUF, START +Int WIDTH -Int 32, 32)  requires WIDTH >=Int 32
+
+
+
+
 rule ACCTCODE in SetItem( 1 )
                  SetItem ( 2 )
                  SetItem ( 3 )
@@ -149,7 +159,7 @@ rule ACCTCODE in SetItem( 1 )
       requires #rangeSInt(256, V)
 
 
-    rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
+    rule #padToWidth(32, #asByteStack(V)) => #buf(32, V) // #asByteStackInWidth(V, 32)
       requires 0 <=Int V andBool V <Int pow256
 
 
@@ -175,6 +185,9 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #noOverflowAux(W : WS)     => 0 <=Int W andBool W <Int 256 andBool #noOverflowAux(WS)
     rule #noOverflowAux(.WordStack) => true
+
+    rule #noOverflowAux(BUF) => true requires #isBuf(BUF)
+    rule #noOverflowAux(WS1 ++ WS2) => #noOverflowAux(WS1) andBool #noOverflowAux(WS2)
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
@@ -229,6 +242,11 @@ rule ACCTCODE in SetItem( 1 )
     // 0xffff...f &Int N = N
     rule MASK &Int N => N  requires MASK ==Int (2 ^Int (log2Int(MASK) +Int 1)) -Int 1 // MASK = 0xffff...f
                             andBool 0 <=Int N andBool N <=Int MASK
+                            
+   rule #asWord(#bufSeg(BUF, START, WIDTH)) &Int 255 => #asWord(#bufSeg(BUF, START +Int WIDTH -Int 1, 1))  requires WIDTH >=Int 1
+    rule 255 &Int #asWord(#bufSeg(BUF, START, WIDTH)) => #asWord(#bufSeg(BUF, START +Int WIDTH -Int 1, 1))  requires WIDTH >=Int 1
+
+
 
     // for gas calculation
     rule A -Int (#if C #then B1 #else B2 #fi) => #if C #then (A -Int B1) #else (A -Int B2) #fi
@@ -312,3 +330,18 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
   rule <k> EQ W0 W1 => bool2Word(W0 ==Int W1) ~> #push ... </k> [trusted]
   rule <k> ISZERO W => bool2Word(W  ==Int 0 ) ~> #push ... </k> [trusted]
 
+//rule select(store(M, keccakIntList(K0), V), keccakIntList(K0)) => V
+     
+//rule select(store(M, keccakIntList(K0), V), keccakIntList(K1)) => select(M, keccakIntList(K1))
+
+//rule store(store(M, keccakIntList(A B .IntList), V), keccakIntList(C D .IntList), V1) => store(M, keccakIntList(A B .IntList), V1) 
+//     requires A ==Int C
+//     andBool B ==Int D
+
+rule keccakIntList(A B .IntList) ==Int keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
+rule keccakIntList(A B .IntList) =/=Int keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D
+
+
+rule select(store(store(M, K0, V0), K1, V1), K2) => 
+     select(store(M, K0, V0), K2)
+     requires K1 =/=Int K2
