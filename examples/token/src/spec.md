@@ -20,4 +20,3 @@ iff in range uint256
 if
     VGas >= 100000
 ```
-
