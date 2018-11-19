@@ -330,18 +330,6 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
   rule <k> EQ W0 W1 => bool2Word(W0 ==Int W1) ~> #push ... </k> [trusted]
   rule <k> ISZERO W => bool2Word(W  ==Int 0 ) ~> #push ... </k> [trusted]
 
-//rule select(store(M, keccakIntList(K0), V), keccakIntList(K0)) => V
-     
-//rule select(store(M, keccakIntList(K0), V), keccakIntList(K1)) => select(M, keccakIntList(K1))
-
-//rule store(store(M, keccakIntList(A B .IntList), V), keccakIntList(C D .IntList), V1) => store(M, keccakIntList(A B .IntList), V1) 
-//     requires A ==Int C
-//     andBool B ==Int D
 
 rule keccakIntList(A B .IntList) ==Int keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
 rule keccakIntList(A B .IntList) =/=Int keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D
-
-
-rule select(store(store(M, K0, V0), K1, V1), K2) => 
-     select(store(M, K0, V0), K2)
-     requires K1 =/=Int K2
