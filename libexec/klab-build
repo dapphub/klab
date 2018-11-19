@@ -87,6 +87,7 @@ const proof_collection = act_collection
   // enrich with gas statements
   .map(pf => {
     // TODO - default
+      pf.act.hasGas = __hasGas(pf.name);  
     var gas = "3000000";
     if(__hasGas(pf.name)) {
       pf.act.gas = __getGas(pf.name);
