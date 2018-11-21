@@ -12,7 +12,7 @@ contract Token {
     require(x >= y);
   }
   
-  function constructor(uint supply) {
+  constructor(uint supply) public {
     totalSupply = supply;
     balanceOf[msg.sender] = supply;
   }
