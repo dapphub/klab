@@ -18,5 +18,5 @@ iff in range uint256
     ToBal + Value
     
 if
-    VGas >= 100000
+    CALLER_ID =/= To
 ```
