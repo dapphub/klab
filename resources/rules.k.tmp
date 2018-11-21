@@ -339,9 +339,31 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
 //     andBool B ==Int D
 
 rule keccakIntList(A B .IntList) ==Int keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
-rule keccakIntList(A B .IntList) =/=Int keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D
+rule keccakIntList(A B .IntList) =/=Int keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D //Warning: not absolutely true
 
+//Curious I need to add this rules like this:
 
-rule select(store(store(M, K0, V0), K1, V1), K2) => 
-     select(store(M, K0, V0), K2)
-     requires K1 =/=Int K2
+rule select(store(M, keccakIntList(A B .IntList), V), 0) => select(M, 0)
+rule select(store(M, keccakIntList(A B .IntList), V), 1) => select(M, 1)
+rule select(store(M, keccakIntList(A B .IntList), V), 2) => select(M, 2)
+rule select(store(M, keccakIntList(A B .IntList), V), 3) => select(M, 3)
+rule select(store(M, keccakIntList(A B .IntList), V), 4) => select(M, 4)
+rule select(store(M, keccakIntList(A B .IntList), V), 5) => select(M, 5)
+rule select(store(M, keccakIntList(A B .IntList), V), 6) => select(M, 6)
+rule select(store(M, keccakIntList(A B .IntList), V), 7) => select(M, 7)
+rule select(store(M, keccakIntList(A B .IntList), V), 8) => select(M, 8)
+rule select(store(M, keccakIntList(A B .IntList), V), 9) => select(M, 9)
+rule select(store(M, keccakIntList(A B .IntList), V), 10) => select(M, 10)
+rule select(store(M, keccakIntList(A B .IntList), V), 11) => select(M, 11)
+rule select(store(M, keccakIntList(A B .IntList), V), 12) => select(M, 12)
+
+//... when these ones together with the ones in domains.k should suffice
+/*
+rule keccakIntList(A B .IntList) ==Int 0 ==K false => true
+rule keccakIntList(C) =/=Int 1 => true
+rule keccakIntList(C) =/=Int 2 => true
+rule keccakIntList(C) =/=Int 3 => true
+rule keccakIntList(C) =/=Int 4 => true
+rule keccakIntList(C) =/=Int 5 => true
+// ...but they dont...
+*/
