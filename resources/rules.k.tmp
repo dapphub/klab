@@ -122,15 +122,6 @@
                 : .WordStack ) => keccakIntList(V)
 
 
-    rule 0 <=Int #asWord(#bufSeg(_, _, _))                 => true
-    rule         #asWord(#bufSeg(_, _, WIDTH)) <Int pow256 => true
-
-    rule         #asWord(#bufSeg(_, _, WIDTH)) <=Int 255 => true requires WIDTH ==Int 1
-
-    rule #buf(32, #asWord(#bufSeg(BUF, START, WIDTH))) => #bufSeg(BUF, START +Int WIDTH -Int 32, 32)  requires WIDTH >=Int 32
-
-
-
 
 rule ACCTCODE in SetItem( 1 )
                  SetItem ( 2 )
@@ -158,8 +149,7 @@ rule ACCTCODE in SetItem( 1 )
     rule #padToWidth(32, #asByteStack( #unsigned(V) )) => #asByteStackInWidth( #unsigned(V), 32)
       requires #rangeSInt(256, V)
 
-
-    rule #padToWidth(32, #asByteStack(V)) => #buf(32, V) // #asByteStackInWidth(V, 32)
+    rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
       requires 0 <=Int V andBool V <Int pow256
 
 
@@ -185,9 +175,6 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #noOverflowAux(W : WS)     => 0 <=Int W andBool W <Int 256 andBool #noOverflowAux(WS)
     rule #noOverflowAux(.WordStack) => true
-
-    rule #noOverflowAux(BUF) => true requires #isBuf(BUF)
-    rule #noOverflowAux(WS1 ++ WS2) => #noOverflowAux(WS1) andBool #noOverflowAux(WS2)
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
@@ -243,9 +230,6 @@ rule ACCTCODE in SetItem( 1 )
     rule MASK &Int N => N  requires MASK ==Int (2 ^Int (log2Int(MASK) +Int 1)) -Int 1 // MASK = 0xffff...f
                             andBool 0 <=Int N andBool N <=Int MASK
                             
-   rule #asWord(#bufSeg(BUF, START, WIDTH)) &Int 255 => #asWord(#bufSeg(BUF, START +Int WIDTH -Int 1, 1))  requires WIDTH >=Int 1
-    rule 255 &Int #asWord(#bufSeg(BUF, START, WIDTH)) => #asWord(#bufSeg(BUF, START +Int WIDTH -Int 1, 1))  requires WIDTH >=Int 1
-
 
 
     // for gas calculation
@@ -338,32 +322,16 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
 //     requires A ==Int C
 //     andBool B ==Int D
 
-rule keccakIntList(A B .IntList) ==Int keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
-rule keccakIntList(A B .IntList) =/=Int keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D //Warning: not absolutely true
+//RULES MUST USE ==K and not ==Int
+//Warning: assumes injective hashing
+rule keccakIntList(A B .IntList) ==K keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
+rule keccakIntList(A B .IntList) =/=K keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D
 
-//Curious I need to add this rules like this:
+rule keccakIntList(A B C .IntList) ==K keccakIntList(D E F .IntList) => A ==Int D andBool B ==Int E andBool C ==Int F
+rule keccakIntList(A B C .IntList) =/=K keccakIntList(D E F .IntList) => A =/=Int D orBool B =/=Int E orBool C =/=Int F
 
-rule select(store(M, keccakIntList(A B .IntList), V), 0) => select(M, 0)
-rule select(store(M, keccakIntList(A B .IntList), V), 1) => select(M, 1)
-rule select(store(M, keccakIntList(A B .IntList), V), 2) => select(M, 2)
-rule select(store(M, keccakIntList(A B .IntList), V), 3) => select(M, 3)
-rule select(store(M, keccakIntList(A B .IntList), V), 4) => select(M, 4)
-rule select(store(M, keccakIntList(A B .IntList), V), 5) => select(M, 5)
-rule select(store(M, keccakIntList(A B .IntList), V), 6) => select(M, 6)
-rule select(store(M, keccakIntList(A B .IntList), V), 7) => select(M, 7)
-rule select(store(M, keccakIntList(A B .IntList), V), 8) => select(M, 8)
-rule select(store(M, keccakIntList(A B .IntList), V), 9) => select(M, 9)
-rule select(store(M, keccakIntList(A B .IntList), V), 10) => select(M, 10)
-rule select(store(M, keccakIntList(A B .IntList), V), 11) => select(M, 11)
-rule select(store(M, keccakIntList(A B .IntList), V), 12) => select(M, 12)
 
-//... when these ones together with the ones in domains.k should suffice
-/*
-rule keccakIntList(A B .IntList) ==Int 0 ==K false => true
-rule keccakIntList(C) =/=Int 1 => true
-rule keccakIntList(C) =/=Int 2 => true
-rule keccakIntList(C) =/=Int 3 => true
-rule keccakIntList(C) =/=Int 4 => true
-rule keccakIntList(C) =/=Int 5 => true
-// ...but they dont...
-*/
+rule keccakIntList(C) ==K A => false
+     requires 0 <=Int A andBool A <=Int 20
+rule keccakIntList(C) =/=K A => true
+     requires 0 <=Int A andBool A <=Int 20
