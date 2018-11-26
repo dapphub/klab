@@ -56,8 +56,15 @@ test_examples=$(wildcard $(test_dir)/*)
 
 build-test: $(test_examples:=.build)
 
+# this target builds specs with exact, exhaustive
+# treatment of gas and can only be run after one pass of `klab run`
+build-test-exactgas : $(test_examples:=.build-exactgas)
+
 %.build:
 	cd $* && $(KLAB) build
+
+%.build-exactgas:
+	cd $* && $(KLAB) solvegas && $(KLAB) build --exact-gas
 
 # workaround for patsubst in pattern matching target below
 PERCENT := %
