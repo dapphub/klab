@@ -41,7 +41,7 @@ config.spec = cmd["--spec"] && (
     || revert(`spec not found at ${cmd["--spec"]}`))
 
 config.name = cmd["--spec"] && path.basename(cmd["--spec"])
-  || cmd["--name"] && ("proof-" + name + ".k")
+  || cmd["--name"] && (name + ".k")
 
 config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
   || revert(`no rules found at ${KLAB_OUT}/rules.k`)

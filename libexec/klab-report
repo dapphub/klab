@@ -53,7 +53,7 @@ const getBadges = code => {
     .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
   // if(act_obj.iff) cases = cases.concat(["fail"])
   let status = cases
-    .map((c, i) => path.join(KLAB_OUT, `specs/proof-${c}.k`))
+    .map((c, i) => path.join(KLAB_OUT, `specs/${c}.k`))
     .map(spec_path => getId(spec_path))
     .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
     .map(([pid, log_path]) => testPath(log_path)
