@@ -3,3 +3,4 @@
 /media/*.pdf
 /examples/*/behaviour.json
 /examples/*/out/
+/haskell/result
