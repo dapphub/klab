@@ -139,7 +139,7 @@ act_proofs.forEach(rule => {
 act_proofs.forEach(rule => {
   let _rules      = [rule.spec].concat(rule.imports)
   let module      = kjson.renderModule(_rules, rule.name)
-  let module_path = path.join(KLAB_OUT, "specs", `proof-${rule.name}.k`)
+  let module_path = path.join(KLAB_OUT, "specs", `${rule.name}.k`)
 
   let old_module  = "";
   if(testPath(module_path)) old_module = read(module_path);
