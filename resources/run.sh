@@ -8,7 +8,7 @@ $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove \
 --z3-executable \
 --def-module RULES \
 --output-tokenize "#And _==K_ <k> #unsigned <storage>" \
---output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack>" \
+--output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
 --output-flatten "_Map_ #And" \
 --output json \
 --smt_prelude ./prelude.smt2 \
