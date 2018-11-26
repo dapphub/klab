@@ -63,6 +63,12 @@ This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (wi
 PREFIX=/path/to/custom/prefix make link
 ```
 
+*OPTIONAL*: `klab` has some optional Haskell components, for which the recommended installation method is [nix](https://nixos.org/nix/). If you have `nix`, you can install the Haskell components with
+
+```sh
+make deps-haskell
+```
+
 ### Environment Setup
 
 You may wish to add the `klab` executable to the path, e.g.:

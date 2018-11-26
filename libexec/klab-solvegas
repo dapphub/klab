@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+GAS_SOLVER="${GAS_SOLVER:-k-gas-analyser}"
+KLAB_OUT="${KLAB_OUT:-out}"
+
+GAS_DIR=$KLAB_OUT/gas
+cd $GAS_DIR
+
+shopt -s nullglob #disable null globbing
+for rawgasfile in *.raw.kast.json; do
+    echo "Consuming ending gas expression from $GAS_DIR/$rawgasfile..."
+    OUTNAME=$(basename "$rawgasfile" .raw.kast.json).kast
+    $GAS_SOLVER --input "$rawgasfile" > $OUTNAME
+    echo "Saved exact gas expression to $GAS_DIR/$OUTNAME"
+done
+shopt -u nullglob #revert nullglob
