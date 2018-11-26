@@ -1,3 +1,4 @@
+/libexec/k-gas-analyser
 /node_modules/*
 /media/*.pdf
 /examples/*/behaviour.json
