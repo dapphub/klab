@@ -33,7 +33,7 @@ deps-npm:
 
 deps-haskell:
 	cd haskell/ && make
-	ln -s $(GAS_SOLVER) $(LIBEXEC_DIR)
+	ln -s $(GAS_SOLVER) $(LIBEXEC_DIR)/klab-gas-analyser
 
 media: media/introduction.pdf
 
