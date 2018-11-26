@@ -31,6 +31,7 @@ Options:
   --spec=<spec>
   --name=<name>
   --headless
+  --filter-oog
 `
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
@@ -48,7 +49,7 @@ try {
 }
 
 const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
-const spec_names  = specs.map(s => s.slice(6, -2))
+const spec_names  = specs.map(s => s.slice(0, -2))
 
 config.spec = cmd["--spec"] && (
     testPath(cmd["--spec"]) && read(cmd["--spec"])
@@ -65,6 +66,8 @@ config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_O
 
 config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
   || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
+
+config.FILTER_OOG = cmd["--filter-oog"] || false;
 
 // if(cmd["--trust"]) {
 //     config.trust = true;
