@@ -3,6 +3,10 @@ KLAB_EVMS_PATH:=$(CURDIR)/evm-semantics
 export PATH
 export KLAB_EVMS_PATH
 
+LIBEXEC_DIR=$(CURDIR)/libexec
+HASKELL_DIR=$(CURDIR)/haskell
+GAS_SOLVER=$(HASKELL_DIR)/result/bin/k-gas-analyser
+
 # shell output colouring:
 red:=$(shell tput setaf 1)
 green:=$(shell tput setaf 2)
@@ -27,6 +31,10 @@ deps-kevm:
 deps-npm:
 	npm install
 
+deps-haskell:
+	cd haskell/ && make
+	ln -s $(GAS_SOLVER) $(LIBEXEC_DIR)/klab-gas-analyser
+
 media: media/introduction.pdf
 
 media/%.pdf: media/%.md
@@ -48,8 +56,15 @@ test_examples=$(wildcard $(test_dir)/*)
 
 build-test: $(test_examples:=.build)
 
+# this target builds specs with exact, exhaustive
+# treatment of gas and can only be run after one pass of `klab run`
+build-test-exactgas : $(test_examples:=.build-exactgas)
+
 %.build:
 	cd $* && $(KLAB) build
+
+%.build-exactgas:
+	cd $* && $(KLAB) solvegas && $(KLAB) build --exact-gas
 
 # workaround for patsubst in pattern matching target below
 PERCENT := %

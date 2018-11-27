@@ -1,4 +1,6 @@
+/libexec/k-gas-analyser
 /node_modules/*
 /media/*.pdf
 /examples/*/behaviour.json
 /examples/*/out/
+/haskell/result
