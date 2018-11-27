@@ -1,4 +1,4 @@
-/libexec/k-gas-analyser
+/libexec/klab-gas-analyser
 /node_modules/*
 /media/*.pdf
 /examples/*/behaviour.json
