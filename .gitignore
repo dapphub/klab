@@ -1,6 +1,7 @@
-/libexec/k-gas-analyser
+/libexec/klab-gas-analyser
 /node_modules/*
 /media/*.pdf
 /examples/*/behaviour.json
 /examples/*/out/
-/haskell/result
+/haskell/resultlibexec/klab-gas-analyser
+haskell/result
