@@ -7,7 +7,7 @@ $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove \
 --directory $KLAB_EVMS_PATH/.build/java/ \
 --z3-executable \
 --def-module RULES \
---output-tokenize "#And _==K_ <k> #unsigned <storage>" \
+--output-tokenize "<k> <storage>" \
 --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
 --output-flatten "_Map_ #And" \
 --output json \
