@@ -33,6 +33,7 @@ Usage:
 Options:
   --spec=<spec>
   --filter=<filter>
+  --trust
   --exact-gas
 `
 const cmd = docopt(usage, {
@@ -55,6 +56,7 @@ ensureDirs([
   path.join(KLAB_OUT, "gas")
 ]);
 
+config.trusted = cmd["--trust"];
 
 const acts_str_arr = getActs(raw_md_config);
 
@@ -102,9 +104,35 @@ const proof_collection = act_collection
 let act_proofs = proof_collection
   .map(buildAct(config))
 
+
 // let acts = act_collection
 //   .map(buildAct(config))
 //   .reduce((a, cs) => a.concat(cs), [])
+
+const dep_graph = {};
+
+// Add the imported rules from the calls field
+act_proofs.forEach(rule => {
+  // XXX - rule.imports has two different semantics - resolve
+  dep_graph[rule.hash] = [];
+  rule.imports = rule.imports
+    .map(name => {
+    console.log('needs ' + name + ' => ' + rule.name)
+    let deps = act_proofs
+      .filter(rul => rul.name.slice(0,-5) == name);
+
+    dep_graph[rule.hash] = dep_graph[rule.hash].concat(deps
+      .map(dep_pf => dep_pf.hash));
+
+    if (deps.length == 0) {
+        warn(`Act "${name}" not found!`);
+    }
+
+    return deps
+      .map(rule => rule.spec + '\n[trusted]\n')
+      .join('')
+  })
+})
 
 const out = act_proofs
   //For some reason, the above code generates a list of lists.
@@ -113,26 +141,11 @@ const out = act_proofs
     ...a,
     [act_proof.name]: {
       v2n: act_proof.v2n,
-      act: act_proof.act
+      act: act_proof.act,
+      hash: act_proof.hash
     }
   }), {})
-
-
-//Add the imported rules from the calls field
-act_proofs.forEach(rule => {
-    let imports = [];
-    rule.imports.forEach(name => {
-        console.log('Importing ' + name + ' to ' + rule.name + ' spec as a trusted lemma'))
-        let importing = act_proofs.filter(rul => rul.name.slice(0,-5) == name)
-            .map(rule => rule.spec + '\n[trusted]\n')
-            .join('')
-        if (importing.length == 0) {
-            warn(`Act "${name}" not found!`);
-        }
-        imports.push(importing)
-    })
-    rule.imports = imports;
-})
+out.dep_graph = dep_graph;
 
 act_proofs.forEach(rule => {
   let _rules      = [rule.spec].concat(rule.imports)
