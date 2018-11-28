@@ -33,7 +33,6 @@ Usage:
 Options:
   --spec=<spec>
   --filter=<filter>
-  --trust
   --exact-gas
 `
 const cmd = docopt(usage, {
@@ -56,7 +55,6 @@ ensureDirs([
   path.join(KLAB_OUT, "gas")
 ]);
 
-config.trusted = cmd["--trust"];
 
 const acts_str_arr = getActs(raw_md_config);
 
@@ -124,9 +122,9 @@ const out = act_proofs
 act_proofs.forEach(rule => {
     let imports = [];
     rule.imports.forEach(name => {
-        console.log('Importing ' + name + ' to ' + rule.name + ' spec' + (config.trusted ? ' as a trusted lemma' : ''))
+        console.log('Importing ' + name + ' to ' + rule.name + ' spec as a trusted lemma'))
         let importing = act_proofs.filter(rul => rul.name.slice(0,-5) == name)
-            .map(rule => rule.spec + (config.trusted ? '\n[trusted]\n' : '\n'))
+            .map(rule => rule.spec + '\n[trusted]\n')
             .join('')
         if (importing.length == 0) {
             warn(`Act "${name}" not found!`);
