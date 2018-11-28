@@ -15,6 +15,7 @@ const main = require("../lib/main.js")
 const {
   testPath,
   revert,
+  warn,
   read,
   sha3
 } = require("../lib/util.js");
@@ -93,6 +94,30 @@ const CLIDriver = cmd["--headless"]
     // in: false
   })
 config.headless = cmd["--headless"]
+
+let claim_hash = config.out[config.name.slice(0,-2)].hash;
+let deps = config.out.dep_graph[claim_hash] || [];
+const deps_status = deps
+.map(hash => testPath(path.join(KLAB_OUT, "pass", hash)))
+
+
+let all_dependency_passing = deps_status
+  .reduce((a, b) => a && b, true)
+
+if(!all_dependency_passing) {
+  // XXX - generate this during build time?
+  const hash2name = Object.keys(config.out)
+    .filter(key => key !== "dep_graph")
+    .reduce((a, key) => ({...a, [config.out[key].hash]: key }), {})
+
+  deps_status
+    .forEach((status, i) => {
+      if(!status) warn(`ERROR: Proof of ${hash2name[deps[i]]} required first`);
+    })
+
+  process.exit();
+}
+
 
 const dumpDriver  = makeDumpDriver(config);
 
