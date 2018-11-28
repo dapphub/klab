@@ -6,13 +6,11 @@ klab run [options]
 klab build options:
   --spec=<spec>
   --filter=<filter>
-  --trust
 
 klab run options:
   --force               No replay
   --inspect=<id>
   --clean
-  --trust=<trust-spec, trust-bin>
   --spec=<spec>
   --name=<name>
   --headless

@@ -27,7 +27,6 @@ Options:
   --force               No replay
   --inspect=<id>
   --clean
-  --trust=<trust-spec, trust-bin>
   --spec=<spec>
   --name=<name>
   --headless
@@ -68,12 +67,6 @@ config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.
   || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
 
 config.FILTER_OOG = cmd["--filter-oog"] || false;
-
-// if(cmd["--trust"]) {
-//     config.trust = true;
-//     config.trustSpec = fs.readFileSync(cmd["--trust"].split(',')[0]).toString();
-//     config.trustBin  = fs.readFileSync(cmd["--trust"].split(',')[1]).toString();
-// }
 
 // proof id
 config.proofid = sha3(JSON.stringify({
