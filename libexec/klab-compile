@@ -114,7 +114,7 @@ const behaviour = genBehaviour({
       });
 // console.log(JSON.stringify(behaviour, false, 2));
 boot.status = behaviour.success
-  ? "SUCCESS"
+  ? "ACCEPT"
   : "REJECT"
 
 const boot_json_str = JSON.stringify(boot);
