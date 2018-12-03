@@ -32,6 +32,7 @@ Options:
   --name=<name>
   --headless
   --filter-oog
+  --shamefully-trust-dependencies
 `
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
@@ -50,6 +51,7 @@ try {
 
 const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
 const spec_names  = specs.map(s => s.slice(0, -2))
+const TRUST_DEPENDENCIES = cmd["--shamefully-trust-dependencies"] || false;
 
 config.spec = cmd["--spec"] && (
     testPath(cmd["--spec"]) && read(cmd["--spec"])
@@ -104,7 +106,7 @@ const deps_status = deps
 let all_dependency_passing = deps_status
   .reduce((a, b) => a && b, true)
 
-if(!all_dependency_passing) {
+if((!TRUST_DEPENDENCIES) && !all_dependency_passing) {
   // XXX - generate this during build time?
   const hash2name = Object.keys(config.out)
     .filter(key => key !== "dep_graph")
