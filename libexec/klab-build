@@ -120,9 +120,11 @@ act_proofs.forEach(rule => {
   dep_graph[rule.hash] = [];
   rule.imports = rule.imports
     .map(name => {
-    console.log('needs ' + name + ' => ' + rule.name)
     let deps = act_proofs
-      .filter(rul => rul.name.slice(0,-5) == name);
+      .filter(rul => (rul.name == name + "_pass") || ((rul.name == name + "_fail") && !rule.pass));
+    deps.forEach(dep => {
+      console.log('needs ' + rule.name + " <= " + dep.name)
+    })
 
     dep_graph[rule.hash] = dep_graph[rule.hash].concat(deps
       .map(dep_pf => dep_pf.hash));
