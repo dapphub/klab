@@ -7,6 +7,7 @@ const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const kjson         = require("../lib/kjson.js");
+const kast          = require("../lib/kast.js");
 const Config        = require("../lib/config.js");
 const {
   makePrelude,
@@ -72,6 +73,7 @@ let act_collection = acts_str_arr
 const __a2n = act => act.subject + "_" + act.name;
 const __hasGas = name => testPath(path.join(KLAB_OUT, "gas", name + ".kast"));
 const __getGas = name => read(path.join(KLAB_OUT, "gas", name + ".kast"));
+const __getGasRaw = name => JSON.parse(read(path.join(KLAB_OUT, "gas", name + ".raw.kast.json")));
 const proof_collection = act_collection
   // split into pass and fail cases
   .map(act => [{
@@ -93,6 +95,7 @@ const proof_collection = act_collection
     var gas = "3000000";
     if(EXACT_GAS && __hasGas(pf.name)) {
       pf.act.gas = __getGas(pf.name);
+      pf.act.gas_raw = kast.format(__getGasRaw(pf.name), true);
       return [{...pf}, {...pf, oog: true, name: pf.name + "_oog"}]
     } else {
       pf.act.gas = gas;
