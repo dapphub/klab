@@ -139,7 +139,9 @@ act_proofs.forEach(rule => {
   })
 })
 
-const out = act_proofs
+const hash2name = act_proofs
+  .reduce((a, act) => ({...a, [act.hash]: act.name}), {})
+const out_specs = act_proofs
   //For some reason, the above code generates a list of lists.
   //Below applies the multiplication of the monad
   .reduce((a, act_proof) => ({
@@ -150,7 +152,28 @@ const out = act_proofs
       hash: act_proof.hash
     }
   }), {})
-out.dep_graph = dep_graph;
+const out = {
+  specs: out_specs,
+  dep_graph,
+  hash2name
+};
+
+// Generate proof order based on the dependency graph
+const dep_graph_arr = Object.keys(dep_graph).map(k => [k, [...dep_graph[k]] || []])
+const mDevide = (xs, isEmpty = true) => xs.filter(([k, deps]) => isEmpty ? deps.length == 0 : deps.length > 0)
+const mFiltered = (xs, fs) => xs.map(([k, deps]) => [k, _.pullAll(deps, fs)])
+const serialize = xs => {
+  if(xs.length == 0) return [];
+  const empty = mDevide(xs, true)
+    .map(([k, _]) => k)
+  const nonempty = mDevide(xs, false)
+  return empty.concat(serialize(mFiltered(nonempty, empty)))
+}
+
+const proof_order = serialize(dep_graph_arr)
+  .map(hash => path.join("specs", hash2name[hash] + ".k"))
+  .join("\n")
+
 
 act_proofs.forEach(rule => {
   let _rules      = [rule.spec].concat(rule.imports)
@@ -166,7 +189,7 @@ act_proofs.forEach(rule => {
 })
 
 fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
-fs.writeFileSync(path.join(KLAB_OUT, "specs.manifest"), Object.keys(out).join("\n"))
+fs.writeFileSync(path.join(KLAB_OUT, "specs.manifest"), proof_order)
 makeRunScript();
 // RULES
 makeRules(config);
