@@ -78,7 +78,7 @@ const proof_collection = act_collection
   // split into pass and fail cases
   .map(act => [{
     act: {...act},
-    name: __a2n(act) + "_pass",
+    name: __a2n(act) + "_pass_rough",
     pass: true,
     oog: false
   }].concat("iff" in act ? [{
@@ -93,10 +93,11 @@ const proof_collection = act_collection
     // TODO - default
     pf.act.hasGas = EXACT_GAS && __hasGas(pf.name);
     var gas = "3000000";
-    if(EXACT_GAS && __hasGas(pf.name)) {
+    if(EXACT_GAS && __hasGas(pf.name) && pf.pass) {
       pf.act.gas = __getGas(pf.name);
       pf.act.gas_raw = kast.format(__getGasRaw(pf.name), true);
-      return [{...pf}, {...pf, oog: true, name: pf.name + "_oog"}]
+      return [{...pf, oog: false, name: pf.name.replace('_rough','')},
+              {...pf, oog: true, name: pf.name.replace('rough','oog')}]
     } else {
       pf.act.gas = gas;
       return [{...pf}]
