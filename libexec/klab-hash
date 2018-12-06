@@ -8,14 +8,11 @@ const {
 
 const usage = `
 Usage:
-  klab hash [options]
-
-Options:
-  --spec=<spec>
+  klab hash [options] <spec>
 `
 
 const cmd = docopt(usage, {
   argv: ["hash"].concat(process.argv.slice(2))
 });
 
-process.stdout.write(getId(cmd["--spec"]))
+process.stdout.write(getId(cmd["<spec>"]))

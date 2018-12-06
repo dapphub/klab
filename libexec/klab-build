@@ -29,10 +29,9 @@ const KLAB_OUT = process.env.KLAB_OUT || "out";
 
 const usage = `
 Usage:
-  klab build [options]
+  klab build [options] [<spec>]
 
 Options:
-  --spec=<spec>
   --filter=<filter>
   --trust
   --exact-gas
@@ -44,7 +43,7 @@ const cmd = docopt(usage, {
 if (!testPath("./config.json")) {revert("No config.json file in directory. Review `klab/examples` folder for inspiration")}
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = Config(config_json);
-const config_path   = cmd["--spec"] || config.src.specification;
+const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
 const EXACT_GAS     = cmd["--exact-gas"] || false;
 
@@ -54,7 +53,8 @@ ensureDirs([
   KLAB_OUT,
   path.join(KLAB_OUT, "specs"),
   path.join(KLAB_OUT, "acts"),
-  path.join(KLAB_OUT, "gas")
+  path.join(KLAB_OUT, "gas"),
+  path.join(KLAB_OUT, "meta")
 ]);
 
 config.trusted = cmd["--trust"];
@@ -140,24 +140,22 @@ act_proofs.forEach(rule => {
   })
 })
 
-const hash2name = act_proofs
-  .reduce((a, act) => ({...a, [act.hash]: act.name}), {})
-const out_specs = act_proofs
-  //For some reason, the above code generates a list of lists.
-  //Below applies the multiplication of the monad
-  .reduce((a, act_proof) => ({
-    ...a,
-    [act_proof.name]: {
-      v2n: act_proof.v2n,
-      act: act_proof.act,
-      hash: act_proof.hash
-    }
-  }), {})
-const out = {
-  specs: out_specs,
-  dep_graph,
-  hash2name
-};
+// const out_specs = act_proofs
+//   //For some reason, the above code generates a list of lists.
+//   //Below applies the multiplication of the monad
+//   .reduce((a, act_proof) => ([
+//     ...a,
+//     [act_proof.name, {
+//       v2n: act_proof.v2n,
+//       act: act_proof.act,
+//       hash: act_proof.hash
+//     }]
+//   ]), [])
+// const out = {
+//   specs: out_specs,
+//   dep_graph,
+//   hash2name
+// };
 
 // Generate proof order based on the dependency graph
 const dep_graph_arr = Object.keys(dep_graph).map(k => [k, [...dep_graph[k]] || []])
@@ -171,6 +169,8 @@ const serialize = xs => {
   return empty.concat(serialize(mFiltered(nonempty, empty)))
 }
 
+const hash2name = act_proofs
+  .reduce((a, act) => ({...a, [act.hash]: act.name}), {})
 const proof_order = serialize(dep_graph_arr)
   .map(hash => path.join("specs", hash2name[hash] + ".k"))
   .join("\n")
@@ -189,7 +189,20 @@ act_proofs.forEach(rule => {
   }
 })
 
-fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
+// fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
+// METADATA
+act_proofs.forEach(({v2n, act, hash, name}) => {
+  // name -> hash
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", name), hash);
+  // hash -> data
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", hash), JSON.stringify({
+    v2n,
+    act,
+    name,
+    deps: dep_graph[hash]
+  }));
+})
+
 fs.writeFileSync(path.join(KLAB_OUT, "specs.manifest"), proof_order)
 makeRunScript();
 // RULES
