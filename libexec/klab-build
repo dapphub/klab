@@ -8,7 +8,7 @@ const clc           = require("cli-color");
 const _             = require("lodash");
 const kjson         = require("../lib/kjson.js");
 const kast          = require("../lib/kast.js");
-const Config        = require("../lib/config.js");
+const makeConfig    = require("../lib/config.js");
 const {
   makePrelude,
   makeRules,
@@ -42,7 +42,7 @@ const cmd = docopt(usage, {
 
 if (!testPath("./config.json")) {revert("No config.json file in directory. Review `klab/examples` folder for inspiration")}
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
-const config        = Config(config_json);
+const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
 const EXACT_GAS     = cmd["--exact-gas"] || false;
