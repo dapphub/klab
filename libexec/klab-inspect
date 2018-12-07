@@ -30,11 +30,7 @@ const cmd = docopt(usage, {
 });
 
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
-const config      = makeConfig(config_json);
-try {
-  config.out = JSON.parse(fs.readFileSync("out/out.json"))
-} catch(e) {
-}
+const config      = makeConfig(config_json, cmd["<spec>"]);
 
 // proof id
 config.proofid = cmd["<id>"];
