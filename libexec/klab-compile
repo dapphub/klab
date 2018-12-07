@@ -16,8 +16,7 @@ const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
 const config_json   = JSON.parse(fs.readFileSync("./config.json"));
-const Config        = require("../lib/config.js");
-const config        = Config(config_json);
+const makeConfig        = require("../lib/config.js");
 
 const usage = `
 Usage:
@@ -27,11 +26,7 @@ Usage:
 const cmd = docopt(usage, {
   argv: ["hash"].concat(process.argv.slice(2))
 });
-
-try {
-  config.out = JSON.parse(fs.readFileSync(path.join(KLAB_OUT, "out.json")))
-} catch(e) {
-}
+const config        = makeConfig(config_json, cmd["<spec>"]);
 
 config.spec = cmd["<spec>"] && (
     testPath(cmd["<spec>"]) && read(cmd["<spec>"])

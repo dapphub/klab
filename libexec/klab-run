@@ -28,7 +28,6 @@ Options:
   --force               No replay
   --inspect=<id>
   --clean
-  --name=<name>
   --headless
   --filter-oog
   --shamefully-trust-dependencies
@@ -41,27 +40,11 @@ const cmd = docopt(usage, {
 });
 
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
-const config      = makeConfig(config_json);
-
-try {
-  config.out = JSON.parse(fs.readFileSync(path.join(KLAB_OUT, "out.json")))
-} catch(e) {
-}
+const config      = makeConfig(config_json, cmd["<spec>"]);
 
 const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
 const spec_names  = specs.map(s => s.slice(0, -2))
 const TRUST_DEPENDENCIES = cmd["--shamefully-trust-dependencies"] || false;
-
-config.spec = cmd["<spec>"] && (
-    testPath(cmd["<spec>"]) && read(cmd["<spec>"])
-    || revert(`spec not found at ${cmd["<spec>"]}`))
-  || cmd["--name"] && (cmd["--name"] in spec_names)
-    && read(path.join(KLAB_OUT, `specs/${cmd["name"]}.k`))
-  || revert("no <spec> or --name provided. Try `klab run out/specs/SOME_SPEC`");
-
-console.log(cmd["<spec>"]);
-config.name = cmd["<spec>"] && path.basename(cmd["<spec>"])
-  || cmd["--name"] && (name + ".k")
 
 config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
   || revert(`no rules found at ${KLAB_OUT}/rules.k`)
@@ -89,6 +72,8 @@ const kDriver = remoteDriver(config.host);
 
 config.force = cmd["--force"];
 
+
+
 const CLIDriver = cmd["--headless"]
   ? () => xs.of()
   : makeCliDriver({
@@ -97,11 +82,9 @@ const CLIDriver = cmd["--headless"]
   })
 config.headless = cmd["--headless"]
 
-let claim_hash = config.out.specs[config.name.slice(0,-2)].hash;
-let deps = config.out.dep_graph[claim_hash] || [];
-const deps_status = deps
-.map(hash => testPath(path.join(KLAB_OUT, "pass", hash)))
-
+// check deps
+const deps_status = config.rule_meta.deps
+  .map(hash => testPath(path.join(KLAB_OUT, "pass", hash)))
 
 let all_dependency_passing = deps_status
   .reduce((a, b) => a && b, true)
@@ -109,7 +92,7 @@ let all_dependency_passing = deps_status
 if((!TRUST_DEPENDENCIES) && !all_dependency_passing) {
   deps_status
     .forEach((status, i) => {
-      if(!status) warn(`ERROR: Proof of ${config.out.hash2name[deps[i]]} required first`);
+      if(!status) warn(`ERROR: Proof of ${JSON.parse(read(path.join(KLAB_OUT, "meta", config.rule_meta.deps[i]))).name} required first`);
     })
 
   process.exit();
