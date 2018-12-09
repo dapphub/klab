@@ -114,10 +114,10 @@ klab build
 This will generate a fail and success reachability rule for each `act` of your specification in the `SafeAdd/out/specs` directory.
 
 ### Running proofs
-To explore a proof with the interactive klab GUI, use `klab run`, specifying which proof to explore using the `--spec` flag:
+To explore a proof with the interactive klab GUI, use `klab debug`, specifying which proof to explore using the `--spec` flag:
 
 ```sh
-klab run --spec out/specs/proof-SafeAdd_add_succ.k
+klab debug --spec out/specs/proof-SafeAdd_add_succ.k
 ```
 
 To ensure that a cached version of the proof is not being used, run `klab` with the `--force` option.
@@ -225,7 +225,7 @@ klab server
 # Start client
 docker exec -it klab bash
 cd /docker/SafeAdd
-klab run
+klab debug
 ```
 
 # License
