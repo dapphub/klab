@@ -1,4 +1,4 @@
-```
+```act
 behaviour transfer of Token
 interface transfer(address To, uint Value)
 
