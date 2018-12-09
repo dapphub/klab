@@ -1,4 +1,4 @@
-```
+```k
 rule #take(N, #padToWidth(N, X) ++ Z ) => X
 rule #asWord( #asByteStack( X ) ) => X
 
