@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -e
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+yellow=$(tput setaf 3)
+bold=$(tput bold)
+reset=$(tput sgr0)
+
+if [ -z "$KLAB_OUT" ]; then
+    echo "KLAB_OUT not set, defaulting to ./out/"
+    export KLAB_OUT=out
+fi
+
+if [ -z "$KLAB_EVMS_PATH" ]; then
+    echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
+    exit 1
+fi
+
+if [ -z "$TMPDIR" ]; then
+    echo "TMPDIR must be set!"
+    exit 1
+fi
+
+DUMP_FLAGS="--debugg --debugg-path $TMPDIR/klab --debugg-id"
+
+if [[ $1 == --dump ]]; then
+    TARGET_SPEC=$2
+    EXTRA_FLAGS="$DUMP_FLAGS $(klab hash --spec $TARGET_SPEC)"    
+    DUMP_NOTICE="(with ${yellow}state dumping${reset})"
+else
+    EXTRA_FLAGS=""
+    TARGET_SPEC=$1
+fi
+
+echo "Proof ${bold}STARTING${reset}:" "$(basename $TARGET_SPEC)" $DUMP_NOTICE
+
+result=$(K_OPTS=-Xmx10G $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove $EXTRA_FLAGS --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable --def-module RULES --output-tokenize "#And _==K_ <k> #unsigned" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude $KLAB_OUT/prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" $TARGET_SPEC)
+
+if [[ result -ne 0 ]]; then
+    echo "${red}Proof ${bold}REJECT${reset}:" $(basename $TARGET_SPEC) $DUMP_NOTICE
+else
+    echo "${green}Proof ${bold}ACCEPT${reset}:" $(basename $TARGET_SPEC) $DUMP_NOTICE
+fi
