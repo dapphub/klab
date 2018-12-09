@@ -1,5 +1,5 @@
 
-```
+```act
 behaviour add of SafeAdd
 interface add(uint256 X, uint256 Y)
 
