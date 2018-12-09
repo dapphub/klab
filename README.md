@@ -1,8 +1,3 @@
-An easiest way to install is through docker.
-```sh
-docker run -it dapphub/klab
-```
-
 KLab
 ====
 **NOTE:** This software is still in the early stages of development. If you are confused, find some bugs, or just want some help, please file an issue or come talk to us at <https://dapphub.chat/channel/k-framework>.
@@ -17,6 +12,14 @@ Ask at <https://dapphub.chat/channel/k-framework> for access to a KLab server if
 
 Setting up KLab Server and Client
 ---------------------------------
+
+One option is to use Docker:
+
+```sh
+docker run -it dapphub/klab
+```
+
+[See below](#docker) for details on using Docker.
 
 ### Dependencies
 Installing klab automatically installs `K` and `KEVM`. You will therefore need the dependencies of K.
