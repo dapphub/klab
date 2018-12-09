@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
-// TODO - klab run should send the config.json to the server
+// TODO - klab debug should send the config.json to the server
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
@@ -22,7 +22,7 @@ const {
 
 const usage = `
 Usage:
-  klab run [options] <spec>
+  klab debug [options]
 
 Options:
   --force               No replay
@@ -36,7 +36,7 @@ Options:
 const KLAB_OUT = process.env.KLAB_OUT || "out";
 
 const cmd = docopt(usage, {
-  argv: ["run"].concat(process.argv.slice(2))
+  argv: ["debug"].concat(process.argv.slice(2))
 });
 
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
