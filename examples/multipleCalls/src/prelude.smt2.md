@@ -1,4 +1,4 @@
-```
+```smt2
 (set-option :auto-config false)
 (set-option :smt.mbqi false)
 ;(set-option :smt.mbqi.max_iterations 15)

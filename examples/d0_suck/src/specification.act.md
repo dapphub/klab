@@ -1,5 +1,5 @@
 
-```
+```act
 behaviour suck of D0Impl
 interface suck(address u, int256 Delta_D)
 

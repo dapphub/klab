@@ -1,5 +1,5 @@
 
-```
+```k
 rule #padToWidth(32, #asByteStack(#unsigned(V))) => #asByteStackInWidth(#unsigned(V), 32)
     requires #rangeSInt(256, V)
 
