@@ -54,7 +54,9 @@ ensureDirs([
   path.join(KLAB_OUT, "specs"),
   path.join(KLAB_OUT, "acts"),
   path.join(KLAB_OUT, "gas"),
-  path.join(KLAB_OUT, "meta")
+  path.join(KLAB_OUT, "meta"),
+  path.join(KLAB_OUT, "meta", "name"),
+  path.join(KLAB_OUT, "meta", "data")
 ]);
 
 config.trusted = cmd["--trust"];
@@ -193,9 +195,9 @@ act_proofs.forEach(rule => {
 // METADATA
 act_proofs.forEach(({v2n, act, hash, name}) => {
   // name -> hash
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", name), hash);
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), hash);
   // hash -> data
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", hash), JSON.stringify({
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), JSON.stringify({
     v2n,
     act,
     name,
