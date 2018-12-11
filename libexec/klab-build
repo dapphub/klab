@@ -22,7 +22,8 @@ const {
   testPath,
   revert,
   ensureDirs,
-  warn
+  warn,
+  sha3
 }                   = require("../lib/util.js");
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
@@ -46,6 +47,7 @@ const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
 const EXACT_GAS     = cmd["--exact-gas"] || false;
+config.trusted      = cmd["--trust"];
 
 const raw_md_config = read(config_path)
 
@@ -59,7 +61,20 @@ ensureDirs([
   path.join(KLAB_OUT, "meta", "data")
 ]);
 
-config.trusted = cmd["--trust"];
+
+
+
+
+// RULES
+const {rules_str, write_rules} = makeRules(config);
+// prelude
+const {prelude_str, write_prelude} = makePrelude(config);
+
+const get_proof_hash = spec => sha3(JSON.stringify({
+  rules: rules_str,
+  spec : spec,
+  smt_prelude: prelude_str
+}));
 
 const acts_str_arr = getActs(raw_md_config);
 
@@ -107,93 +122,67 @@ const proof_collection = act_collection
   })
   .reduce((a, cs) => a.concat(cs), [])
 
+// {name, spec,  v2n, act, imports, pass, oog}
 let act_proofs = proof_collection
   .map(buildAct(config))
 
-
-// let acts = act_collection
-//   .map(buildAct(config))
-//   .reduce((a, cs) => a.concat(cs), [])
-
-const dep_graph = {};
-
 // Add the imported rules from the calls field
 act_proofs.forEach(rule => {
-  // XXX - rule.imports has two different semantics - resolve
-  dep_graph[rule.hash] = [];
-  rule.imports = rule.imports
-    .map(name => {
-    let deps = act_proofs
-      .filter(rul => (rul.name == name + "_pass") || ((rul.name == name + "_fail") && !rule.pass));
-    deps.forEach(dep => {
-      console.log('needs ' + rule.name + " <= " + dep.name)
-    })
-
-    dep_graph[rule.hash] = dep_graph[rule.hash].concat(deps
-      .map(dep_pf => dep_pf.hash));
-
-    if (deps.length == 0) {
-        warn(`Act "${name}" not found!`);
-    }
-
-    return deps
-      .map(rule => rule.spec + '\n[trusted]\n')
-      .join('')
-  })
+  rule.ctx = rule.imports
+    .map(name =>  act_proofs.find(rul => rul.name == name));
+  rule.grounded = rule.ctx.length == 0;
 })
 
-// const out_specs = act_proofs
-//   //For some reason, the above code generates a list of lists.
-//   //Below applies the multiplication of the monad
-//   .reduce((a, act_proof) => ([
-//     ...a,
-//     [act_proof.name, {
-//       v2n: act_proof.v2n,
-//       act: act_proof.act,
-//       hash: act_proof.hash
-//     }]
-//   ]), [])
-// const out = {
-//   specs: out_specs,
-//   dep_graph,
-//   hash2name
-// };
-
-// Generate proof order based on the dependency graph
-const dep_graph_arr = Object.keys(dep_graph).map(k => [k, [...dep_graph[k]] || []])
-const mDevide = (xs, isEmpty = true) => xs.filter(([k, deps]) => isEmpty ? deps.length == 0 : deps.length > 0)
-const mFiltered = (xs, fs) => xs.map(([k, deps]) => [k, _.pullAll(deps, fs)])
-const serialize = xs => {
-  if(xs.length == 0) return [];
-  const empty = mDevide(xs, true)
-    .map(([k, _]) => k)
-  const nonempty = mDevide(xs, false)
-  return empty.concat(serialize(mFiltered(nonempty, empty)))
+const propagate_grounded = rule => {
+  if(!rule) return false;
+  if(rule.ctx.length == 0) return true;
+  const grounded_ctx = rule.ctx
+    .map(propagate_grounded)
+    .reduce((a, e) => a && e, true);
+  rule.grounded = grounded_ctx;
+  return grounded_ctx;
 }
 
-const hash2name = act_proofs
-  .reduce((a, act) => ({...a, [act.hash]: act.name}), {})
-const proof_order = serialize(dep_graph_arr)
-  .map(hash => path.join("specs", hash2name[hash] + ".k"))
-  .join("\n")
+act_proofs.forEach(propagate_grounded);
+
+const grounded_proofs = act_proofs
+.filter(rule => rule.grounded)
+
+// build modules
+grounded_proofs
+  .forEach(rule => {
+    const _rules = [rule.spec].concat(rule.ctx.spec)
+    const module = kjson.renderModule(_rules, rule.name)
+    const hash   = get_proof_hash(module);
+    rule.module  = module;
+    rule.hash    = hash;
+  })
 
 
-act_proofs.forEach(rule => {
-  let _rules      = [rule.spec].concat(rule.imports)
-  let module      = kjson.renderModule(_rules, rule.name)
-  let module_path = path.join(KLAB_OUT, "specs", `${rule.name}.k`)
+const outstanding_grounded_proofs = grounded_proofs
+  .filter(rule => {
+    return !testPath(path.join(KLAB_OUT, "pass", rule.hash));
+  })
 
-  let old_module  = "";
+
+// write module
+outstanding_grounded_proofs
+.forEach(rule => {
+  // let _rules      = [rule.spec].concat(rule.ctx.spec)
+  // let module      = kjson.renderModule(_rules, rule.name)
+  const module_path = path.join(KLAB_OUT, "specs", `${rule.name}.k`)
+
+  var old_module  = "";
   if(testPath(module_path)) old_module = read(module_path);
-  if(old_module != module) {
+  if(old_module != rule.module) {
     console.log("write " + module_path);
-    fs.writeFileSync(module_path, module);
+    fs.writeFileSync(module_path, rule.module);
   }
 })
 
-// fs.writeFileSync(path.join(KLAB_OUT, "out.json"), JSON.stringify(out, false, 2))
 // METADATA
-act_proofs.forEach(({v2n, act, hash, name}) => {
+outstanding_grounded_proofs
+.forEach(({v2n, act, hash, name}) => {
   // name -> hash
   fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), hash);
   // hash -> data
@@ -201,13 +190,16 @@ act_proofs.forEach(({v2n, act, hash, name}) => {
     v2n,
     act,
     name,
-    deps: dep_graph[hash]
+    // deps: dep_graph[hash]
   }));
 })
 
-fs.writeFileSync(path.join(KLAB_OUT, "specs.manifest"), proof_order)
+fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_proofs.map(rule => rule.name + ".k").join("\n"))
 makeRunScript();
-// RULES
-makeRules(config);
-// prelude
-makePrelude(config);
+
+if(write_prelude) {
+  fs.writeFileSync(path.join(KLAB_OUT, "prelude.smt2"), prelude_str)
+}
+if(write_rules) {
+  fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
+}

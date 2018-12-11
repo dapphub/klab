@@ -72,8 +72,6 @@ const kDriver = remoteDriver(config.host);
 
 config.force = cmd["--force"];
 
-
-
 const CLIDriver = cmd["--headless"]
   ? () => xs.of()
   : makeCliDriver({
@@ -81,23 +79,6 @@ const CLIDriver = cmd["--headless"]
     // in: false
   })
 config.headless = cmd["--headless"]
-
-// check deps
-const deps_status = config.rule_meta.deps
-  .map(hash => testPath(path.join(KLAB_OUT, "pass", hash)))
-
-let all_dependency_passing = deps_status
-  .reduce((a, b) => a && b, true)
-
-if((!TRUST_DEPENDENCIES) && !all_dependency_passing) {
-  deps_status
-    .forEach((status, i) => {
-      if(!status) warn(`ERROR: Proof of ${JSON.parse(read(path.join(KLAB_OUT, "meta", config.rule_meta.deps[i]))).name} required first`);
-    })
-
-  process.exit();
-}
-
 
 const dumpDriver  = makeDumpDriver(config);
 
