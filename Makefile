@@ -76,7 +76,7 @@ test: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR)/examples/*
 
 %.k.proof: %.k
 	$(info Proof $(bold)STARTING$(reset): $<)
-	@ cd $(dir $*)../../ && $(KLAB) run --headless --force $< && echo "$(green)Proof $(bold)SUCCESS$(reset): $<"
+	@ cd $(dir $*)../../ && $(KLAB) run --headless --force $< && echo "$(green)Proof $(bold)ACCEPTED(reset): $<"
 
 SHELL = bash
 DIRS = {bin,libexec}
