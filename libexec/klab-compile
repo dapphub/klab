@@ -24,7 +24,7 @@ Usage:
 `
 
 const cmd = docopt(usage, {
-  argv: ["hash"].concat(process.argv.slice(2))
+  argv: ["compile"].concat(process.argv.slice(2))
 });
 const config        = makeConfig(config_json, cmd["<spec>"]);
 
