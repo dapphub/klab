@@ -326,3 +326,8 @@ rule keccakIntList(C) ==K A => false
      requires 0 <=Int A andBool A <=Int 20
 rule keccakIntList(C) =/=K A => true
      requires 0 <=Int A andBool A <=Int 20
+
+rule A ==K keccakIntList(C) => false
+     requires 0 <=Int A andBool A <=Int 20
+rule A =/=K keccakIntList(C)=> true
+     requires 0 <=Int A andBool A <=Int 20
