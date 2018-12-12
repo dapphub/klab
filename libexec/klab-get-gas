@@ -21,11 +21,11 @@ const Config        = require("../lib/config.js");
 
 const usage = `
 Usage:
-  klab hash [options] <spec>
+  klab get-gas [options] <spec>
 `
 
 const cmd = docopt(usage, {
-  argv: ["hash"].concat(process.argv.slice(2))
+  argv: ["get-gas"].concat(process.argv.slice(2))
 });
 const config        = Config(config_json, cmd["<spec>"]);
 
