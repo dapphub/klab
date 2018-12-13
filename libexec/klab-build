@@ -98,12 +98,12 @@ const proof_collection = act_collection
     name: __a2n(act) + "_pass_rough",
     pass: true,
     oog: false
-  }, {
+  }].concat("iff" in act ? [{
     act: {...act},
     pass: false,
     oog: false,
     name: __a2n(act) + "_fail"
-  }])
+  }] : [] ))
   .reduce((a, cs) => a.concat(cs), [])
   // enrich with gas statements
   .map(pf => {
