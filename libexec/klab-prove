@@ -23,24 +23,29 @@ if [ -z "$TMPDIR" ]; then
     exit 1
 fi
 
-DUMP_FLAGS="--debugg --debugg-path $TMPDIR/klab --debugg-id"
-
 if [[ $1 == --dump ]]; then
-    TARGET_SPEC=$2
-    EXTRA_FLAGS="$DUMP_FLAGS $(klab hash $TARGET_SPEC)"    
-    DUMP_NOTICE="(with ${yellow}state dumping${reset})"
+    dump=true
+    target_spec=$2
 else
-    EXTRA_FLAGS=""
-    TARGET_SPEC=$1
+    dump=false
+    target_spec=$1
 fi
 
-echo "Proof ${bold}STARTING${reset}:" "$(basename $TARGET_SPEC)" $DUMP_NOTICE
+spec_hash=$(klab hash $target_spec)
 
-K_OPTS=-Xmx10G $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove $EXTRA_FLAGS --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable --def-module RULES --output-tokenize "#And _==K_ <k> #unsigned" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude $KLAB_OUT/prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" $TARGET_SPEC
+if $dump; then
+    dump_flags="--debugg --debugg-path $TMPDIR/klab --debugg-id $spec_hash"
+    dump_notice="(with ${yellow}state dumping${reset})"
+fi
+
+echo "Proof ${bold}STARTING${reset}:" "$(basename $target_spec)" $dump_notice
+
+K_OPTS=-Xmx10G $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove $dump_flags --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable --def-module RULES --output-tokenize "#And _==K_ <k> #unsigned" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude $KLAB_OUT/prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" $target_spec
 result=$?
 
 if [[ $result -ne 0 ]]; then
-    echo "${red}Proof ${bold}REJECT${reset}:" $(basename $TARGET_SPEC) $DUMP_NOTICE
+    echo "${red}Proof ${bold}REJECT${reset}:" $(basename $target_spec) $dump_notice
 else
-    echo "${green}Proof ${bold}ACCEPT${reset}:" $(basename $TARGET_SPEC) $DUMP_NOTICE
+    echo "${green}Proof ${bold}ACCEPT${reset}:" $(basename $target_spec) $dump_notice
+    mkdir -p $KLAB_OUT/pass && touch $KLAB_OUT/pass/$spec_hash
 fi
