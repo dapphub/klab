@@ -194,7 +194,7 @@ outstanding_grounded_proofs
   }));
 })
 
-fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_proofs.map(rule => rule.name + ".k").join("\n"))
+fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_proofs.map(rule => rule.name).join("\n"))
 makeRunScript();
 
 if(write_prelude) {
