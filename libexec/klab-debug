@@ -22,7 +22,7 @@ const {
 
 const usage = `
 Usage:
-  klab debug [options]
+  klab debug [options] <spec>
 
 Options:
   --force               No replay
