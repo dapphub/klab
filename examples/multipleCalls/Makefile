@@ -31,7 +31,7 @@ all: $(OBLIGATIONS)
 		$(MAKE) -C ./ proof-batch || exit 1 ; \
 		count=$$((count+1)); \
 	done; \
-        echo $(bold)COMPLETE$(reset): no outstanding proof obligations.
+        echo "$(bold)COMPLETE$(reset): no outstanding proof obligations."
 
 $(BATCH_TIMESTAMP):
 
