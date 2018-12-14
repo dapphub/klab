@@ -19,6 +19,14 @@ BATCH_TIMESTAMP = $(KLAB_OUT)/batch.timestamp
 SPEC_DIR = $(KLAB_OUT)/specs
 GAS_DIR = $(KLAB_OUT)/gas
 
+# read obligations file if it exists
+ifneq ("$(wildcard $(OBLIGATIONS))","")
+obligation_spec_names = $(shell cat ${OBLIGATIONS})
+obligation_specs = $(addsuffix .k,$(addprefix $(SPEC_DIR)/,$(obligation_spec_names)))
+num_obligations = $(shell cat $(OBLIGATIONS) | wc -l)
+endif
+
+
 all: $(OBLIGATIONS)
 	mkdir -p $(GAS_DIR)
 	@ count=1; \
@@ -40,13 +48,6 @@ $(OBLIGATIONS): $(BATCH_TIMESTAMP)
 
 clean:
 	rm -rf $(KLAB_OUT)/*
-
-# read obligations file if it exists
-ifneq ("$(wildcard $(OBLIGATIONS))","")
-obligation_spec_names != cat $(OBLIGATIONS)
-obligation_specs = $(addsuffix .k,$(addprefix $(SPEC_DIR)/,$(obligation_spec_names)))
-num_obligations = $(shell cat $(OBLIGATIONS) | wc -l)
-endif
 
 .SECONDEXPANSION:
 
