@@ -44,7 +44,7 @@ all: $(OBLIGATIONS)
 $(BATCH_TIMESTAMP):
 
 $(OBLIGATIONS): $(BATCH_TIMESTAMP)
-	klab build --exact-gas
+	klab build
 
 clean:
 	rm -rf $(KLAB_OUT)/*
@@ -54,7 +54,7 @@ clean:
 proof-batch: $$(addsuffix .proof.timestamp,$$(obligation_specs))
 	$(info $(bold)FINISHED$(reset) batch.)
 	touch $(BATCH_TIMESTAMP)
-	klab build --exact-gas
+	klab build
 
 %.k.proof.timestamp: %.k $(OBLIGATIONS)
 	klab prove --dump $<

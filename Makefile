@@ -64,7 +64,7 @@ build-test-exactgas : $(test_examples:=.build-exactgas)
 	cd $* && $(KLAB) build
 
 %.build-exactgas:
-	cd $* && $(KLAB) solve-gas && $(KLAB) build --exact-gas
+	cd $* && $(KLAB) solve-gas && $(KLAB) build
 
 # workaround for patsubst in pattern matching target below
 PERCENT := %
