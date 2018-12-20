@@ -151,7 +151,8 @@ const grounded_proofs = act_proofs
 // build modules
 grounded_proofs
   .forEach(rule => {
-    const _rules = [rule.spec].concat(rule.ctx.spec)
+      if (rule.ctx.length > 0) {console.log("Importing " + rule.ctx.map(r => r.name) + " as lemma(s) to " + rule.name)}
+    const _rules = [rule.spec].concat(rule.ctx.map(r => r.spec))
     const module = kjson.renderModule(_rules, rule.name)
     const hash   = get_proof_hash(module);
     rule.module  = module;
