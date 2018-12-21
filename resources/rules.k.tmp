@@ -135,6 +135,10 @@ rule ACCTCODE in SetItem( 1 )
 
 
 
+     rule store(M, K, V) ==K store(M1, K1, V1) => M ==K M1
+          requires K ==K K1
+          andBool  V ==K V1
+
 
     //Useful abstractions for storage related hashing
 //    syntax Int ::= symkeccak ( IntList ) [function, smtlib(smt_symkeccak)]
@@ -239,6 +243,9 @@ rule ACCTCODE in SetItem( 1 )
     
     rule (#if C #then B1 #else B2 #fi) >=Int A => true
        requires B1 >=Int A andBool B2 >=Int A
+
+    rule A >=Int (#if C #then B1 #else B2 #fi) => true
+       requires A >=Int B1 andBool A >=Int B2
 
     rule A -Int A => 0
 
