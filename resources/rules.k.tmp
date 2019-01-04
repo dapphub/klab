@@ -8,10 +8,17 @@
 
 
 
+    syntax Map  ::= addNew(Map, Int, Int) [function]
+    syntax Bool ::= #inKeys(Map, Int) [function]
+    
+    rule #inKeys(.Map, KEY) => false
+    rule #inKeys((M:Map K0 |-> V0), K1) => true
+         requires K0 ==K K1
+    rule #inKeys((M:Map K0 |-> V0), K1) => #inKeys(M, K1)
+         requires K0 =/=K K1
 
-
-
-
+    rule addNew(M:Map, K, V) => M K |-> V
+         requires notBool #inKeys(M, K)
 
     rule 0 <=Int nthbyteof(V, I, N)          => true
     rule         nthbyteof(V, I, N) <Int 256 => true
