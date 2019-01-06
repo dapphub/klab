@@ -47,6 +47,7 @@ const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
 const DEBUG         = cmd["--debug"] || false;
+config.DEBUG        = DEBUG;
 config.trusted      = cmd["--trust"];
 
 const raw_md_config = read(config_path)
@@ -82,7 +83,7 @@ const acts_str_arr = getActs(raw_md_config);
 // searches and adds abi variables with "ABI_" prefix
 
 let act_collection = acts_str_arr
-  .map(parseAct)
+  .map(parseAct(config))
 
 // * build tests cases
 // * enrich with gas conditions
@@ -151,7 +152,7 @@ const grounded_proofs = act_proofs
 // build modules
 grounded_proofs
   .forEach(rule => {
-      if (rule.ctx.length > 0) {console.log("Importing " + rule.ctx.map(r => r.name) + " as lemma(s) to " + rule.name)}
+      if (config.DEBUG && rule.ctx.length > 0) {console.log("Importing " + rule.ctx.map(r => r.name) + " as lemma(s) to " + rule.name)}
     const _rules = [rule.spec].concat(rule.ctx.map(r => r.spec  + "\n[trusted]\n"))
     const module = kjson.renderModule(_rules, rule.name)
     const hash   = get_proof_hash(module);
@@ -176,7 +177,7 @@ outstanding_grounded_proofs
   var old_module  = "";
   if(testPath(module_path)) old_module = read(module_path);
   if(old_module != rule.module) {
-    console.log("write " + module_path);
+    console.log(rule.name + rule.ctx.map(r => "\n - " + r.name));
     fs.writeFileSync(module_path, rule.module);
   }
 })
