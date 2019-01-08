@@ -99,10 +99,15 @@ const boot = {
   }]
 };
 
+const nodes_ = blobs_data
+  .filter(([_, k]) => k.term.label == "<generatedTop>")
+
+
 const behaviour = genBehaviour({
         nodes: [],
         edges: [],
-        ...boot
+        ...boot,
+        nodes: nodes_
       });
 // console.log(JSON.stringify(behaviour, false, 2));
 boot.status = behaviour.success
