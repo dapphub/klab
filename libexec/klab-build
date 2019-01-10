@@ -199,8 +199,10 @@ fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_
 makeRunScript();
 
 if(write_prelude) {
+  console.log('write prelude')
   fs.writeFileSync(path.join(KLAB_OUT, "prelude.smt2"), prelude_str)
 }
 if(write_rules) {
+  console.log('write rules.k')
   fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
 }
