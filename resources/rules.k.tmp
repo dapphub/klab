@@ -334,6 +334,42 @@ rule keccakIntList(C) ==K A => false
 rule keccakIntList(C) =/=K A => true
      requires 0 <=Int A andBool A <=Int 20
 
+rule keccakIntList(C) +Int B ==K A => false
+     requires 0 <=Int A andBool A <=Int 20
+     andBool 0 <=Int B andBool B <=Int 20
+rule keccakIntList(C) +Int B =/=K A => true
+     requires 0 <=Int A andBool A <=Int 20
+     andBool 0 <=Int B andBool B <=Int 20
+
+rule A ==K keccakIntList(C) +Int B => false
+     requires 0 <=Int A andBool A <=Int 20
+     andBool 0 <=Int B andBool B <=Int 20
+rule A =/=K keccakIntList(C) +Int B => true
+     requires 0 <=Int A andBool A <=Int 20
+     andBool 0 <=Int B andBool B <=Int 20
+
+rule keccakIntList(C) +Int B ==K keccakIntList(A) => false
+     requires 0 <=Int B andBool B <=Int 20
+rule keccakIntList(C) +Int B =/=K keccakIntList(A) => true
+     requires 0 <=Int B andBool B <=Int 20
+
+rule keccakIntList(A) +Int B ==K keccakIntList(A) +Int C => false
+     requires B =/=Int C
+rule keccakIntList(A) +Int B =/=K keccakIntList(A) +Int C => true
+     requires B =/=Int C
+
+rule keccakIntList(A) +Int B ==K keccakIntList(C) +Int D => false
+     requires B =/=Int C
+rule keccakIntList(A) +Int B =/=K keccakIntList(C) +Int D => true
+     requires B =/=Int C
+
+
+rule keccakIntList(A) ==K keccakIntList(C) +Int B => false
+     requires 0 <=Int B andBool B <=Int 20
+rule keccakIntList(A) =/=K keccakIntList(C) +Int B => true
+     requires 0 <=Int B andBool B <=Int 20
+
+
 rule A ==K keccakIntList(C) => false
      requires 0 <=Int A andBool A <=Int 20
 rule A =/=K keccakIntList(C)=> true
