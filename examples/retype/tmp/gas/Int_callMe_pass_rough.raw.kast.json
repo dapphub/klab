@@ -1,0 +1,1 @@
+{"node":"KApply","label":"_-Int__INT","variable":false,"arity":2,"args":[{"node":"KVariable","name":"VGas"},{"node":"KToken","sort":"Int","token":"263"}]}
