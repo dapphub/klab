@@ -14,6 +14,19 @@ rule (#unsigned(A) +Int #unsigned(B)) => #unsigned(A +Int B)
   andBool #rangeSInt(256, B)
   andBool #rangeSInt(256, A +Int B)
 
+
+// lemmas to tell us that our non-overflow conditions are sufficient
+rule (#unsigned(A) -Word B) => #unsigned(A -Int #signed(B))
+  requires #rangeSInt(256, A)
+  andBool #rangeUInt(256, B)
+  andBool #rangeSInt(256, A -Int #signed(B))
+
+// n.b. how + cases use +Int because of earlier application of +Word
+rule (#unsigned(A) +Int B) => #unsigned(A +Int #signed(B))
+  requires #rangeSInt(256, A)
+  andBool #rangeUInt(256, B)
+  andBool #rangeSInt(256, A +Int #signed(B))
+
 // need also?
 //rule chop (#unsigned(A)) => #unsigned(A)
 //  requires #rangeSInt(256, A)
