@@ -2,7 +2,7 @@
 behaviour callMe of Int
 interface callMe(int x)
 
-returns x
+returns #unsigned(x)
 ```
 asd
 ```act
