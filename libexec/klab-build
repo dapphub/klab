@@ -36,7 +36,7 @@ Options:
   --filter=<filter>
   --trust
   --debug
-  --oog
+  --no-oog
 `
 const cmd = docopt(usage, {
   argv: ["build"].concat(process.argv.slice(2))
@@ -47,7 +47,7 @@ const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
-const OOG           = cmd["--oog"] || false;
+const OOG           = !cmd["--no-oog"];
 const DEBUG         = cmd["--debug"] || false;
 config.DEBUG        = DEBUG;
 config.trusted      = cmd["--trust"];
