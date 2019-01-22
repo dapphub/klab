@@ -34,8 +34,8 @@ fi
 spec_hash=$("${0%/*/*}/bin/klab" hash $target_spec)
 
 if $dump; then
-    dump_flags="--debugg --debugg-path $TMPDIR/klab --debugg-id $spec_hash"
-    dump_notice="(with ${yellow}state dumping${reset})"
+    dump_flags="--state-log --state-log-path $TMPDIR/klab --state-log-id $spec_hash"
+    dump_notice="(with ${yellow}state logging${reset})"
 fi
 
 echo "Proof ${bold}STARTING${reset}:" "$(basename $target_spec)" $dump_notice
