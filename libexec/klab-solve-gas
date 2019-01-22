@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-GAS_SOLVER="${GAS_SOLVER:-klab-gas-analyser}"
+GAS_SOLVER="${GAS_SOLVER:-${0%/*/*}/bin/klab-gas-analyser}"
 KLAB_OUT="${KLAB_OUT:-out}"
 
 GAS_DIR=$KLAB_OUT/gas

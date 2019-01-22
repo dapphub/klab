@@ -31,7 +31,7 @@ else
     target_spec=$1
 fi
 
-spec_hash=$(klab hash $target_spec)
+spec_hash=$("${0%/*/*}/bin/klab" hash $target_spec)
 
 if $dump; then
     dump_flags="--debugg --debugg-path $TMPDIR/klab --debugg-id $spec_hash"
