@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 K_OPTS=-Xmx10G \
 $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove \
---debugg \
---debugg-path $TMPDIR/klab \
---debugg-id $2 \
+--state-log \
+--state-log-path $TMPDIR/klab \
+--state-log-id $2 \
+--state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,NODE,RULE,SRULE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE \
 --directory $KLAB_EVMS_PATH/.build/java/ \
 --z3-executable \
 --def-module RULES \
