@@ -5,10 +5,11 @@
     rule nthbyteof(V, I, N) => nthbyteof(V /Int 256, I, N -Int 1) when N  >Int (I +Int 1) [concrete]
     rule nthbyteof(V, I, N) =>           V modInt 256             when N ==Int (I +Int 1) [concrete]
 
+    syntax Map ::= Map "+Map" Map [function] //concatenates two maps if their keys are disjoint
 
+    rule M +Map (K1 |-> V1) => M (K1 |-> V1)
+    requires notBool #inKeys(M, K1)
 
-
-    syntax Map  ::= addNew(Map, Int, Int) [function]
     syntax Bool ::= #inKeys(Map, Int) [function]
     
     rule #inKeys(.Map, KEY) => false
@@ -17,8 +18,6 @@
     rule #inKeys((M:Map K0 |-> V0), K1) => #inKeys(M, K1)
          requires K0 =/=K K1
 
-    rule addNew(M:Map, K, V) => M K |-> V
-         requires notBool #inKeys(M, K)
 
     rule 0 <=Int nthbyteof(V, I, N)          => true
     rule         nthbyteof(V, I, N) <Int 256 => true
@@ -277,9 +276,6 @@ rule ACCTCODE in SetItem( 1 )
 
 
     rule chop(I) => I requires 0 <=Int I andBool I <Int pow256
-
-
-
 
 
 
