@@ -60,7 +60,7 @@ const blobs = Object.keys(Object.keys(pruned_edges)
 ensureDir(path.join(KLAB_OUT, "log"));
 const pruned_path = path.join(KLAB_OUT, "log", `boot_${proofid}.json`);
 const blobs_data = blobs
-  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
+  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")))])
 
 const compiled_states = blobs_data
   .filter(([_, k]) => k.term.label == "<generatedTop>")
@@ -85,6 +85,7 @@ const boot = {
   finished: finished_,
   path: [{
     "type": "step",
+    "count": 0,
     "step": {
       "from": "",
       "to": initt,
