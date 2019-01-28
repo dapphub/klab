@@ -91,6 +91,7 @@ const boot = {
   finished: finished_,
   path: [{
     "type": "step",
+    "count": 0,
     "step": {
       "from": "",
       "to": initt,
