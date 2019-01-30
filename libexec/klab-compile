@@ -104,7 +104,7 @@ const nodes_ = blobs_data
   .filter(([_, k]) => k.term.label == "<generatedTop>")
 
 
-const behaviour = genBehaviour({
+const { behaviour } = genBehaviour({
         nodes: [],
         edges: [],
         ...boot,
