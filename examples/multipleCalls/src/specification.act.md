@@ -22,6 +22,7 @@ iff in range uint256
 iff
 
   VCallDepth < 1024
+  VCallValue == 0
 
 calls
 
@@ -44,6 +45,11 @@ iff in range uint256
 
   Temperature + x
 
+iff
+
+  VCallValue == 0
+
+
 calls
 
    Callee.add
@@ -65,5 +71,5 @@ iff in range uint256
 
 if
 
-   #sizeWordStack (WS) <= 1018   
+   #sizeWordStack (WS) <= 1018
 ```

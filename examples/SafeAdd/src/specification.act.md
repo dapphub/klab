@@ -7,5 +7,9 @@ iff in range uint256
 
     X + Y
 
+iff
+
+    VCallValue == 0
+
 returns X + Y
 ```
