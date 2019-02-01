@@ -27,6 +27,7 @@ iff
   Root == CALLER_ID
   V - Delta_D >= 0
   D_u + Delta_D >= 0
+  VCallValue == 0
 
 iff in range int256
 

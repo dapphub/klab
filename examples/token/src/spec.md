@@ -16,7 +16,11 @@ iff in range uint256
 
     FromBal - Value
     ToBal + Value
-    
+
+iff
+
+    VCallValue == 0
+
 if
     CALLER_ID =/= To
 ```
