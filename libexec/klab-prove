@@ -40,7 +40,7 @@ fi
 
 echo "Proof ${bold}STARTING${reset}:" "$(basename $target_spec)" $dump_notice
 
-K_OPTS=-Xmx10G $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove $dump_flags --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable --def-module RULES --output-tokenize "#And _==K_ <k> #unsigned <storage>" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude $KLAB_OUT/prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" $target_spec
+K_OPTS=-Xmx10G $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove $dump_flags --directory $KLAB_EVMS_PATH/.build/java/ --z3-executable --def-module RULES --output-tokenize "#And <k> #unsigned <storage>" --output-omit "<programBytes> <program> <code>" --output-flatten "_Map_ #And" --output json --smt_prelude $KLAB_OUT/prelude.smt2 --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" $target_spec
 result=$?
 
 if [[ $result -ne 0 ]]; then
