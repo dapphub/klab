@@ -65,6 +65,9 @@ proof-batch: $$(addsuffix .proof.timestamp,$$(obligation_specs))
 	touch $(BATCH_TIMESTAMP)
 	klab build
 
+%_fail.k.proof.timestamp: %_fail.k $(OBLIGATIONS)
+	klab prove --dump $<
+
 %.k.proof.timestamp: %.k $(OBLIGATIONS)
 	klab prove --dump $<
 	klab get-gas $< > $(GAS_DIR)/$(*F).raw.kast.json
