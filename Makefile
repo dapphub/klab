@@ -64,7 +64,7 @@ PERCENT := %
 .SECONDEXPANSION:
 
 test-with-gas: $(examples:=.example-with-gas)
-	$(info $(bold)CHECKED$(reset) all example specs, with full gas analysis.
+	$(info $(bold)CHECKED$(reset) all example specs, with full gas analysis.)
 
 %.example-with-gas:
 	$(info Moving to example: $*)
