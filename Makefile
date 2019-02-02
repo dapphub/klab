@@ -51,28 +51,29 @@ server.PID:
 stop-server: server.PID
 	kill -- -$$(ps -o pgid= `cat $<` | grep -o '[0-9]*') && rm $< && echo "$(bold)STOPPED$(reset) Klab server."
 
-test_dir=examples
-test_examples=$(wildcard $(test_dir)/*)
+examples=$(wildcard examples/*)
 
-build-test: $(test_examples:=.build)
-
-# this target builds specs with exact, exhaustive
-# treatment of gas and can only be run after one pass of `klab run`
-build-test-exactgas : $(test_examples:=.build-exactgas)
+build-test: $(examples:=.build)
 
 %.build:
 	cd $* && $(KLAB) build
-
-%.build-exactgas:
-	cd $* && $(KLAB) solve-gas && $(KLAB) build
 
 # workaround for patsubst in pattern matching target below
 PERCENT := %
 
 .SECONDEXPANSION:
 
-test: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR)/examples/*/out/specs/*.k))
-	$(info $(bold)CHECKED$(reset) all test specs.)
+test-with-gas: $(examples:=.example-with-gas)
+	$(info $(bold)CHECKED$(reset) all example specs, with full gas analysis.
+
+%.example-with-gas:
+	$(info Moving to example: $*)
+	@ $(MAKE) -C $* && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
+
+test: test-with-gas
+
+test-without-gas: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR)/examples/*/out/specs/*.k))
+	$(info $(bold)CHECKED$(reset) all test specs (without gas analysis).)
 
 %.k.proof: %.k
 	$(info Proof $(bold)STARTING$(reset): $<)
