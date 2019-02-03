@@ -70,7 +70,7 @@ test-with-gas: $(examples:=.example-with-gas)
 	$(info Moving to example: $*)
 	@ $(MAKE) -C $* && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
 
-test: test-with-gas
+test: test-without-gas
 
 test-without-gas: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR)/examples/*/out/specs/*.k))
 	$(info $(bold)CHECKED$(reset) all test specs (without gas analysis).)
