@@ -12,6 +12,8 @@ const {
 } = require("../lib/util.js");
 const { genBehaviour } = require("../lib/behavior.js");
 const getGasExpr = require('../lib/gas.js');
+const { deltaCC } = require("../lib/constraints.js")
+const kast = require("../lib/kast.js")
 
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
@@ -49,55 +51,30 @@ const {
 
 const {pruned_edges, initt, finished} = prune_edges(proofid, false);
 
-const blobs = Object.keys(Object.keys(pruned_edges)
-  .map(ekey => pruned_edges[ekey]
-    .map(e => e.from.split("_").concat(e.to.split("_")))
-    .reduce((a, es) => a.concat(es), [])
-  )
-  .reduce((a, es) => a.concat(es), [])
-  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+const if_else_fi = args => ({
+  node: "KApply",
+  label: "#if_#then_#else_#fi_K-EQUAL",
+  variable: false,
+  arity: 3,
+  args: args
+})
 
-ensureDir(path.join(KLAB_OUT, "log"));
-const pruned_path = path.join(KLAB_OUT, "log", `boot_${proofid}.json`);
-const blobs_data = blobs
-  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")))])
+const blob = blobid => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")));
 
-const compiled_states = blobs_data
-  .filter(([_, k]) => k.term.label == "<generatedTop>")
-  .map(([blobid, k]) => [blobid, k])
+const E = pruned_edges;
+const traverse = (firstNode) => {
+  var c = firstNode;
+  while(c in E && E[c].length == 1) {
+    c = E[c][0].to;
+  }
+  let b = "";
+  return (!(c in E) || E[c].length == 0)
+    && kast.get(blob(c.split('_')[0]).term, "ethereum.evm.callState.gas")
+    || if_else_fi([
+      deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1])),
+      traverse(E[c][0].to),
+      traverse(E[c][0].to)
+    ])
+}
 
-const constraints = blobs_data
-  .filter(([_, k]) => k.term.label != "<generatedTop>")
-
-const compiled_blobs = compiled_states.concat(constraints)
-  .reduce((a, [blobid, k]) => ({...a, [blobid]: k}), {})
-
-// console.log(JSON.stringify(compiled_blobs, false, 2));
-
-const finished_ = finished
-  .reduce((a, node) => ({...a, [node]: true}), {});
-
-const boot = {
-  edges: pruned_edges,
-  config,
-  initt,
-  nodes: compiled_blobs,
-  finished: finished_,
-  path: [{
-    "type": "step",
-    "count": 0,
-    "step": {
-      "from": "",
-      "to": initt,
-      "rule": ""
-    }
-  }]
-};
-
-// const behaviour = genBehaviour({
-//         nodes: [],
-//         edges: [],
-//         ...boot
-//       });
-
-console.log(getGasExpr(boot));
+console.log(JSON.stringify(traverse(initt)));
