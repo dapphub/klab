@@ -44,7 +44,6 @@ K_OPTS=-Xmx10G \
       $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove \
       $dump_flags \
       --directory $KLAB_EVMS_PATH/.build/java/ \
-      --z3-executable \
       --def-module RULES \
       --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
       --output-flatten "_Map_ #And" \
