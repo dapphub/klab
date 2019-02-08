@@ -6,9 +6,9 @@ const marked        = require("marked");
 const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
-const kjson         = require("../lib/kjson.js");
-const kast          = require("../lib/kast.js");
-const makeConfig    = require("../lib/config.js");
+const kjson         = require("../lib/build/kjson.js");
+const kast          = require("../lib/util/kast.js");
+const makeConfig    = require("../lib/build/environment.js");
 const {
   makePrelude,
   makeRules,
@@ -16,7 +16,7 @@ const {
   getActs,
   parseAct,
   buildAct
-}                   = require("../lib/build.js");
+}                   = require("../lib/build/build.js");
 const {
   read,
   testPath,
@@ -24,7 +24,7 @@ const {
   ensureDirs,
   warn,
   sha3
-}                   = require("../lib/util.js");
+}                   = require("../lib/util/util.js");
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
 

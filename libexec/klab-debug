@@ -3,10 +3,11 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
+
+// TODO - klab debug should not care about the config.js
 const path = require("path");
 const makeConfig = require("../lib/config.js");
 process.title = "klab";
-// TODO - klab debug should send the config.json to the server
 
 const makeCliDriver = require("../lib/driver/cliDriver.js")
 const remoteDriver = require("../lib/driver/remoteDriver.js")
@@ -18,7 +19,7 @@ const {
   warn,
   read,
   sha3
-} = require("../lib/util.js");
+} = require("../lib/util/util.js");
 
 const usage = `
 Usage:
@@ -40,7 +41,7 @@ const cmd = docopt(usage, {
 });
 
 const config_json = JSON.parse(fs.readFileSync("./config.json"));
-const config      = makeConfig(config_json, cmd["<spec>"]);
+const config = makeConfig(config_json, cmd["<spec>"]);
 
 const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
 const spec_names  = specs.map(s => s.slice(0, -2))

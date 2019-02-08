@@ -4,7 +4,7 @@ const {docopt}      = require("docopt");
 
 const {
   getId
-} = require("../lib/util.js");
+} = require("../lib/util/util.js");
 
 const usage = `
 Usage:
