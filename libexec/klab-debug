@@ -28,10 +28,8 @@ Usage:
 Options:
   --force               No replay
   --inspect=<id>
-  --clean
   --headless
   --filter-oog
-  --shamefully-trust-dependencies
 `
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
@@ -45,7 +43,6 @@ const config = makeConfig(config_json, cmd["<spec>"]);
 
 const specs       = fs.readdirSync(path.join(KLAB_OUT, "specs"));
 const spec_names  = specs.map(s => s.slice(0, -2))
-const TRUST_DEPENDENCIES = cmd["--shamefully-trust-dependencies"] || false;
 
 config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
   || revert(`no rules found at ${KLAB_OUT}/rules.k`)

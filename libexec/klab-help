@@ -1,15 +1,19 @@
 #!/bin/sh
 echo "Commands:
 klab build [options] <spec>
-klab run [options] <spec>
+klab debug [options] <spec>
+klab prove [options] <spec>
 
 klab build options:
   --filter=<filter>
+  --trust
+  --debug
+  --no-oog
+`
 
-klab run options:
+klab debug options:
   --force               No replay
   --inspect=<id>
-  --clean
-  --name=<name>
   --headless
+  --filter-oog
 "
