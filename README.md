@@ -39,7 +39,7 @@ sudo pacman -S  base-devel rsync opam pandoc jre8-openjdk mpfr maven z3 nodejs n
 On OSX, using Homebrew, after installing the command line tools package:
 
 ```sh
-brew tap caskroom/cask caskroom/version
+brew tap caskroom/cask caskroom/versions
 brew cask install caskroom/versions/java8
 brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
 ```
