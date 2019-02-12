@@ -69,7 +69,7 @@ test-with-gas: $(examples:=.example-with-gas)
 
 %.example-with-gas:
 	$(info Moving to example: $*)
-	@ $(MAKE) -C $* && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
+	$(MAKE) -C $* && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
 
 test: test-without-gas
 
@@ -77,8 +77,7 @@ test-without-gas: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR
 	$(info $(bold)CHECKED$(reset) all test specs (without gas analysis).)
 
 %.k.proof: %.k
-	$(info Proof $(bold)STARTING$(reset): $<)
-	@ cd $(dir $*)../../ && $(KLAB) prove --dump $< && $(KLAB) proofstatus $< && echo "$(green)Proof $(bold)ACCEPTED(reset): $<"
+	cd $(dir $*)../../ && $(KLAB) prove --dump $<
 
 SHELL = bash
 DIRS = {bin,libexec}
