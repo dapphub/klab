@@ -77,7 +77,7 @@ test-without-gas: $$(patsubst $$(PERCENT),$$(PERCENT).proof,$$(wildcard $(CURDIR
 
 %.k.proof: %.k
 	$(info Proof $(bold)STARTING$(reset): $<)
-	@ cd $(dir $*)../../ && $(KLAB) prove $< && $(KLAB) proofstatus $< && echo "$(green)Proof $(bold)ACCEPTED(reset): $<"
+	@ cd $(dir $*)../../ && $(KLAB) prove --dump $< && $(KLAB) proofstatus $< && echo "$(green)Proof $(bold)ACCEPTED(reset): $<"
 
 SHELL = bash
 DIRS = {bin,libexec}
