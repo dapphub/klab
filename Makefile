@@ -54,10 +54,13 @@ stop-server: server.PID
 
 examples=$(wildcard examples/*)
 
-build-test: $(examples:=.build)
+# this is now redundant
+build-test:
 
-%.build:
-	cd $* && $(KLAB) build
+clean-test: $(examples:=.clean)
+
+%.clean:
+	$(MAKE) -C $* clean
 
 # workaround for patsubst in pattern matching target below
 PERCENT := %
