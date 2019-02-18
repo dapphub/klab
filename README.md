@@ -137,6 +137,7 @@ Toggle different views by pressing any of the following keys:
 
 **View Commands**:
 
+-   `t` - display the (somewhat) pretty K **t**erm.
 -   `c` - display current **c**onstraints.
 -   `k` - display `<k>` cell.
 -   `b` - display **b**ehavior tree.
@@ -165,6 +166,8 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 
 -   `:show ethereum.evm.callState.gas` - show the contents of the `<gas>` cell in the **d**ebug cells view.
 -   `:hide ethereum.evm.callStack.pc`  - hide the contents of the `<pc>` cell in the **d**ebug cells view.
+-   `:omit   gas pc` - omit the contents of the `<gas>` and `<pc>` cells in the **t**erm view.
+-   `:unomit pc programBytes`  - unomit the contents of the `<pc>` and `<programBytes>` cells in the **t**erm view.
 
 
 Troubleshooting
