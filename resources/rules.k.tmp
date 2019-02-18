@@ -142,8 +142,8 @@ rule ACCTCODE in SetItem( 1 )
 
 // for terms came from bytecode not via #hashedLocation
     rule keccak(WS) => keccakIntList(byteStack2IntList(WS))
-      requires ( notBool #isConcrete(WS) )
-       andBool ( #sizeWordStack(WS) ==Int 32 orBool #sizeWordStack(WS) ==Int 64 )
+//      requires ( notBool #isConcrete(WS) )
+//       andBool ( #sizeWordStack(WS) ==Int 32 orBool #sizeWordStack(WS) ==Int 64 )
 
     rule 0 <=Int keccakIntList(N)     => true
     rule keccaktIntList(N) <Int pow256 => true
