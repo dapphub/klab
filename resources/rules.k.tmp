@@ -140,12 +140,10 @@ rule ACCTCODE in SetItem( 1 )
      requires 9 <=Int ACCTCODE
 
 
-
-
-    //Useful abstractions for storage related hashing
-//    syntax Int ::= symkeccak ( IntList ) [function, smtlib(smt_symkeccak)]
-   // -------------------------------------------------------
-    rule keccak(WS) => keccakIntList(wordStack2IntList(WS)) requires notBool #isConcrete(WS)
+// for terms came from bytecode not via #hashedLocation
+    rule keccak(WS) => keccakIntList(byteStack2IntList(WS))
+      requires ( notBool #isConcrete(WS) )
+       andBool ( #sizeWordStack(WS) ==Int 32 orBool #sizeWordStack(WS) ==Int 64 )
 
     rule 0 <=Int keccakIntList(N)     => true
     rule keccaktIntList(N) <Int pow256 => true
