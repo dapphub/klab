@@ -18,6 +18,8 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
     exit 1
 fi
 
+echo $KLAB_EVMS_PATH
+
 if [ -z "$TMPDIR" ]; then
     echo "TMPDIR must be set!"
     exit 1
