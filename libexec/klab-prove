@@ -36,7 +36,7 @@ fi
 spec_hash=$("${0%/*/*}/bin/klab" hash $target_spec)
 
 if $dump; then
-    dump_flags="--state-log --state-log-path $TMPDIR/klab --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,Z3QUERY,Z3RESULT,CLOSE,RULEAPPLICATION"
+    dump_flags="--state-log --state-log-path $TMPDIR/klab --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,Z3QUERY,Z3RESULT,CLOSE"
     dump_notice="(with ${yellow}state logging${reset})"
 fi
 
@@ -50,6 +50,7 @@ K_OPTS=-Xmx10G \
       --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
       --output-flatten "_Map_ #And" \
       --no-alpha-renaming \
+      --no-sort-collections \
       --output json \
       --smt_prelude $KLAB_OUT/prelude.smt2 \
       --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
