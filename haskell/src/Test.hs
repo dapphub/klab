@@ -12,7 +12,7 @@ import Gas
 data Kast = Kast {
   node     :: String,
   sort     :: Maybe String,
-  name     :: Maybe String,
+       :: Maybe String,
   token    :: Maybe String,
   label    :: Maybe String,
   variable :: Maybe Bool,
