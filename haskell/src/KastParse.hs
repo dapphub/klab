@@ -13,6 +13,7 @@ data Kast = Kast {
   node     :: String,
   sort     :: Maybe String,
   name     :: Maybe String,
+  originalName     :: Maybe String,
   token    :: Maybe String,
   label    :: Maybe String,
   variable :: Maybe Bool,
@@ -24,7 +25,7 @@ instance FromJSON Kast
 
 kastToGasExpr :: Kast -> Either String GasExpr
 kastToGasExpr kast = case node kast of
-  "KVariable" -> let Just somevar = name kast in
+  "KVariable" -> let Just somevar = originalName kast in
     if "VGas" `isPrefixOf` somevar
     then Right $ Nullary StartGas
     else Left $ "Can't have variables in gas expressions, found: " ++ somevar
@@ -77,7 +78,7 @@ kastToGasExpr kast = case node kast of
 
 formatKast :: Kast -> Either String String
 formatKast kast = case node kast of
-  "KVariable" -> let Just var = name kast in Right var
+  "KVariable" -> let Just var = originalName kast in Right var
 
   "KToken" -> case sort kast of
     Just "Int"  -> let Just n = token kast in Right n
