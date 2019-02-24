@@ -94,6 +94,7 @@ const __a2n = act => act.subject + "_" + act.name;
 const __hasGas = name => testPath(path.join(KLAB_OUT, "gas", name + ".kast"));
 const __getGas = name => read(path.join(KLAB_OUT, "gas", name + ".kast"));
 const __getGasRaw = name => JSON.parse(read(path.join(KLAB_OUT, "gas", name + ".raw.kast.json")));
+
 const proof_collection = act_collection
   // split into pass and fail cases
   .map(act => [{
@@ -115,7 +116,7 @@ const proof_collection = act_collection
     var gas = "3000000";
     if(__hasGas(pf.name) && pf.pass) {
       pf.act.gas = __getGas(pf.name);
-      pf.act.gas_raw = kast.format(__getGasRaw(pf.name), true);
+      pf.act.gas_raw = kast.format(__getGasRaw(pf.name), true, true);
       return [{...pf, oog: false, name: pf.name.replace('_rough','')}]
         .concat(OOG && [{...pf, oog: true, name: pf.name.replace('rough','oog')}] || [])
     } else {
