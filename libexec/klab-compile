@@ -26,6 +26,7 @@ Usage:
 const cmd = docopt(usage, {
   argv: ["compile"].concat(process.argv.slice(2))
 });
+
 const config        = makeConfig(config_json, cmd["<spec>"]);
 
 config.spec = cmd["<spec>"] && (
@@ -48,6 +49,7 @@ const proofid = sha3(JSON.stringify({
   smt_prelude: config.smt_prelude
 }));
 
+
 const {
   prune_edges,
   buildDisplayInfo
@@ -66,7 +68,7 @@ const blobs = Object.keys(Object.keys(pruned_edges)
 ensureDir(path.join(KLAB_OUT, "log"));
 const pruned_path = path.join(KLAB_OUT, "log", `boot_${proofid}.json`);
 const blobs_data = blobs
-  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, "blobs", blobid + ".json")))])
+  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
 
 const compiled_states = blobs_data
   .filter(([_, k]) => k.term.label == "<generatedTop>")
@@ -77,8 +79,6 @@ const constraints = blobs_data
 
 const compiled_blobs = compiled_states.concat(constraints)
   .reduce((a, [blobid, k]) => ({...a, [blobid]: k}), {})
-
-// console.log(JSON.stringify(compiled_blobs, false, 2));
 
 const finished_ = finished
   .reduce((a, node) => ({...a, [node]: true}), {});
