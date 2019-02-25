@@ -10,15 +10,14 @@ import Data.List                 (intercalate, isPrefixOf)
 import Gas
 
 data Kast = Kast {
-  node     :: String,
-  sort     :: Maybe String,
-  name     :: Maybe String,
-  originalName     :: Maybe String,
-  token    :: Maybe String,
-  label    :: Maybe String,
-  variable :: Maybe Bool,
-  arity    :: Maybe Int,
-  args     :: Maybe [Kast]
+  node         :: String,
+  sort         :: Maybe String,
+  originalName :: Maybe String,
+  token        :: Maybe String,
+  label        :: Maybe String,
+  variable     :: Maybe Bool,
+  arity        :: Maybe Int,
+  args         :: Maybe [Kast]
   } deriving (Generic, Show)
 
 instance FromJSON Kast
@@ -37,13 +36,6 @@ kastToGasExpr kast = case node kast of
     Just somesort -> Left $ "Can't have sorts other than Int, found: " ++ somesort
 
   "KApply" -> case label kast of
-    Just "_+Int_" -> let Just [arg1, arg2] = args kast in
-      case kastToGasExpr arg1 of
-        Left error -> Left error
-        Right e -> case kastToGasExpr arg2 of
-          Left error -> Left error
-          Right f -> Right $ Binary Add e f
-
     Just "_+Int__INT" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error

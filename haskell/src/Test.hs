@@ -10,14 +10,14 @@ import Data.List                 (intercalate)
 import Gas
 
 data Kast = Kast {
-  node     :: String,
-  sort     :: Maybe String,
-       :: Maybe String,
-  token    :: Maybe String,
-  label    :: Maybe String,
-  variable :: Maybe Bool,
-  arity    :: Maybe Int,
-  args     :: Maybe [Kast]
+  node         :: String,
+  sort         :: Maybe String,
+  originalName :: Maybe String,
+  token        :: Maybe String,
+  label        :: Maybe String,
+  variable     :: Maybe Bool,
+  arity        :: Maybe Int,
+  args         :: Maybe [Kast]
   } deriving (Generic, Show)
 
 instance FromJSON Kast
