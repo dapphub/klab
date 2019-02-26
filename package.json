@@ -13,6 +13,7 @@
     "async": "^2.6.1",
     "aws-sdk": "^2.320.0",
     "blessed": "^0.1.81",
+    "bn.js": "^4.11.8",
     "chalk": "^2.3.2",
     "clear": "^0.1.0",
     "cli-clear": "^1.0.4",
@@ -34,12 +35,5 @@
     "websocket": "^1.0.26",
     "xml2json": "^0.11.2",
     "xstream": "^11.3.0"
-  },
-  "devDependencies": {
-    "@cycle/dom": "^20.4.0",
-    "css-loader": "^1.0.0",
-    "node-sass": "^4.9.3",
-    "sass-loader": "^7.1.0",
-    "style-loader": "^0.23.0"
   }
 }
