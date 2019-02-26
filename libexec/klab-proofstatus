@@ -45,8 +45,7 @@ const proofid = sha3(JSON.stringify({
 }));
 
 const {
-  prune_edges,
-  buildDisplayInfo
+  prune_edges
 } = require("../lib/compile.js");
 
 const {pruned_edges, initt, finished} = prune_edges(proofid, false);
