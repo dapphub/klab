@@ -21,6 +21,9 @@ const makeConfig        = require("../lib/config.js");
 const usage = `
 Usage:
   klab compile [options] <spec>
+
+Options:
+  --prune
 `
 
 const cmd = docopt(usage, {
@@ -28,6 +31,8 @@ const cmd = docopt(usage, {
 });
 
 const config        = makeConfig(config_json, cmd["<spec>"]);
+
+const PRUNE         = cmd["--prune"] || false;
 
 config.spec = cmd["<spec>"] && (
     testPath(cmd["<spec>"]) && read(cmd["<spec>"])
@@ -55,7 +60,7 @@ const {
   buildDisplayInfo
 } = require("../lib/compile.js");
 
-const {pruned_edges, initt, finished} = prune_edges(proofid);
+const {pruned_edges, initt, finished} = prune_edges(proofid, PRUNE);
 
 const blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]
