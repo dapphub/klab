@@ -15,12 +15,12 @@ const { genBehaviour } = require("../lib/behavior.js");
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
-const config_json   = JSON.parse(fs.readFileSync("./config.json"));
-const makeConfig        = require("../lib/config.js");
+// const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+// const makeConfig        = require("../lib/config.js");
 
 const usage = `
 Usage:
-  klab compile [options] <spec>
+  klab compile [options] <hash>
 
 Options:
   --prune
@@ -29,36 +29,41 @@ Options:
 const cmd = docopt(usage, {
   argv: ["compile"].concat(process.argv.slice(2))
 });
-
-const config        = makeConfig(config_json, cmd["<spec>"]);
-
 const PRUNE         = cmd["--prune"] || false;
 
-config.spec = cmd["<spec>"] && (
-    testPath(cmd["<spec>"]) && read(cmd["<spec>"])
-    || revert(`spec not found at ${cmd["<spec>"]}`))
+// const config        = makeConfig(config_json, cmd["<spec>"]);
+//
+//
+// config.spec = cmd["<spec>"] && (
+//     testPath(cmd["<spec>"]) && read(cmd["<spec>"])
+//     || revert(`spec not found at ${cmd["<spec>"]}`))
+//
+// config.name = cmd["<spec>"] && path.basename(cmd["<spec>"])
+//   || cmd["--name"] && (name + ".k")
+//
+// config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
+//   || revert(`no rules found at ${KLAB_OUT}/rules.k`)
+//
+// config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
+//   || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
+//
+//
+// const proofid = sha3(JSON.stringify({
+//   rules: config.rules,
+//   spec : config.spec,
+//   smt_prelude: config.smt_prelude
+// }));
 
-config.name = cmd["<spec>"] && path.basename(cmd["<spec>"])
-  || cmd["--name"] && (name + ".k")
 
-config.rules = testPath(path.join(KLAB_OUT, "rules.k")) && read(path.join(KLAB_OUT, "rules.k"))
-  || revert(`no rules found at ${KLAB_OUT}/rules.k`)
-
-config.smt_prelude = testPath(path.join(KLAB_OUT, "prelude.smt2")) && read(path.join(KLAB_OUT, "prelude.smt2"))
-  || revert(`no smt prelude file at ${KLAB_OUT}/prelude.mst2`)
-
-
-const proofid = sha3(JSON.stringify({
-  rules: config.rules,
-  spec : config.spec,
-  smt_prelude: config.smt_prelude
-}));
-
+const proofid = cmd['<hash>'];
 
 const {
   prune_edges,
-  buildDisplayInfo
 } = require("../lib/compile.js");
+
+const {
+  buildDisplayInfo
+} = require('../lib/clean-evm-node.js');
 
 const {pruned_edges, initt, finished} = prune_edges(proofid, PRUNE);
 
@@ -77,7 +82,7 @@ const blobs_data = blobs
 
 const compiled_states = blobs_data
   .filter(([_, k]) => k.term.label == "<generatedTop>")
-  .map(([blobid, k]) => [blobid, buildDisplayInfo(k.term, config)])
+  .map(([blobid, k]) => [blobid, buildDisplayInfo(k.term)])
 
 const constraints = blobs_data
   .filter(([_, k]) => k.term.label != "<generatedTop>")
@@ -90,7 +95,6 @@ const finished_ = finished
 
 const boot = {
   edges: pruned_edges,
-  config,
   initt,
   nodes: compiled_blobs,
   finished: finished_,
