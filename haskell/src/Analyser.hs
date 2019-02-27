@@ -6,6 +6,7 @@ import System.Environment        (getArgs)
 import System.Exit               (exitWith,
                                   ExitCode(ExitSuccess),
                                   ExitCode(ExitFailure))
+import System.IO                 (stderr, hPutStrLn)
 import Data.Semigroup            ((<>))
 import Options.Applicative
 
@@ -70,7 +71,7 @@ main = do
   let Just gaskast = (decode (fromString s)) :: Maybe Kast
       g_parsed     = kastToGasExpr gaskast
   case g_parsed of
-    Left err -> (putStrLn $ "Failed in parsing AST: " ++ err) >> die
+    Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
     -- solve GasExpr, unparse, and print
     Right g -> let solution = unparse $ (solve maxG) $ g
       in (putStrLn solution) >> exit
