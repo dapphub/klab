@@ -6,3 +6,4 @@
 /haskell/resultlibexec/klab-gas-analyser
 haskell/result
 /examples/*/out/*package-lock.json
+package-lock.json
