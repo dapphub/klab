@@ -191,10 +191,11 @@ rule ACCTCODE in SetItem( 1 )
 
 
 
-
-
-
-
+  rule #asWord(WS) >>Int ARG => #asWord(#padToWidth(32, WS[0 .. 32 -Int (ARG /Int 8)]))
+         requires #sizeWordStack(WS) ==Int 32
+         andBool ARG modInt 8 ==Int 0
+         andBool 0 <=Int ARG
+         andBool ARG <=Int 256
 
 
     rule 0 +Int N => N
