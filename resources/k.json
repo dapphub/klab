@@ -3,7 +3,7 @@
     "k": "VKCell",
     "exit-code": "1",
     "mode": "NORMAL",
-    "schedule": "BYZANTIUM",
+    "schedule": "PETERSBURG",
     "analysis": ".Map",
     "ethereum": {
       "evm": {
@@ -13,7 +13,7 @@
         "interimStates": "_",
         "touchedAccounts": "_ => _",
         "callState": {
-          "program": "#asMapOpCodes(#dasmOpCodes(#parseByteStack({CODE}), BYZANTIUM))",
+          "program": "#asMapOpCodes(#dasmOpCodes(#parseByteStack({CODE}), PETERSBURG))",
           "programBytes": "#parseByteStack({CODE})",
           "id": "ACCT_ID",
           "caller": "CALLER_ID",
