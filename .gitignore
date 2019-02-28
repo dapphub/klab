@@ -5,4 +5,4 @@
 /examples/*/out/
 /haskell/resultlibexec/klab-gas-analyser
 haskell/result
-/examples/*/out/*
+/examples/*/out/*package-lock.json
