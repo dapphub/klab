@@ -12,7 +12,6 @@ const makeConfig    = require("../lib/config.js");
 const {
   makePrelude,
   makeRules,
-  makeRunScript,
   getActs,
   parseAct,
   buildAct
@@ -195,12 +194,14 @@ outstanding_grounded_proofs
     v2n,
     act,
     name,
-    // deps: dep_graph[hash]
+    src: config.src,
+    srcs: config.srcs,
+    contracts: config.contracts,
+    implementations: config.implementations
   }));
 })
 
 fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_proofs.map(rule => rule.name).join("\n"))
-makeRunScript();
 
 if(write_prelude) {
   console.log('write prelude')
