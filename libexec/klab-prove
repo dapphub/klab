@@ -36,7 +36,7 @@ fi
 spec_hash=$("${0%/*/*}/bin/klab" hash $target_spec)
 
 if $dump; then
-    dump_flags="--state-log --state-log-path $TMPDIR/klab --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,Z3QUERY,Z3RESULT,CLOSE"
+    dump_flags="--state-log --state-log-path $TMPDIR/klab --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"
     dump_notice="(with ${yellow}state logging${reset})"
 fi
 

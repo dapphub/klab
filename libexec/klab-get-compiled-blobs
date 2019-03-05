@@ -15,13 +15,14 @@ const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
 const usage = `
 Usage:
-  klab get-compiled-blobs [--terms] [--constraints] <hash>
+  klab get-compiled-blobs [--terms] [--constraints] [--rules] <hash>
 `
 const cmd = docopt(usage, {
   argv: ["get-compiled-blobs"].concat(process.argv.slice(2))
 });
 const TERMS    = cmd['--terms'] || false;
 const CONST    = cmd['--constraints'] || false;
+const RULES    = cmd['--rules'] || false;
 const proofid = cmd['<hash>'];
 
 const edges = JSON.parse(read(path.join(KLAB_OUT, 'compiled', proofid, 'edges.json')));
@@ -35,6 +36,10 @@ const blobs = Object.keys(Object.keys(edges)
       ).concat(
         CONST
         ? [e.from.split("_")[1], e.to.split("_")[1]]
+        : []
+      ).concat(
+        RULES
+        ? [e.rule]
         : []
       )
     )

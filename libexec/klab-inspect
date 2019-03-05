@@ -3,49 +3,171 @@ const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
-const makeConfig = require("../lib/config.js");
+const path = require("path");
+const onionify = require('cycle-onionify').default;
+const sampleCombine = require("xstream/extra/sampleCombine").default;
 process.title = "klab";
 
-const cliDriver    = require("../lib/driver/cliDriver.js")
-const remoteDriver = require("../lib/driver/remoteDriver.js")
-const main         = require("../lib/main.js")
+const makeConfig = require("../lib/config.js");
+const makeCliDriver = require("../lib/driver/cliDriver.js")
+const dbDriver = require("../lib/driver/dbDriver.js")
+const move = require("../lib/move.js");
+const exec = require("../lib/exec.js");
+const view = require("../lib/view.js");
+const link = require("../lib/link.js");
+const pull = require("../lib/pull.js");
+const {
+  prune_edges,
+} = require("../lib/compile.js");
 const {
   testPath,
   revert,
+  warn,
   read,
   sha3
 } = require("../lib/util.js");
 
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 
 const usage = `
 Usage:
-  klab inspect <id> [options]
-
-Options:
-  --remote
+  klab inspect [options] <hash>
 `
 
 const cmd = docopt(usage, {
   argv: ["inspect"].concat(process.argv.slice(2))
 });
 
-const config_json = JSON.parse(fs.readFileSync("./config.json"));
-const config      = makeConfig(config_json, cmd["<spec>"]);
+const proofid = cmd['<hash>'];
 
-// proof id
-config.proofid = cmd["<id>"];
-config.connection = {
-  type: "remote",
-  host: config.host || "127.0.0.1:8080"
-}
-const kDriver = remoteDriver(config.host);
-
-config.inspect = true;
-
-const drivers = {
-  CLI: cliDriver(),
-  K: kDriver,
-  Settings: () => xs.of(config)
+const {pruned_edges, initt, finished, steps} = prune_edges(proofid);
+const finished_ = finished
+  .reduce((a, node) => ({...a, [node]: true}), {});
+const steps_ = steps
+  .reduce((a, step) => { a[step] = true; return a; }, {});
+// generate coedges
+const coedges = Object.keys(pruned_edges)
+  .reduce((coedges, from) =>
+    pruned_edges[from]
+      .reduce((a, toO) => ({...a, [toO.to]: (a[toO.to]||[]).concat(toO)}), coedges)
+  , {})
+const state = {
+  edges: pruned_edges,      // done: klab compile-fsm
+  coedges,
+  initt,                    // done: klab compile-fsm
+  finished: finished_,      // done: klab compile-fsm
+  steps: steps_,
+  nodes: {},
+  path: [{
+    "type": "step",
+    "count": 0,
+    "step": {
+      "from": "",
+      "to": initt,
+      "rule": ""
+    }
+  }]
 };
 
-run(main, drivers)
+const meta_path = path.join(KLAB_OUT, 'meta', 'data', proofid);
+var meta = {};
+if(testPath(meta_path)) meta = JSON.parse(read(meta_path))
+const config = {
+  ...meta,
+  control: {
+    "0"      : "branch 0",
+    "1"      : "branch 1",
+    "2"      : "branch 2",
+    "3"      : "branch 3",
+    "4"      : "branch 4",
+    "5"      : "branch 5",
+    "6"      : "branch 6",
+    "S-n"    : "next_k",
+    "S-p"    : "prev_k",
+    "n"      : "next_step",
+    "p"      : "prev_step",
+    "C-n"    : "next_branch",
+    "C-p"    : "prev_branch",
+    "e"      : "toggle_module evm",
+    "g"      : "toggle_module gas",
+    "m"      : "toggle_module memory",
+    "b"      : "toggle_module behaviour",
+    "c"      : "toggle_module constraint",
+    "s"      : "toggle_module sourcemap",
+    "r"      : "toggle_module rule",
+    "k"      : "toggle_module kcell",
+    "z"      : "toggle_module z3feedback",
+    "d"      : "toggle_module debug",
+    "t"      : "toggle_module term",
+    "up"     : "scroll_up",
+    "down"   : "scroll_down"
+  },
+  proofid
+};
+
+const CLIDriver = makeCliDriver({
+    // type: "console",
+    // in: false
+  })
+
+const drivers = {
+  K: dbDriver,
+  CLI: CLIDriver,
+  Settings: () => xs.of({...state, config, show: {}})
+};
+
+const main = ({ CLI, Settings, onion, K }) => {
+
+  const boot$ = Settings
+    .map(state => () => state)
+
+  CLI
+    .filter(key => key.full == "C-c")
+    .addListener({
+      next: i => process.exit(),
+      error: err => console.error(err),
+      complete: () => console.log('completed'),
+    })
+
+  const cmd$ = CLI
+    .compose(sampleCombine(onion.state$))
+  // only if not in cmd_mode
+    .filter(([_, state]) => !state.cmd_mode)
+  // .map(([key, _]) => key)
+  // find the command
+    .map(([key, state]) => [key.full, state.config.control[key.full]])
+    .filter(([key, cmd]) => !!cmd)
+    .map(([key, cmd]) => cmd && ({ key, cmd }))
+  // costom command
+  const {ccmd$, crun$} = exec({CLI, onion});
+
+  // update state based on user input
+  const move$ = xs.merge(cmd$, crun$)
+    .compose(move)
+
+  let link$ = K
+    .compose(link);
+  const {
+    pull$,
+    remember_pull$
+  } = pull({K, onion})
+
+  let view$ = view({onion});
+
+  return {
+    CLI: view$,
+    K: pull$,
+    onion: xs.merge(
+      link$,
+      move$,
+      boot$,
+      remember_pull$,
+      ccmd$
+    )
+  };
+};
+
+const wrappedMain = onionify(main);
+
+run(wrappedMain, drivers)

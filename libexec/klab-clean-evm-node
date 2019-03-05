@@ -8,7 +8,6 @@ const {
   read
 } = require("../lib/util.js");
 const {
-  getInfo,
   buildDisplayInfo
 }     = require('../lib/clean-evm-node.js');
 
@@ -18,12 +17,12 @@ const usage = `
 Usage:
   klab clean-evm-node <proofid> <blobid>
 `
-
 const cmd = docopt(usage, {
   argv: ["clean-evm-node"].concat(process.argv.slice(2))
 });
-const blobid = cmd['<blobid>'];
-const proofid = cmd['<proofid>'];
+const blobids = cmd['<blobid>'].split(',');
+const proofid = cmd['<proofid>']
+console.log(proofid);
 
 const node = JSON.parse(read(path.join(KLAB_WD_PATH, proofid + '_blobs', blobid + '.json')));
 
