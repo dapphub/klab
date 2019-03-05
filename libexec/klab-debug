@@ -16,6 +16,7 @@ const exec = require("../lib/exec.js");
 const view = require("../lib/view.js");
 const link = require("../lib/link.js");
 const pull = require("../lib/pull.js");
+const { genBehaviour } = require("../lib/behavior.js");
 const {
   prune_edges,
 } = require("../lib/compile.js");
@@ -52,13 +53,38 @@ const coedges = Object.keys(pruned_edges)
     pruned_edges[from]
       .reduce((a, toO) => ({...a, [toO.to]: (a[toO.to]||[]).concat(toO)}), coedges)
   , {})
+
+// preload constraints and rules
+const rule_blobs = Object.keys(Object.keys(pruned_edges)
+  .map(ekey => pruned_edges[ekey].map(e => e.rule)
+  )
+  .reduce((a, es) => a.concat(es), [])
+  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+
+const constraint_blobs = Object.keys(Object.keys(pruned_edges)
+  .map(ekey => pruned_edges[ekey]
+    .map(e => [e.from.split("_")[1], e.to.split("_")[1]])
+    .reduce((a, es) => a.concat(es), [])
+  )
+  .reduce((a, es) => a.concat(es), [])
+  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+
+const blobs_data = constraint_blobs
+  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
+  .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
+
+const rules_data = rule_blobs
+  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
+  .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
+
 const state = {
   edges: pruned_edges,      // done: klab compile-fsm
   coedges,
   initt,                    // done: klab compile-fsm
   finished: finished_,      // done: klab compile-fsm
   steps: steps_,
-  nodes: {},
+  nodes: blobs_data,
+  rules: rules_data,
   path: [{
     "type": "step",
     "count": 0,
@@ -111,10 +137,12 @@ const CLIDriver = makeCliDriver({
     // in: false
   })
 
+const { behaviour } = genBehaviour(state);
+
 const drivers = {
   K: dbDriver,
   CLI: CLIDriver,
-  Settings: () => xs.of({...state, config, show: {}})
+  Settings: () => xs.of({...state, config, behaviour, show: {}})
 };
 
 const main = ({ CLI, Settings, onion, K }) => {
