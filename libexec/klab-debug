@@ -149,8 +149,7 @@ const main = ({ CLI, Settings, onion, K }) => {
   let link$ = K
     .compose(link);
   const {
-    pull$,
-    remember_pull$
+    pull$
   } = pull({K, onion})
 
   let view$ = view({onion});
@@ -162,7 +161,6 @@ const main = ({ CLI, Settings, onion, K }) => {
       link$,
       move$,
       boot$,
-      remember_pull$,
       ccmd$
     )
   };

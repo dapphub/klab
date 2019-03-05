@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 const {docopt}      = require("docopt");
-
+const path          = require('path');
 const {
-  getId
+  testPath,
+  read
 } = require("../lib/util.js");
+
+const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
 const usage = `
 Usage:
@@ -15,4 +18,11 @@ const cmd = docopt(usage, {
   argv: ["hash"].concat(process.argv.slice(2))
 });
 
-process.stdout.write(getId(cmd["<spec>"]))
+const spec = cmd["<spec>"];
+const name = path.basename(spec, '.k');
+
+const hash_path = path.join(KLAB_OUT, 'meta', 'name', name);
+
+if(!testPath(hash_path)) process.exit(1);
+
+process.stdout.write(read(hash_path))

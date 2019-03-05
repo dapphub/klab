@@ -1,9 +1,0 @@
-#!/bin/sh
-echo "initializing..."
-RESSOURCES_PATH=$(dirname $(realpath $0))/../resources
-
-# init config
-cp $RESSOURCES_PATH/config_template.json config.json
-
-echo "please provide the correct paths to \n  * binary-runtime\n  * sourcecode\n  * sourcemap\n  * remote-server"
-
