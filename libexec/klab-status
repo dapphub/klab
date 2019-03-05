@@ -55,7 +55,7 @@ const {
   prune_edges
 } = require("../lib/compile.js");
 
-const {pruned_edges, initt, finished} = prune_edges(proofid);
+const {pruned_edges, initt, finished} = prune_edges(proofid, {});
 
 const blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]
