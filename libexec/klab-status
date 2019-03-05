@@ -16,8 +16,6 @@ const format = require("../lib/format.js")
 const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
 
-const config_json   = JSON.parse(fs.readFileSync("./config.json"));
-const makeConfig        = require("../lib/config.js");
 const {
   prune_edges,
 } = require("../lib/compile.js");
@@ -25,12 +23,16 @@ const {
 const usage = `
 Usage:
   klab status [options] <hash>
+
+Options:
+  --raw
 `
 const cmd = docopt(usage, {
   argv: ["status"].concat(process.argv.slice(2))
 });
 
 const proofid = cmd['<hash>'];
+const RAW     = cmd['--raw'] || false;
 
 const {pruned_edges, initt, finished, steps} = prune_edges(proofid);
 const finished_ = finished
@@ -48,7 +50,6 @@ const meta_path = path.join(KLAB_OUT, 'meta', 'data', proofid);
 var meta = {};
 if(testPath(meta_path)) meta = JSON.parse(read(meta_path))
 
-
 const blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]
     .map(e => [e.from.split("_")[1], e.to.split("_")[1]])
@@ -59,6 +60,7 @@ const blobs = Object.keys(Object.keys(pruned_edges)
 
 const blobs_data = blobs
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
+  .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
 const state = {
   edges: pruned_edges,      // done: klab compile-fsm
@@ -79,6 +81,11 @@ const state = {
 };
 
 const { behaviour } = genBehaviour(state);
+if(RAW) {
+  console.log(JSON.stringify(behaviour, false, 2));
+  process.exit();
+}
+
 state.status = behaviour.success
   ? "ACCEPT"
   : "REJECT"
