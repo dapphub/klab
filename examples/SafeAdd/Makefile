@@ -67,7 +67,7 @@ proof-batch: $$(addsuffix .proof.timestamp,$$(obligation_specs))
 
 %_pass_rough.k.proof.timestamp: %_pass_rough.k $(OBLIGATIONS)
 	time klab prove --dump $<
-	klab status $<
+	klab status $$klab hash $<)
 	klab get-gas $$(klab hash $<) > $(GAS_DIR)/$(*F)_pass_rough.raw.kast.json
 	klab gas-analyser --input $(GAS_DIR)/$(*F)_pass_rough.raw.kast.json > $(GAS_DIR)/$(*F)_pass_rough.kast
 
