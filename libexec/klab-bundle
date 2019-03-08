@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// TODO - compile needs to carry on the act
 
 const fs = require("fs");
 const path = require("path");
@@ -8,7 +7,8 @@ const {
   testPath,
   read,
   ensureDir,
-  sha3
+  sha3,
+  warn
 } = require("../lib/util.js");
 const { genBehaviour } = require("../lib/behavior.js");
 
@@ -75,21 +75,51 @@ const constraints = blobs_data
 const compiled_blobs = compiled_states.concat(constraints)
   .reduce((a, [blobid, k]) => ({...a, [blobid]: k}), {})
 
+
+
+const meta_path = path.join(KLAB_OUT, 'meta', 'data', proofid);
+var meta = {};
+// TODO - warn - no metadata provided
+if(testPath(meta_path)) {
+  meta = JSON.parse(read(meta_path))
+} else {
+  warn(`no meta information found at ${meta_path}`);
+}
+
+// translate
+const mem = {}
+var memc = 1;
+const code = id => mem[id] && mem[id].toString(36);
+const rename = id => code(id) || (mem[id] = memc++) && code(id)
+const rr = ids => ids.split('_').map(rename).join('_');
+
 const finished_ = finished
-  .reduce((a, node) => ({...a, [node]: true}), {});
+  .reduce((a, node) => ({...a, [rr(node)]: true}), {});
+
+const nodes_ = Object.keys(compiled_blobs)
+  .reduce((a, key) => {
+    a[rr(key)] = compiled_blobs[key]
+    return a
+  }, {})
+const edges_ = Object.keys(pruned_edges)
+  .reduce((a, key) => {
+    a[rr(key)] = pruned_edges[key].map(e => ({from: rr(e.from), to: rr(e.to)}))
+    return a;
+  }, {})
 
 const boot = {
-  edges: pruned_edges,      // done: klab compile-fsm
-  initt,                    // done: klab compile-fsm
-  nodes: compiled_blobs,
-  finished: finished_,      // done: klab compile-fsm
-  steps: steps.reduce((a, step) => { a[step] = true; return a; }, {}),
+  edges: edges_,
+  initt: rr(initt),
+  config: meta,
+  nodes: nodes_,
+  finished: finished_,
+  steps: steps.reduce((a, step) => { a[rr(step)] = true; return a; }, {}),
   path: [{
     "type": "step",
     "count": 0,
     "step": {
       "from": "",
-      "to": initt,
+      "to": rr(initt),
       "rule": ""
     }
   }]
@@ -104,8 +134,8 @@ const boot = {
 //   // };
 // }
 
-const nodes_ = blobs_data
-  .filter(([_, k]) => k.term.label == "<generatedTop>")
+// const nodes_ = blobs_data
+//   .filter(([_, k]) => k.term.label == "<generatedTop>")
 
 
 // const { behaviour } = genBehaviour({
