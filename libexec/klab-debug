@@ -42,7 +42,7 @@ const cmd = docopt(usage, {
 
 const proofid = cmd['<hash>'];
 
-const {pruned_edges, initt, finished, steps} = prune_edges(proofid);
+const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);
 const finished_ = finished
   .reduce((a, node) => ({...a, [node]: true}), {});
 const steps_ = steps
@@ -54,12 +54,32 @@ const coedges = Object.keys(pruned_edges)
       .reduce((a, toO) => ({...a, [toO.to]: (a[toO.to]||[]).concat(toO)}), coedges)
   , {})
 
+
+const debug_constraints = {};
+const debug_rules = {};
+
+Object.keys(rule_debug)
+  .forEach(nodeid => Object.keys(rule_debug[nodeid])
+    .forEach(ruleid => {
+      debug_rules[ruleid] = true;
+      Object.keys(rule_debug[nodeid][ruleid])
+      .forEach(constraintid => {
+        debug_constraints[constraintid] = true;
+        Object.keys(rule_debug[nodeid][ruleid][constraintid] || {})
+          .forEach(z3id => {
+            let z3result = rule_debug[nodeid][ruleid][constraintid][z3id]
+            debug_constraints[z3result] = true;
+          })
+      })
+    })
+  )
+
 // preload constraints and rules
 const rule_blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey].map(e => e.rule)
   )
   .reduce((a, es) => a.concat(es), [])
-  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+  .reduce((a, blob) => {a[blob] = true; return a;}, debug_rules))
 
 const constraint_blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]
@@ -67,7 +87,7 @@ const constraint_blobs = Object.keys(Object.keys(pruned_edges)
     .reduce((a, es) => a.concat(es), [])
   )
   .reduce((a, es) => a.concat(es), [])
-  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
+  .reduce((a, blob) => {a[blob] = true; return a;}, debug_constraints))
 
 const blobs_data = constraint_blobs
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
@@ -81,6 +101,7 @@ const state = {
   edges: pruned_edges,      // done: klab compile-fsm
   coedges,
   initt,                    // done: klab compile-fsm
+  rule_debug,
   finished: finished_,      // done: klab compile-fsm
   steps: steps_,
   nodes: blobs_data,
