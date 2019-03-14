@@ -42,6 +42,7 @@ fi
 
 echo "Proof ${bold}STARTING${reset}:" "$(basename $target_spec)" $dump_notice
 
+{
 K_OPTS=-Xmx10G \
       $KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove \
       $dump_flags \
@@ -56,10 +57,14 @@ K_OPTS=-Xmx10G \
       --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
       $target_spec
 result=$?
+} || echo "weird error"
 
-if [[ $result -ne 0 ]]; then
-    echo "${red}Proof ${bold}REJECT${reset}:" $(basename $target_spec) $dump_notice
+if [ "$result" == "0" ]; then
+  echo "${green}Proof ${bold}ACCEPT${reset}:" $(basename $target_spec) $dump_notice
+  mkdir -p $KLAB_OUT/pass && touch $KLAB_OUT/pass/$spec_hash
 else
-    echo "${green}Proof ${bold}ACCEPT${reset}:" $(basename $target_spec) $dump_notice
-    mkdir -p $KLAB_OUT/pass && touch $KLAB_OUT/pass/$spec_hash
+  echo "${red}Proof ${bold}REJECT${reset}:" $(basename $target_spec) $dump_notice
+  mkdir -p $KLAB_OUT/fail && touch $KLAB_OUT/fail/$spec_hash
 fi
+
+exit $result
