@@ -7,9 +7,9 @@ const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const kjson         = require("../lib/kjson.js");
-const kast          = require("../lib/kast.js");
 const makeConfig    = require("../lib/config.js");
 const {
+  proofCollection,
   makePrelude,
   makeRules,
   getActs,
@@ -86,44 +86,7 @@ const acts_str_arr = getActs(raw_md_config);
 let act_collection = acts_str_arr
   .map(parseAct(config))
 
-// * build tests cases
-// * enrich with gas conditions
-// act2name
-const __a2n = act => act.subject + "_" + act.name;
-const __hasGas = name => testPath(path.join(KLAB_OUT, "gas", name + ".kast"));
-const __getGas = name => read(path.join(KLAB_OUT, "gas", name + ".kast"));
-const __getGasRaw = name => JSON.parse(read(path.join(KLAB_OUT, "gas", name + ".raw.kast.json")));
-
-const proof_collection = act_collection
-  // split into pass and fail cases
-  .map(act => [{
-    act: {...act},
-    name: __a2n(act) + "_pass_rough",
-    pass: true,
-    oog: false
-  }].concat("iff" in act ? [{
-    act: {...act},
-    pass: false,
-    oog: false,
-    name: __a2n(act) + "_fail"
-  }] : [] ))
-  .reduce((a, cs) => a.concat(cs), [])
-  // enrich with gas statements
-  .map(pf => {
-    // TODO - default
-    pf.act.hasGas = __hasGas(pf.name) && pf.pass;
-    var gas = "3000000";
-    if(__hasGas(pf.name) && pf.pass) {
-      pf.act.gas = __getGas(pf.name);
-      pf.act.gas_raw = kast.format(__getGasRaw(pf.name), true, true);
-      return [{...pf, oog: false, name: pf.name.replace('_rough','')}]
-        .concat(OOG && [{...pf, oog: true, name: pf.name.replace('rough','oog')}] || [])
-    } else {
-      pf.act.gas = gas;
-      return [{...pf}]
-    }
-  })
-  .reduce((a, cs) => a.concat(cs), [])
+const proof_collection = proofCollection({OOG})(act_collection);
 
 // {name, spec,  v2n, act, imports, pass, oog}
 let act_proofs = proof_collection
