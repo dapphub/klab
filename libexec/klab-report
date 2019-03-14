@@ -5,7 +5,10 @@
 const path          = require("path")
 const marked        = require("marked");
 const Config        = require("../lib/config.js");
-const {parseAct}    = require("../lib/build.js");
+const {
+  proofCollection,
+  parseAct
+}    = require("../lib/build.js");
 const {
   getId,
   testPath,
@@ -17,7 +20,7 @@ const {
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
 const {getStorageDef} = require("../lib/storage.js");
 const config_json   = JSON.parse(read("./config.json"));
-const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
+// const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
 const config        = Config(config_json);
 const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
@@ -30,8 +33,8 @@ const rules         = marked
   .map(block => block.text)
   .join("\n\n")
 const tokens        = marked.lexer(raw_md_config)
-const act2specs     = Object.keys(out)
-  .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
+// const act2specs     = Object.keys(out)
+//   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
 const badge = (name, status) => `<div class="badge">
   <div class="name">
     <span>
@@ -45,22 +48,56 @@ const badge = (name, status) => `<div class="badge">
   </div>
 </div>`
 
-const getBadges = code => {
-  let act_obj = parseAct(code, true);
-  let cases = ["pass"]
-    .concat(act_obj.iff ? ["fail"] : [])
-    .map(c => act_obj.subject + "_" + act_obj.name + "_" + c)
-  // if(act_obj.iff) cases = cases.concat(["fail"])
+const __a2n = act => act.subject + "_" + act.name;
+const getBadges = act => {
+
+  const cases = [ {
+    act: {...act},
+    name: __a2n(act) + "_pass_rough",
+    pass: true,
+    oog: false
+  }, {
+    act: {...act},
+    name: __a2n(act) + "_pass",
+    pass: true,
+    oog: false
+  }, {
+    act: {...act},
+    name: __a2n(act) + "_pass_oog",
+    pass: true,
+    oog: true
+  }].concat("iff" in act ? [{
+    act: {...act},
+    pass: false,
+    oog: false,
+    name: __a2n(act) + "_fail"
+  }] : [] )
+
   let status = cases
-    .map((c, i) => path.join(KLAB_OUT, `specs/${c}.k`))
-    .map(spec_path => getId(spec_path))
-    .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
-    .map(([pid, log_path]) => testPath(log_path)
-      && {proofid: pid, status: JSON.parse(read(log_path)).status}
-      || {status: "???"}
-    )
+    .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
+    .map(spec_path => {
+      let proofid = testPath(spec_path) && read(spec_path);
+      let status = proofid
+        && testPath(path.join(KLAB_OUT, `pass`, proofid))
+        && `pass`
+        || proofid
+          && testPath(path.join(KLAB_OUT, `fail`, proofid))
+          && `fail`
+        || `????`
+        ;
+      return {
+        proofid,
+        status
+      };
+    })
+
+    // .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
+    // .map(([pid, log_path]) => testPath(log_path)
+    //   && {proofid: pid, status: JSON.parse(read(log_path)).status}
+    //   || {status: "???"}
+    // )
   let links = cases
-    .map((c, i) => `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c, status[i].status)}</a>`)
+    .map((c, i) => `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.name, status[i].status)}</a>`)
     .join("\n")
   return {
     type: "html",
@@ -69,8 +106,7 @@ const getBadges = code => {
   }
 };
 
-const cleanupCode = code => {
-  let act_obj = parseAct(code, true);
+const cleanupCode = act_obj => {
 
   // build storage
   // fold subjects
@@ -160,9 +196,15 @@ const cleanupCode = code => {
   return "<pre><code>" + code_ + "</code></pre>";
 }
 
+
+
 const enriched_tokens = tokens
+  .map(t => t.type == 'code'
+    ? {type: 'code', obj: parseAct({})(t.text, true), text: t.text}
+    : t
+  )
   .reduce((a, t) => {
-    return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.text)}, getBadges(t.text)]: t)
+    return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
   }, [])
 enriched_tokens.links = tokens.links;
 
