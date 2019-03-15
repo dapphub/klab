@@ -15,8 +15,10 @@ const {
   read,
   revert,
   render,
-  warn
+  warn,
+  ensureDir
 }                   = require("../lib/util.js")
+const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
 const {getStorageDef} = require("../lib/storage.js");
 const config_json   = JSON.parse(read("./config.json"));
@@ -48,10 +50,7 @@ const badge = (name, status) => `<div class="badge">
   </div>
 </div>`
 
-const __a2n = act => act.subject + "_" + act.name;
-const getBadges = act => {
-
-  const cases = [ {
+const getCases = act => [ {
     act: {...act},
     name: __a2n(act) + "_pass_rough",
     pass: true,
@@ -73,23 +72,30 @@ const getBadges = act => {
     name: __a2n(act) + "_fail"
   }] : [] )
 
-  let status = cases
-    .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
-    .map(spec_path => {
-      let proofid = testPath(spec_path) && read(spec_path);
-      let status = proofid
-        && testPath(path.join(KLAB_OUT, `pass`, proofid))
-        && `pass`
-        || proofid
-          && testPath(path.join(KLAB_OUT, `fail`, proofid))
-          && `fail`
-        || `????`
-        ;
-      return {
-        proofid,
-        status
-      };
-    })
+const mapCaseStatus = cases => cases
+  .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
+  .map(spec_path => {
+    let proofid = testPath(spec_path) && read(spec_path);
+    let status = proofid
+      && testPath(path.join(KLAB_OUT, `pass`, proofid))
+      && `pass`
+      || proofid
+        && testPath(path.join(KLAB_OUT, `fail`, proofid))
+        && `fail`
+      || `????`
+      ;
+    return {
+      proofid,
+      status
+    };
+  })
+
+const __a2n = act => act.subject + "_" + act.name;
+const getBadges = act => {
+
+  const cases = getCases(act)
+
+  const status = mapCaseStatus(cases)
 
     // .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
     // .map(([pid, log_path]) => testPath(log_path)
@@ -197,30 +203,95 @@ const cleanupCode = act_obj => {
 }
 
 
-
-const enriched_tokens = tokens
+const parsed_tokens = tokens
   .map(t => t.type == 'code'
     ? {type: 'code', obj: parseAct({})(t.text, true), text: t.text}
     : t
-  )
+  );
+
+const genCoverageReport = (pt) => {
+  const proofs = pt
+    .filter(o => o.type == 'code')
+    .map(o => {
+      const cases = getCases(o.obj);
+      const contract_name = config.implementations[o.obj.subject];
+      const cstatus = mapCaseStatus(cases)
+      return {
+        contract: contract_name.name,
+        sig: o.obj.signature,
+        status: cstatus.filter(o => o.status == 'pass').length / cstatus.length
+      }
+    })
+    .reduce((a, o) => ({
+      ...a,
+      [o.contract + '.' +o.sig]: o.status
+    }), {})
+
+  const coverage = Object.keys(config.contracts)
+    .map(contract_name => {
+      const c = config.contracts[contract_name];
+      const abi_functions = JSON.parse(c.abi)
+        .filter(fabi => fabi.type == 'function')
+        .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
+        .map(sig => ({
+          sig,
+          status: proofs[contract_name + '.' + sig]
+        }))
+      const contract_coverage = abi_functions
+        .map(f => f.status)
+        .reduce((a,b) => a+b, 0) / abi_functions.length
+      return {
+        name: contract_name,
+        abi_functions,
+        coverage: contract_coverage
+      }
+    })
+  // console.log(JSON.stringify(coverage, false, 2));
+  const contract_coverage = coverage
+    .map(cc => {
+      const abi_list = cc
+        .abi_functions
+        .map(o => `<li>
+        <span class="sig">${o.sig}</span>
+        <div class="status">
+          <div class="progress" style="width: ${o.status*100}%"></div>
+          <span class="text">
+            ${Math.floor(o.status * 100)} %
+          </span>
+        </div>
+        </li>`)
+        .join('\n')
+      return `<li class="contract_coverage">
+        <span class="name">${cc.name}</span>
+        <div class="status">
+          <div class="progress" style="width: ${cc.coverage * 100}%"></div>
+          <span class="text">
+            ${Math.floor(cc.coverage * 100)} %
+          </span>
+        </div>
+        <ul class="abi">${abi_list}</ul>
+        </li>`
+    })
+
+  return `<ul class="contract_coverage">${contract_coverage.join('\n')}</ul>`
+}
+
+const enriched_tokens = [{
+  type: 'html',
+  text: `<div id="coverage">${genCoverageReport(parsed_tokens)}</div>`
+}].concat(parsed_tokens
   .reduce((a, t) => {
     return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
-  }, [])
+  }, []))
 enriched_tokens.links = tokens.links;
 
 const body = marked.parser(enriched_tokens);
 const htmlTemplate = read(path.join(__dirname, "../resources/report.tmp.html"));
 
-const report = render(htmlTemplate, {
+const htmlString = render(htmlTemplate, {
   body,
   title
 })
 
-
-// console.log(storage_def);
-
-
-
-
-
-console.log(report);
+ensureDir(path.join(KLAB_OUT, 'report'))
+fs.writeFileSync(path.join(KLAB_OUT, 'report', 'index.html'), htmlString);

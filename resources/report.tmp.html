@@ -89,6 +89,46 @@
       .badge .status.gray {
         background: #cccccc;
       }
+      #coverage {
+        width: 50%;
+        margin: 0 auto;
+      }
+      #coverage .contract_coverage .status {
+        float: right;
+        display: inline-block;
+        width: 300px;
+        background: #1c1c1c;
+        border-radius: 4px;
+        text-align: right;
+        color: #ccc;
+        position: relative;
+      }
+      #coverage .progress {
+        width: calc(100% - 4px);
+        height: 1em;
+        background-color: #95e14c;
+        border-radius: 2px;
+        margin: 2px;
+        padding-right: 0px;
+      }
+      #coverage .status .text {
+        position: absolute;
+        top: 0px;
+        padding-left: 5px;
+        color: #1c1c1c;
+        width: 100px;
+        text-align: left;
+      }
+      #coverage li {
+        margin: 4px 0;
+      }
+      li.contract_coverage {
+        padding: 0.5em 0;
+      }
+      ul.contractCoverage {
+        list-style: none;
+        padding: 0;
+      }
     </style>
   </head>
   <body>
