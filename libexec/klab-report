@@ -6,7 +6,6 @@ const path          = require("path")
 const marked        = require("marked");
 const Config        = require("../lib/config.js");
 const {
-  proofCollection,
   parseAct
 }    = require("../lib/build.js");
 const {
@@ -43,7 +42,7 @@ const badge = (name, status) => `<div class="badge">
       ${name}
     </span>
   </div>
-  <div class="status ${status == "pass" ? "green" : (status == "???" ? "yellow" : "red") }">
+  <div class="status ${status == "pass" ? "green" : (status == "????" ? "yellow" : "red") }">
     <span>
       ${status}
     </span>
@@ -254,7 +253,7 @@ const genCoverageReport = (pt) => {
         .map(o => `<li>
         <span class="sig">${o.sig}</span>
         <div class="status">
-          <div class="progress" style="width: ${o.status*100}%"></div>
+          <div class="progress" style="width: calc(${o.status*100}% - 4px)"></div>
           <span class="text">
             ${Math.floor(o.status * 100)} %
           </span>
@@ -264,7 +263,7 @@ const genCoverageReport = (pt) => {
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
         <div class="status">
-          <div class="progress" style="width: ${cc.coverage * 100}%"></div>
+          <div class="progress" style="width: calc(${cc.coverage * 100}% - 4px)"></div>
           <span class="text">
             ${Math.floor(cc.coverage * 100)} %
           </span>

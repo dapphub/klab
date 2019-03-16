@@ -7,8 +7,7 @@ const {docopt}      = require("docopt");
 const {
   testPath,
   read,
-  ensureDir,
-  sha3
+  ensureDir
 } = require("../lib/util.js");
 const { genBehaviour } = require("../lib/behavior.js");
 const getGasExpr = require('../lib/gas.js');

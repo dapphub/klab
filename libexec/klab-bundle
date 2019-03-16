@@ -7,7 +7,6 @@ const {
   testPath,
   read,
   ensureDir,
-  sha3,
   warn
 } = require("../lib/util.js");
 const { genBehaviour } = require("../lib/behavior.js");

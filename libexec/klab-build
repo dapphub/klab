@@ -7,6 +7,8 @@ const {docopt}      = require("docopt");
 const clc           = require("cli-color");
 const _             = require("lodash");
 const kjson         = require("../lib/kjson.js");
+const kast          = require("../lib/kast.js");
+const { execSync }  = require('child_process');
 const makeConfig    = require("../lib/config.js");
 const {
   proofCollection,
@@ -14,7 +16,8 @@ const {
   makeRules,
   getActs,
   parseAct,
-  buildAct
+  buildAct,
+  buildActs
 }                   = require("../lib/build.js");
 const {
   read,
@@ -63,6 +66,10 @@ ensureDirs([
   path.join(KLAB_OUT, "meta", "data")
 ]);
 
+const debug = (rule, msg) => config.DEBUG
+    && rule.ctx.length > 0
+    && console.log("Importing " + rule.ctx.map(r => r.name) + " as lemma(s) to " + rule.name)
+
 
 
 
@@ -71,8 +78,15 @@ ensureDirs([
 const {rules_str, write_rules} = makeRules(config);
 // prelude
 const {prelude_str, write_prelude} = makePrelude(config);
+// TODO error when not set
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH;
+const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
+  cwd: KLAB_EVMS_PATH,
+  encoding: 'utf8'
+});
 
-const get_proof_hash = spec => sha3(JSON.stringify({
+config.get_proof_hash = spec => sha3(JSON.stringify({
+  evms: EVM_SEMANTICS_VERSION,
   rules: rules_str,
   spec : spec,
   smt_prelude: prelude_str
@@ -86,55 +100,14 @@ const acts_str_arr = getActs(raw_md_config);
 let act_collection = acts_str_arr
   .map(parseAct(config))
 
-const proof_collection = proofCollection({OOG})(act_collection);
-
-// {name, spec,  v2n, act, imports, pass, oog}
-let act_proofs = proof_collection
-  .map(buildAct(config))
-
-// Add the imported rules from the calls field
-act_proofs.forEach(rule => {
-  rule.ctx = rule.imports
-    .map(name =>  act_proofs.find(rul => rul.name == name));
-  rule.grounded = rule.ctx.length == 0;
-})
-
-const propagate_grounded = rule => {
-  if(!rule) return false;
-  if(rule.ctx.length == 0) return true;
-  const grounded_ctx = rule.ctx
-    .map(propagate_grounded)
-    .reduce((a, e) => a && e, true);
-  rule.grounded = grounded_ctx;
-  return grounded_ctx;
-}
-
-act_proofs.forEach(propagate_grounded);
-
-const grounded_proofs = act_proofs
-.filter(rule => rule.grounded)
-
-// build modules
-grounded_proofs
-  .forEach(rule => {
-      if (config.DEBUG && rule.ctx.length > 0) {console.log("Importing " + rule.ctx.map(r => r.name) + " as lemma(s) to " + rule.name)}
-    const _rules = [rule.spec].concat(rule.ctx.map(r => r.spec  + "\n[trusted]\n"))
-    const module = kjson.renderModule(_rules, rule.name)
-    const hash   = get_proof_hash(module);
-    rule.module  = module;
-    rule.hash    = hash;
-  })
-
-
-const outstanding_grounded_proofs = grounded_proofs
-  .filter(rule => {
-    return !testPath(path.join(KLAB_OUT, "pass", rule.hash));
-  })
+const act_proofs = buildActs({...config, OOG}, act_collection);
 
 
 // write module
-outstanding_grounded_proofs
-.forEach(rule => {
+Object.keys(act_proofs)
+.filter(proof_name => act_proofs[proof_name].status == '????')
+.forEach(proof_name => {
+  const rule = act_proofs[proof_name];
   // let _rules      = [rule.spec].concat(rule.ctx.spec)
   // let module      = kjson.renderModule(_rules, rule.name)
   const module_path = path.join(KLAB_OUT, "specs", `${rule.name}.k`)
@@ -142,21 +115,18 @@ outstanding_grounded_proofs
   var old_module  = "";
   if(testPath(module_path)) old_module = read(module_path);
   if(old_module != rule.module) {
-    console.log(rule.name + rule.ctx.map(r => "\n - " + r.name));
+    console.log(rule.hash + " " + rule.name + rule.ctx.map(r => "\n - " + r.name));
     fs.writeFileSync(module_path, rule.module);
   }
-})
 
-// METADATA
-outstanding_grounded_proofs
-.forEach(({v2n, act, hash, name}) => {
+  // METADATA
   // name -> hash
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), hash);
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
   // hash -> data
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), JSON.stringify({
-    v2n,
-    act,
-    name,
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", rule.hash), JSON.stringify({
+    v2n: rule.v2n,
+    act: rule.act_name,
+    name: rule.name,
     src: config.src,
     srcs: config.srcs,
     contracts: config.contracts,
@@ -164,7 +134,7 @@ outstanding_grounded_proofs
   }));
 })
 
-fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), outstanding_grounded_proofs.map(rule => rule.name).join("\n"))
+fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), Object.keys(act_proofs).filter(n => act_proofs[n].status === '????').join("\n"))
 
 if(write_prelude) {
   console.log('write prelude')
