@@ -1,5 +1,5 @@
 # increase this if you need to do more batches
-BATCH_LIMIT ?= 5
+BATCH_LIMIT ?= 6
 
 SHELL ?= /usr/bin/env bash
 
@@ -68,8 +68,8 @@ proof-batch: $$(addsuffix .proof.timestamp,$$(obligation_specs))
 %_pass_rough.k.proof.timestamp: %_pass_rough.k $(OBLIGATIONS)
 	time klab prove --dump $<
 	klab status $$(klab hash $<)
-	klab get-gas $$(klab hash $<) > $(GAS_DIR)/$(*F)_pass_rough.raw.kast.json
-	klab gas-analyser --input $(GAS_DIR)/$(*F)_pass_rough.raw.kast.json > $(GAS_DIR)/$(*F)_pass_rough.kast
+	klab get-gas $$(klab hash $<) > $(GAS_DIR)/$$(klab hash $<).raw.kast.json
+	klab gas-analyser --input $(GAS_DIR)/$$(klab hash $<).raw.kast.json > $(GAS_DIR)/$$(klab hash $<).kast
 
 %.k.proof.timestamp: %.k $(OBLIGATIONS)
 	time klab prove $<
