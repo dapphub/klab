@@ -16,7 +16,7 @@
       }
 
       .actstatus {
-        font-size: 0.6em;
+        font-size: 0.7em;
         margin-bottom: 4em;
       }
 
@@ -42,56 +42,58 @@
         text-align: justify;
       }
 
-      div.badge {
+
+      .double-val-label {
         display: inline-block;
-        border-radius: .75em;
         font-family: 'Dejavu Sans','Arial';
+        margin-right: 0.5em;
       }
-      div.badge div {
-        display: inline-block;
-        float: left;
-        text-transform: lowercase;
-        color: #FFF;
-        text-shadow: 0px .1em 0px rgba(0, 0, 0, 0.5);
-        margin: 0;
-        padding: 0;
-        border: 0;
+      .double-val-label > span {
+        background-color: #656565;
+        color: #ffffff;
+        display: table-cell;
+        font-size: 0.9em;
+        font-weight: 400;
+        line-height: 1;
+        padding: 0.3em 0.6em;
+        text-align: center;
+        vertical-align: baseline;
+        white-space: nowrap;
       }
-      div.badge div:first-child, div.badge div:first-child span {
-        border-top-left-radius: .25em;
-        border-bottom-left-radius: .25em;
+      .double-val-label > span:nth-child(2).inactive {
+        background-color: #dddddd;
+        color: #1c1c1c;
       }
-      div.badge div:last-child, div.badge div:last-child span {
-        border-top-right-radius: .25em;
-        border-bottom-right-radius: .25em;
+      .double-val-label > span:first-child {
+        border-bottom-left-radius: 0.25em;
+        border-top-left-radius: 0.25em;
       }
-      div.badge div span {
-        display: inline-block;
-        background: linear-gradient(180deg, rgba(187, 187, 187, .1) 0%, rgba(0, 0, 0, .1) 100%);
-        padding: .25em .5em;
-        box-sizing: border-box;
+      .double-val-label > span:nth-child(2) {
+        border-bottom-right-radius: 0.25em;
+        border-top-right-radius: 0.25em;
       }
-      .badge .name {
-        background: #555555;
+      .double-val-label > span.primary {
+        background-color: #337ab7;
       }
-      .badge .status.green {
-        background: #44cc11;
+      .double-val-label > span.success {
+        background-color: #5cb85c;
       }
-      .badge .status.yellow {
-        background: #ddcc00;
+      .double-val-label > span.success.inactive {
+        background-color: #6f976f;
       }
-      .badge .status.blue {
-        background: #00aadd;
+      .double-val-label > span.info {
+        background-color: #5bc0de;
       }
-      .badge .status.red {
-        background: #cc1100;
+      .double-val-label > span.warning {
+        background-color: #f0ad4e;
       }
-      .badge .status.gray {
-        background: #cccccc;
+      .double-val-label > span.danger {
+        background-color: #d9534f;
       }
+
       #coverage {
         width: 70%;
-        margin: 0 auto;
+        margin: 3em auto 5em;
       }
       #coverage .contract_coverage .status {
         float: right;
@@ -106,7 +108,7 @@
       #coverage .progress {
         width: calc(100% - 4px);
         height: 1em;
-        background-color: #95e14c;
+        background-color: #5cb85c;
         border-radius: 2px;
         margin: 2px;
         padding-right: 0px;

@@ -36,39 +36,39 @@ const rules         = marked
 const tokens        = marked.lexer(raw_md_config)
 // const act2specs     = Object.keys(out)
 //   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
-const badge = (name, status) => `<div class="badge">
-  <div class="name">
-    <span>
-      ${name}
-    </span>
-  </div>
-  <div class="status ${status == "pass" ? "green" : (status == "????" ? "yellow" : "red") }">
-    <span>
-      ${status}
-    </span>
-  </div>
+const badge = (name, status) => `<div class="double-val-label">
+  <span class="${status == "pass" ? "success" : (status == "????" ? "warning" : "danger") }">
+    ${status}
+  </span>
+  <span>
+    ${name}
+  </span>
 </div>`
 
 const getCases = act => [ {
     act: {...act},
     name: __a2n(act) + "_pass_rough",
+    suffix: 'pass_rough',
     pass: true,
     oog: false
   }, {
     act: {...act},
     name: __a2n(act) + "_pass",
+    suffix: 'pass',
     pass: true,
     oog: false
   }, {
     act: {...act},
     name: __a2n(act) + "_pass_oog",
+    suffix: 'pass_oog',
     pass: true,
     oog: true
   }].concat("iff" in act ? [{
     act: {...act},
     pass: false,
     oog: false,
-    name: __a2n(act) + "_fail"
+    name: __a2n(act) + "_fail",
+    suffix: 'fail'
   }] : [] )
 
 const mapCaseStatus = cases => cases
@@ -102,7 +102,10 @@ const getBadges = act => {
     //   || {status: "???"}
     // )
   let links = cases
-    .map((c, i) => `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.name, status[i].status)}</a>`)
+    .map((c, i) => c.suffix === 'pass_oog'
+      ? badge(c.suffix, status[i].status)
+      : `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.suffix, status[i].status)}</a>`
+    )
     .join("\n")
   return {
     type: "html",
