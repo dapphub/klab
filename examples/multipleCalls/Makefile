@@ -11,9 +11,7 @@ bold:=$(shell tput bold)
 reset:=$(shell tput sgr0)
 
 KLAB_OUT ?= $(CURDIR)/out
-TMPDIR ?= $(CURDIR)/tmp
 export KLAB_OUT
-export TMPDIR
 OBLIGATIONS = $(KLAB_OUT)/obligations.batch
 BATCH_TIMESTAMP = $(KLAB_OUT)/batch.timestamp
 SPEC_DIR = $(KLAB_OUT)/specs

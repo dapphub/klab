@@ -22,6 +22,5 @@ stdenv.mkDerivation {
   shellHook = ''
     export PATH=$PWD/node_modules/.bin/:$PWD/bin:$PATH
     export KLAB_EVMS_PATH=$PWD/evm-semantics
-    export TMPDIR=/tmp/
   '';
 }

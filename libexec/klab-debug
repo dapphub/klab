@@ -28,7 +28,7 @@ const {
 } = require("../lib/util.js");
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
-const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
+const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const usage = `
 Usage:

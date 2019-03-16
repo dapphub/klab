@@ -17,7 +17,7 @@ reset:=$(shell tput sgr0)
 default: deps
 
 clean:
-	rm -fdR out/* evm-semantics $(TMPDIR)/klab
+	rm -fdR out/* evm-semantics
 	git submodule sync --recursive
 	git submodule update --init -- evm-semantics
 
