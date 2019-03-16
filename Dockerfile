@@ -19,5 +19,4 @@ RUN make deps
 
 # env setup
 ENV KLAB_EVMS_PATH=/klab/evm-semantics
-ENV TMPDIR=/tmp
 RUN make link
