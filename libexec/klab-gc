@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [[ $1 == --all ]]; then
+  rm -fdR out/data
+else
+  comm -2 -3 <(ls out/data|sed 's/\(\.log\|\_blobs\)//'|uniq) <(awk 1 out/meta/name/*|sort)|xargs -I {} rm -fdR out/data/{}
+  comm -2 -3 <(ls out/meta/data) <(awk 1 out/meta/name/*|sort)|xargs -I {} rm -fdR out/meta/data/{}
+fi
+
+
+
