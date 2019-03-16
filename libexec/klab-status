@@ -12,8 +12,8 @@ const {
 const { genBehaviour } = require("../lib/behavior.js");
 const format = require("../lib/format.js")
 
-const KLAB_WD_PATH = path.join(process.env.TMPDIR, "klab");
-const KLAB_OUT     = process.env.KLAB_OUT || "out";
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const {
   prune_edges,

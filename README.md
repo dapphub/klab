@@ -82,7 +82,6 @@ It sets three environment variables:
 
 -   `PATH`: include the `klab` executable.
 -   `KLAB_EVMS_PATH`: the EVM semantics to use.
--   `TMPDIR`: temporary directory for KLab proof cacheing.
 
 **OPTIONAL**: If you want to use a different version of K than what the KEVM ships with, you can set:
 
