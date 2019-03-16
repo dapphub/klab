@@ -24,8 +24,7 @@ const {
   testPath,
   revert,
   warn,
-  read,
-  sha3
+  read
 } = require("../lib/util.js");
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
