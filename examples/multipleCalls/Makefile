@@ -16,6 +16,7 @@ OBLIGATIONS = $(KLAB_OUT)/obligations.batch
 BATCH_TIMESTAMP = $(KLAB_OUT)/batch.timestamp
 SPEC_DIR = $(KLAB_OUT)/specs
 GAS_DIR = $(KLAB_OUT)/gas
+RUNNING_DIR = $(KLAB_OUT)/meta/running
 
 ifndef KLAB_EVMS_PATH
 $(error $(red)Error$(reset): KLAB_EVMS_PATH must be defined and point to evm-semantics!)
@@ -36,6 +37,7 @@ endif
 
 all: $(OBLIGATIONS)
 	mkdir -p $(GAS_DIR)
+	mkdir -p $(RUNNING_DIR)
 	@ count=1; \
 	while [ -s  $(OBLIGATIONS) ]; do \
 		if [ $$count -gt $(BATCH_LIMIT) ]; then \
@@ -65,10 +67,18 @@ proof-batch: $$(addsuffix .proof.timestamp,$$(obligation_specs))
 	klab build
 
 %_pass_rough.k.proof.timestamp: %_pass_rough.k $(OBLIGATIONS)
+	touch $(RUNNING_DIR)/$$(klab hash $<)
+	klab report
 	time klab prove --dump $<
+	rm $(RUNNING_DIR)/$$(klab hash $<)
+	klab report
 	klab status $$(klab hash $<)
 	klab get-gas $$(klab hash $<) > $(GAS_DIR)/$$(klab hash $<).raw.kast.json
 	klab gas-analyser --input $(GAS_DIR)/$$(klab hash $<).raw.kast.json > $(GAS_DIR)/$$(klab hash $<).kast
 
 %.k.proof.timestamp: %.k $(OBLIGATIONS)
+	touch $(RUNNING_DIR)/$$(klab hash $<)
+	klab report
 	time klab prove $<
+	rm $(RUNNING_DIR)/$$(klab hash $<)
+	klab report
