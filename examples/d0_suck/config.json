@@ -1,4 +1,5 @@
 {
+  "name": "d0_suck",
   "src": {
     "specification": "src/specification.act.md",
     "smt_prelude": "src/prelude.smt2.md",
