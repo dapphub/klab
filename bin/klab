@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-PATH=${0%/*/*}/libexec:$PATH "${0##*/}-${1-help}" "${@:2}"
+"${0%/*}/../libexec/${0##*/}-${1-help}" "${@:2}"
