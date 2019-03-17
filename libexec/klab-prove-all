@@ -8,7 +8,6 @@ yellow=$(tput setaf 3)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
-
 if [ -z "$KLAB_OUT" ]; then
     echo "KLAB_OUT not set, defaulting to ./out/"
     export KLAB_OUT=out
@@ -19,13 +18,20 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
     exit 1
 fi
 
-
 export GAS_DIR=$KLAB_OUT/gas
 export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
 export THREADS=2
 
+report () {
+  echo "report moved to $KLAB_REPORT_DIR"
+  klab report
+  if [ ! -z "KLAB_REPORT_DIR" ]; then
+    cp $KLAB_OUT/report/index.html $KLAB_REPORT_DIR
+  fi;
+}
+export -f report
 
 # perform a single prove
 do_prove () {
@@ -37,7 +43,7 @@ do_prove () {
   if [[ $name =~ .*_pass_rough$ ]]; then
     # report run
     touch $RUNNING_DIR/$hash
-    klab report
+    report
     # do the actual proof
     time klab prove --dump $KLAB_OUT/specs/$name.k
     result=$?
@@ -45,11 +51,14 @@ do_prove () {
     rm $RUNNING_DIR/$hash
     # catch SIGINT
     if [ "$result" == "130" ]; then exit $result; fi
-    klab report
+    report
     # log status
     klab status $hash
     # generate and upload bundle to proof.dapp.ci
     klab bundle --prune --evm $hash
+    if [ ! -z "$KLAB_WEBPROOF_DIR" ]; then
+      mv $KLAB_OUT/log/boot_${hash}.json $KLAB_WEBPROOF_DIR
+    fi;
     # TODO - send to server: out/log/boot_$$(klab hash $<).json
     # analyze gas
     klab get-gas $hash > $GAS_DIR/${hash}.raw.kast.json
