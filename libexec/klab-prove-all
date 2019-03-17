@@ -66,12 +66,12 @@ do_prove () {
   else
     # report run
     touch $RUNNING_DIR/$hash
-    klab report
+    report
     # do the actual proof
     time klab prove $KLAB_OUT/specs/$name.k
     #report finish
     rm $RUNNING_DIR/$hash
-    klab report
+    report
   fi;
 }
 export -f do_prove
