@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# set -x
+set -e
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+yellow=$(tput setaf 3)
+bold=$(tput bold)
+reset=$(tput sgr0)
+
+
+if [ -z "$KLAB_OUT" ]; then
+    echo "KLAB_OUT not set, defaulting to ./out/"
+    export KLAB_OUT=out
+fi
+
+if [ -z "$KLAB_EVMS_PATH" ]; then
+    echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
+    exit 1
+fi
+
+
+export GAS_DIR=$KLAB_OUT/gas
+export RUNNING_DIR=$KLAB_OUT/meta/running
+export OBLIGATIONS=$KLAB_OUT/obligations.batch
+export BATCH_LIMIT=6
+export THREADS=2
+
+
+# perform a single prove
+do_prove () {
+  # get the proof hash
+  hash=$(klab hash $1)
+  # remember the name - first argument
+  name=$1
+  # if pass_rough then dump and do some reporting/gas work
+  if [[ $name =~ .*_pass_rough$ ]]; then
+    # report run
+    touch $RUNNING_DIR/$hash
+    klab report
+    # do the actual proof
+    time klab prove --dump $KLAB_OUT/specs/$name.k
+    result=$?
+    # report finish
+    rm $RUNNING_DIR/$hash
+    # catch SIGINT
+    if [ "$result" == "130" ]; then exit $result; fi
+    klab report
+    # log status
+    klab status $hash
+    # generate and upload bundle to proof.dapp.ci
+    klab bundle --prune --evm $hash
+    # TODO - send to server: out/log/boot_$$(klab hash $<).json
+    # analyze gas
+    klab get-gas $hash > $GAS_DIR/${hash}.raw.kast.json
+    klab gas-analyser --input $GAS_DIR/${hash}.raw.kast.json > $GAS_DIR/${hash}.kast
+  else
+    # report run
+    touch $RUNNING_DIR/$hash
+    klab report
+    # do the actual proof
+    time klab prove $KLAB_OUT/specs/$name.k
+    #report finish
+    rm $RUNNING_DIR/$hash
+    klab report
+  fi;
+}
+export -f do_prove
+
+make_batch () {
+  # klab build
+  cat $OBLIGATIONS |xargs -P $THREADS -I % bash -c 'do_prove %'
+  klab build
+}
+
+klab build
+mkdir -p $GAS_DIR
+mkdir -p $RUNNING_DIR
+count=1;
+while [ -s $OBLIGATIONS ]; do
+  if [ $count -gt $BATCH_LIMIT ]; then
+    echo "$red Exceeded batch limit, terminating!";
+    exit 1;
+  fi;
+  echo "${bold}STARTING$reset proof batch $count." ;
+  make_batch || exit 1 ;
+  count=$((count+1));
+done;
+echo "${bold}COMPLETE$reset: no outstanding proof obligations."
+klab gc --all
