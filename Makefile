@@ -18,6 +18,7 @@ default: deps
 
 clean:
 	rm -fdR out/* evm-semantics
+	git submodule sync --recursive
 	git submodule update --init -- evm-semantics
 
 deps: deps-kevm deps-npm
