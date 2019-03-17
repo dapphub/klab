@@ -73,6 +73,12 @@ Object.keys(rule_debug)
     })
   )
 
+const status = testPath(path.join(KLAB_OUT, 'pass', proofid)) && 'pass'
+    || (testPath(path.join(KLAB_OUT, 'fail', proofid)) && 'fail')
+    || (testPath(path.join(KLAB_OUT, 'meta', 'running', proofid)) && 'running')
+    || 'unknown'
+
+
 // preload constraints and rules
 const rule_blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey].map(e => e.rule)
@@ -105,6 +111,7 @@ const state = {
   steps: steps_,
   nodes: blobs_data,
   rules: rules_data,
+  status,
   path: [{
     "type": "step",
     "count": 0,
