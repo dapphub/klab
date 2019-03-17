@@ -63,7 +63,7 @@ test-with-gas: $(examples:=.example-with-gas)
 
 %.example-with-gas:
 	$(info Moving to example: $*)
-	@ $(MAKE) -C $* && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
+	@ cd $* && klab prove-all && echo "$(green)$(bold)CHECKED$(reset) example: $* (with full gas analysis))"
 
 test: test-with-gas
 

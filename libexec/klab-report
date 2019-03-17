@@ -139,7 +139,7 @@ const cleanupCode = act_obj => {
           let rewrites = act_obj.storage[subjectName][key];
           const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act_obj.subject : subjectName}.${key}`
           const def = getStorageDef(key_);
-          if(!def) {
+          if(!def && false) {
             warn(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
           }
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
