@@ -37,7 +37,7 @@ const tokens        = marked.lexer(raw_md_config)
 // const act2specs     = Object.keys(out)
 //   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
 const badge = (name, status) => `<div class="double-val-label">
-  <span class="${status == "pass" ? "success" : (status == "????" ? "warning" : "danger") }">
+  <span class="${status}">
     ${status}
   </span>
   <span>
@@ -78,10 +78,13 @@ const mapCaseStatus = cases => cases
     let status = proofid
       && testPath(path.join(KLAB_OUT, `pass`, proofid))
       && `pass`
-      || proofid
+      || (proofid
         && testPath(path.join(KLAB_OUT, `fail`, proofid))
-        && `fail`
-      || `????`
+        && `fail`)
+      || (proofid
+        && testPath(path.join(KLAB_OUT, `meta`, `running`, proofid))
+        && `running`)
+      || `queue`
       ;
     return {
       proofid,
@@ -237,7 +240,8 @@ const genCoverageReport = (pt) => {
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
         .map(sig => ({
           sig,
-          status: proofs[contract_name + '.' + sig]
+          status: proofs[contract_name + '.' + sig] || 0,
+          msg: !proofs[contract_name + '.' +sig] ? 'noimpl' : 'ok'
         }))
       const contract_coverage = abi_functions
         .map(f => f.status)
@@ -253,25 +257,30 @@ const genCoverageReport = (pt) => {
     .map(cc => {
       const abi_list = cc
         .abi_functions
-        .map(o => `<li>
-        <span class="sig">${o.sig}</span>
-        <div class="status">
-          <div class="progress" style="width: calc(${o.status*100}% - 4px)"></div>
-          <span class="text">
-            ${Math.floor(o.status * 100)} %
-          </span>
-        </div>
-        </li>`)
+        .map(o => `<tr>
+        <td class="sig">${o.sig}</td>
+        <td>
+          ${o.msg}
+        </td>
+        <td class="status">
+          <div class="status">
+            <div class="progress" style="width: calc(${o.status*100}% - 4px)"></div>
+            <span class="text">
+              ${Math.floor(o.status * 100)} %
+            </span>
+          </div>
+        </td>
+        </tr>`)
         .join('\n')
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
-        <div class="status">
+        <div class="contractstatus">
           <div class="progress" style="width: calc(${cc.coverage * 100}% - 4px)"></div>
           <span class="text">
             ${Math.floor(cc.coverage * 100)} %
           </span>
         </div>
-        <ul class="abi">${abi_list}</ul>
+        <table class="abi">${abi_list}</table>
         </li>`
     })
 

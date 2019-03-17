@@ -72,30 +72,58 @@
         border-bottom-right-radius: 0.25em;
         border-top-right-radius: 0.25em;
       }
-      .double-val-label > span.primary {
+      .double-val-label > span.running {
         background-color: #337ab7;
       }
-      .double-val-label > span.success {
+      .double-val-label > span.pass {
         background-color: #5cb85c;
       }
-      .double-val-label > span.success.inactive {
+      .double-val-label > span.pass.inactive {
         background-color: #6f976f;
       }
-      .double-val-label > span.info {
+      .double-val-label > span.queue {
         background-color: #5bc0de;
       }
-      .double-val-label > span.warning {
+      .double-val-label > span.warn {
         background-color: #f0ad4e;
       }
-      .double-val-label > span.danger {
+      .double-val-label > span.fail {
         background-color: #d9534f;
+      }
+
+
+      table.abi {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.5em 0px;
+      }
+      table.abi td.status {
+        width: 30%;
+      }
+      table.abi td.status div.status {
+        background: #1c1c1c;
+        border-radius: 4px;
+        text-align: right;
+        color: #ccc;
+        line-height: 10px;
+      }
+      table.abi td.status .progress {
+        display: inline-block;
+      }
+      table.abi .status .text {
+        position: absolute;
+        padding-left: 5px;
+        padding-top: 6px;
+        color: #1c1c1c;
+        width: 100px;
+        text-align: left;
       }
 
       #coverage {
         width: 70%;
         margin: 3em auto 5em;
       }
-      #coverage .contract_coverage .status {
+      #coverage .contract_coverage .contractstatus {
         float: right;
         display: inline-block;
         width: 30%;
@@ -106,14 +134,13 @@
         position: relative;
       }
       #coverage .progress {
-        width: calc(100% - 4px);
         height: 1em;
         background-color: #5cb85c;
         border-radius: 2px;
         margin: 2px;
         padding-right: 0px;
       }
-      #coverage .status .text {
+      #coverage .contractstatus .text {
         position: absolute;
         top: 0px;
         padding-left: 5px;
