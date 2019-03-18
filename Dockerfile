@@ -1,22 +1,21 @@
-FROM ubuntu
+FROM lnl7/nix:2.2
 
-# Install KEVM dependencies
-RUN apt-get update && apt-get -y upgrade
-RUN apt-get -y install build-essential
-RUN apt-get -y install git make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev
-RUN apt-get -y install z3 libz3-dev
-RUN apt-get -y install tmux
+RUN nix-channel --add https://nixos.org/channels/nixos-19.03 nixpkgs
+RUN nix-channel --update
 
-# Install latest node and npm
-RUN apt-get -y install curl gnupg
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
-RUN apt-get -y install nodejs
+WORKDIR /klab
+
+# install nix deps
+COPY shell.nix /klab/shell.nix
+RUN nix-shell /klab/shell.nix --command ""
+
+# download maven artifacts
+COPY evm-semantics/.build/k/pom.xml /klab/pom.xml
+RUN nix-shell /klab/shell.nix --command "mvn verify --fail-never"
 
 # build source
-WORKDIR klab
-RUN git clone https://github.com/dapphub/klab /klab
-RUN make deps
+COPY . .
+RUN nix-shell /klab/shell.nix --command "make deps"
+RUN nix-shell /klab/shell.nix --command "make haskell-deps"
 
-# env setup
-ENV KLAB_EVMS_PATH=/klab/evm-semantics
-RUN make link
+CMD nix-shell /klab/shell.nix
