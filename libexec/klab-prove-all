@@ -30,9 +30,9 @@ if [ ! -z "$KLAB_REPORT_DIR" ]; then
 fi;
 
 report () {
-  echo "report moved to $KLAB_REPORT_DIR/$PNAME"
   klab report
-  if [ ! -z "KLAB_REPORT_DIR" ]; then
+  if [ ! -z "$KLAB_REPORT_DIR" ]; then
+    echo "report moved to $KLAB_REPORT_DIR/$PNAME"
     cp $KLAB_OUT/report/index.html $KLAB_REPORT_DIR/$PNAME
   fi;
 }
@@ -56,6 +56,7 @@ do_prove () {
     rm $RUNNING_DIR/$hash
     # catch SIGINT
     if [ "$result" == "130" ]; then exit $result; fi
+    echo $result
     report
     # log status
     klab status $hash
@@ -83,8 +84,10 @@ export -f do_prove
 
 make_batch () {
   # klab build
-  cat $OBLIGATIONS |xargs -P $THREADS -I % bash -c 'do_prove %'
-  klab build
+    cat $OBLIGATIONS |xargs -P $THREADS -I % sh -c 'do_prove %'
+    result=$?
+    if [ $result == "130" ]; then exit $result; fi;
+    klab build
 }
 
 klab build
