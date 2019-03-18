@@ -10,6 +10,7 @@ stdenv.mkDerivation {
     gnumake
     maven
     mpfr
+    ncurses
     nodejs
     opam
     openjdk8
