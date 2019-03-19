@@ -26,7 +26,9 @@ export THREADS=2
 
 if [ ! -z "$KLAB_REPORT_DIR" ]; then
   export PNAME=$(cat config.json|jq -r '.name')
-  mkdir $KLAB_REPORT_DIR/$PNAME
+  if [ ! -d "$KLAB_REPORT_DIR/$PNAME" ]; then
+     mkdir $KLAB_REPORT_DIR/$PNAME
+  fi;
 fi;
 
 report () {
