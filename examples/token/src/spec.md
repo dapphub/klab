@@ -2,11 +2,6 @@
 behaviour transfer of Token
 interface transfer(address To, uint Value)
 
-types
-
-    FromBal : uint256
-    ToBal   : uint256
-
 storage
 
     #Token.balances[CALLER_ID] |-> FromBal => FromBal - Value

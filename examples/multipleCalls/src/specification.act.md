@@ -5,7 +5,6 @@ interface raiseTemp(uint256 x)
 types
 
   CALLEE      : address Callee
-  Temperature : uint256
 
 storage
 
@@ -32,10 +31,6 @@ calls
 ```act
 behaviour tempDelta of Callee
 interface tempDelta(uint256 x)
-
-types
-
-  Temperature : uint256
 
 storage
 
