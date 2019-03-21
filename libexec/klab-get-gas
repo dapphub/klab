@@ -9,7 +9,6 @@ const {
   read,
   ensureDir
 } = require("../lib/util.js");
-const { genBehaviour } = require("../lib/behavior.js");
 const getGasExpr = require('../lib/gas.js');
 const { deltaCC } = require("../lib/constraints.js")
 const kast = require("../lib/kast.js")
