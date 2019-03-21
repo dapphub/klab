@@ -22,7 +22,7 @@ export GAS_DIR=$KLAB_OUT/gas
 export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
-export THREADS=2
+export THREADS=${THREADS:-2}
 
 if [ ! -z "$KLAB_REPORT_DIR" ]; then
   export PNAME=$(cat config.json|jq -r '.name')
