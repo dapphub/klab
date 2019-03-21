@@ -32,14 +32,18 @@ const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const usage = `
 Usage:
-  klab inspect [options] <hash>
+  klab debug [options] <hash>
+
+Options:
+  --filter-oog
 `
 
 const cmd = docopt(usage, {
-  argv: ["inspect"].concat(process.argv.slice(2))
+  argv: ["debug"].concat(process.argv.slice(2))
 });
 
 const proofid = cmd['<hash>'];
+const FILTER_OOG = cmd['--filter-oog'];
 
 const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);
 const finished_ = finished
@@ -94,7 +98,22 @@ const constraint_blobs = Object.keys(Object.keys(pruned_edges)
   .reduce((a, es) => a.concat(es), [])
   .reduce((a, blob) => {a[blob] = true; return a;}, debug_constraints))
 
-const blobs_data = constraint_blobs
+
+const E = pruned_edges;
+const traverse = (firstNode) => {
+  var c = firstNode;
+  while(c in E && E[c].length == 1) {
+    c = E[c][0].to;
+  }
+  let b = "";
+  return (!(c in E) || E[c].length == 0)
+    && [c.split('_')[0]]
+    || E[c]
+      .map(step => traverse(step.to))
+      .reduce((a, e) => a.concat(e), [])
+}
+
+const blobs_data = constraint_blobs.concat(traverse(initt))
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
   .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
@@ -156,7 +175,8 @@ const config = {
     "up"     : "scroll_up",
     "down"   : "scroll_down"
   },
-  proofid
+  proofid,
+  FILTER_OOG
 };
 
 const CLIDriver = makeCliDriver({
