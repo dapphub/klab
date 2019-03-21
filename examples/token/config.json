@@ -1,5 +1,4 @@
 {
-  "name": "token",
   "src": {
     "specification": "src/spec.md",
     "smt_prelude": "src/prelude.smt2.md",

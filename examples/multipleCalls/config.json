@@ -1,5 +1,4 @@
 {
-  "name": "multipleCalls",
   "src": {
     "smt_prelude":   "src/prelude.smt2.md",
     "specification": "src/specification.act.md",
