@@ -120,6 +120,11 @@ Once the proof is complete, we can explore the generated symbolic execution trac
 klab debug <hash>
 ```
 
+The output might be somewhat hard to use, due to the massive amount of branches related to gas, you can filter out gas related branches:
+```sh
+klab debug --filter-oog $(klab hash out/specs/SafeAdd_add_pass_rough.k
+```
+
 ### Key Bindings
 
 Toggle different views by pressing any of the following keys:
