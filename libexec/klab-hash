@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-
+const fs            = require("fs");
 const {docopt}      = require("docopt");
 const path          = require('path');
 const {
   testPath,
-  read
+  read,
+  warn
 } = require("../lib/util.js");
 
 const KLAB_OUT     = process.env.KLAB_OUT || "out";
@@ -23,6 +24,8 @@ const name = path.basename(spec, '.k');
 
 const hash_path = path.join(KLAB_OUT, 'meta', 'name', name);
 
-if(!testPath(hash_path)) process.exit(1);
-
+if(!testPath(hash_path)) {
+  fs.writeFileSync(hash_path, name);
+  warn(`No hash found, writing debug output under ${name}`);
+}
 process.stdout.write(read(hash_path))
