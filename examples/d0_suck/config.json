@@ -11,7 +11,6 @@
       "solc_output": "dapp/out/D0.sol.json"
     }
   },
-  "dapp_root": "dapp",
-  "host": "127.0.0.1:8080"
+  "dapp_root": "dapp"
 }
 
