@@ -5,7 +5,7 @@ export KLAB_EVMS_PATH
 
 LIBEXEC_DIR=$(CURDIR)/libexec
 HASKELL_DIR=$(CURDIR)/haskell
-GAS_SOLVER=$(HASKELL_DIR)/result/bin/k-gas-analyser
+GAS_SOLVER=$(HASKELL_DIR)/k-gas-analyser/result/bin/k-gas-analyser
 
 # shell output colouring:
 red:=$(shell tput setaf 1)
@@ -32,8 +32,10 @@ deps-kevm:
 deps-npm:
 	npm install
 
-deps-haskell:
-	cd haskell/ && make
+deps-haskell: k-gas-analyser
+
+k-gas-analyser:
+	cd haskell/k-gas-analyser && make
 	ln -sf $(GAS_SOLVER) $(LIBEXEC_DIR)/klab-gas-analyser
 
 media: media/introduction.pdf
