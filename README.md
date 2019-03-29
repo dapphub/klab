@@ -2,16 +2,10 @@ KLab
 ====
 **NOTE:** This software is still in the early stages of development. If you are confused, find some bugs, or just want some help, please file an issue or come talk to us at <https://dapphub.chat/channel/k-framework>.
 
-Klab is a tool for generating and debugging K-framework reachability proofs, tailored for formal verification of ethereum smart contracts.
+Klab is a tool for generating and debugging proofs in the [K Framework](http://www.kframework.org/index.php/Main_Page), tailored for the formal verification of ethereum smart contracts. It includes a succinct [specification language](acts.md) for expressing the behavior of ethereum contracts, and an interactive debugger.
 
-It uses a custom, compact format for expressing the behavior of an ethereum contract, from which it generates K framework reachability rules. The klab server invokes the K framework prover while storing intermediate proof steps, allowing the proof object to be explored in an interactive way.
-
-KLab uses a client-server architecture, meaning that you'll need to have both a KLab server and a KLab client running.
-The server will recieve proof requests and dispatch them to K frameworks proving tool, while the client builds and explores proofs.
-Ask at <https://dapphub.chat/channel/k-framework> for access to a KLab server if you do not want to setup your own.
-
-Setting up KLab Server and Client
----------------------------------
+Installation
+------------
 
 One option is to use Docker:
 
@@ -22,6 +16,7 @@ docker run -it dapphub/klab
 [See below](#docker) for details on using Docker.
 
 ### Dependencies
+
 Installing klab automatically installs `K` and `KEVM`. You will therefore need the dependencies of K.
 
 To install all of these dependencies on Ubuntu, try:
@@ -44,13 +39,22 @@ brew cask install caskroom/versions/java8
 brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
 ```
 
-### Installing
-Clone the repo and install the latest stable version `v0.2.3` with
+### Building
+
+Clone the repo and install the latest stable version `v0.2.4` with
 ```sh
-git clone --branch v0.2.3 https://github.com/dapphub/klab.git
+git clone --branch v0.2.4 https://github.com/dapphub/klab.git
 cd klab
 make deps
 ```
+
+**OPTIONAL**: `klab` has some optional Haskell components, for which the recommended installation method is [nix](https://nixos.org/nix/). If you have `nix`, you can install the Haskell components with
+
+```sh
+make deps-haskell
+```
+
+### Environment Setup
 
 To make klab available from the terminal, you can either just export the path to the `klab` executable in `bin/`, or use:
 
@@ -63,15 +67,6 @@ This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (wi
 ```sh
 PREFIX=/path/to/custom/prefix make link
 ```
-
-*OPTIONAL*: `klab` has some optional Haskell components, for which the recommended installation method is [nix](https://nixos.org/nix/). If you have `nix`, you can install the Haskell components with
-
-```sh
-make deps-haskell
-```
-
-### Environment Setup
-
 The file `env` will setup the environment for you if sourced from the root directory of the repo.
 
 ```sh
@@ -87,29 +82,42 @@ It sets three environment variables:
 
 -   `KLAB_K_PATH`: override implementation of K.
 
-### Building proofs
+**OPTIONAL**: You might also want to add the K tool binaries in `evm-semantics/.build/k/k-distribution/bin` to your `$PATH`, if you didn't already have K installed.
 
-The KLab client is run in a proof directory, and will request that the KLab server execute the proof. Proof claims are expressed in a custom, succint [specification language](acts.md), from which K reachability rules are generated using `klab build`. In order to generate reachability claims, you need to provide a `.sol.json` generated from the contract you want to verify. With [solc](https://solidity.readthedocs.io/en/latest/installing-solidity.html) installed, you can generate this file by running
+Usage
+-----
+
+To see how klab is used, we can explore the project in `examples/SafeAdd`:
 ```sh
-solc --combined-json=abi,bin,bin-runtime,srcmap,srcmap-runtime,ast <path-to-contract> > <path-to-output>
+cd examples/SafeAdd/
 ```
-You need to tell `klab` where to find the `sol.json` file by specifying it under the `implementations` header in your projects `config.json`. Consult the [examples](examples) for more information. With your config pointing to the outputted evm binaries, you can run `klab build` in the same direcory:
+
+### Specification
+
+The file `config.json` tells klab where to look for both the specification and the implementation of our contract. In this case, our specification lives in `src/`, and our implementation lives in `dapp/`.
+
+Note that this example includes `dapp/out/SafeAdd.sol.json` compiled from the solidity source. With [solc](https://solidity.readthedocs.io/en/latest/installing-solidity.html) installed, you can compile it yourself:
 ```sh
-cd examples/SafeAdd
+solc --combined-json=abi,bin,bin-runtime,srcmap,srcmap-runtime,ast dapp/src/SafeAdd.sol > dapp/out/SafeAdd.sol.json
+```
+
+### Proof
+
+Our goal is to prove that our implementation satisfies our specification. To do so, we'll start by building a set of K modules from our spec:
+```sh
 klab build
 ```
-This will generate a fail and success reachability rule for each `act` of your specification in the `SafeAdd/out/specs` directory.
+This will generate success and failure reachability rules for each `act` of our specification. We can find the results in the `out/specs` directory.
 
-### Running proofs
-
-To prove the specifications generated by `klab build`, run `klab prove`. If you want to explore this proof later with the GUI, you will need to pass a `--dump` flag.
+Now we're ready to prove each case, for example:
 ```sh
-klab prove --dump out/specs/SafeAdd_add_pass_rough.k
+klab prove --dump out/specs/SafeAdd_add_fail.k.
 ```
+The `--dump` flag outputs a log to `out/data/<hash>.log`, which will be needed later for interactive debugging. We can also do `klab prove-all` to prove all outstanding claims.
 
-Once the proof is complete, you can explore the generated symbolic execution trace using:
+Once the proof is complete, we can explore the generated symbolic execution trace using:
 ```sh
-klab debug $(klab hash out/specs/SafeAdd_add_pass_rough.k
+klab debug <hash>
 ```
 
 ### Key Bindings
