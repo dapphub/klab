@@ -1,7 +1,7 @@
 module Main where
 
 import Data.ByteString.Lazy.UTF8 (fromString)
-import Data.Aeson                (decode)
+import Data.Aeson                (eitherDecode)
 import System.Environment        (getArgs)
 import System.Exit               (exitWith,
                                   ExitCode(ExitSuccess),
@@ -68,10 +68,10 @@ main = do
   s    <- inputToString $ gasInput args
   let maxG = sufficientGas args
   -- parse JSON as GasExpr
-  let Just gaskast = (decode (fromString s)) :: Maybe Kast
-      g_parsed     = kastToGasExpr gaskast
-  case g_parsed of
-    Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
-    -- solve GasExpr, unparse, and print
-    Right g -> let solution = unparse $ (solve maxG) $ g
-      in (putStrLn solution) >> exit
+  case (eitherDecode (fromString s)) :: Either String Kast of
+    Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
+    Right gaskast -> case kastToGasExpr gaskast of
+      Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
+      -- solve GasExpr, unparse, and print
+      Right g -> let solution = unparse $ (solve maxG) $ g
+        in (putStrLn solution) >> exit
