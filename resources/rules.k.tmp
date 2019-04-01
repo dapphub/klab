@@ -361,9 +361,9 @@ rule keccakIntList(A) +Int B =/=K keccakIntList(A) +Int C => true
      requires B =/=Int C
 
 rule keccakIntList(A) +Int B ==K keccakIntList(C) +Int D => false
-     requires B =/=Int C
+     requires B =/=K C
 rule keccakIntList(A) +Int B =/=K keccakIntList(C) +Int D => true
-     requires B =/=Int C
+     requires B =/=K C
 
 
 rule keccakIntList(A) ==K keccakIntList(C) +Int B => false
