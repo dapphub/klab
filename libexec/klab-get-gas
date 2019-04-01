@@ -48,13 +48,12 @@ const traverse = (firstNode) => {
   while(c in E && E[c].length == 1) {
     c = E[c][0].to;
   }
-  let b = "";
   return (!(c in E) || E[c].length == 0)
     && kast.get(blob(c.split('_')[0]).term, "ethereum.evm.callState.gas")
     || if_else_fi([
-      deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1])),
+      deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1]))[0],
       traverse(E[c][0].to),
-      traverse(E[c][0].to)
+      traverse(E[c][1].to)
     ])
 }
 
