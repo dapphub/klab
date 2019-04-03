@@ -1,11 +1,10 @@
 #!/bin/sh
 
-if [ -f out/meta/$1 ]; then
-  echo "ERROR: proof with hash '$1' not found."
-  exit 1
+if [ -f out/meta/data/$1 ] ; then
+    spec_name=$(cat out/meta/data/$1 |jq -r '.name')
+else
+    spec_name=$1;
 fi
-
-spec_name=$(cat out/meta/data/$1 |jq -r '.name')
 
 zip -r out/log/$1.zip \
   out/{data,pass,fail,meta/data,gas}/$1* \
