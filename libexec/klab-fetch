@@ -1,0 +1,9 @@
+#!/bin/sh
+
+url=$1
+
+mkdir -p out/log
+wget -q $url -P out/log/
+unzip -qu "out/log/${url##*/}"
+# log the proof hash
+basename $url '.zip'

@@ -9,6 +9,10 @@ spec_name=$(cat out/meta/data/$1 |jq -r '.name')
 
 zip -r out/log/$1.zip \
   out/{data,pass,fail,meta/data,gas}/$1* \
-  out/specs/${spec_name}.k \
+  out/{specs,meta/name}/${spec_name}* \
+  out/prelude.smt2 \
+  out/rules.k \
+  config.json \
   >/dev/null
 
+echo "$spec_name zip created: out/log/$1.zip"
