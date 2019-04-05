@@ -11,7 +11,7 @@
     requires notBool #inKeys(M, K1)
 
     syntax Bool ::= #inKeys(Map, Int) [function]
-    
+
     rule #inKeys(.Map, KEY) => false
     rule #inKeys((M:Map K0 |-> V0), K1) => true
          requires K0 ==K K1
@@ -172,13 +172,18 @@ rule ACCTCODE in SetItem( 1 )
        andBool #sizeWordStack(WS) >=Int log256Int(D)
        andBool #noOverflow(WS)
 
+    // for Solidity >= 0.5.6
+    rule #asWord(WS) >>Int D => #asWord(#take(#sizeWordStack(WS) -Int (D /Int 8), WS))
+     requires D modInt 8 ==Int 0 andBool D >=Int 0
+       andBool #sizeWordStack(WS) >=Int (D /Int 8)
+       andBool #noOverflow(WS)
+    rule #sizeWordStack(#take(N, _)) => N
+    rule #sizeWordStack(#take(N, _), M) => N +Int M
+
     syntax Bool ::= #noOverflow    ( WordStack ) [function]
                   | #noOverflowAux ( WordStack ) [function]
  // -------------------------------------------------------
-    rule #noOverflow(WS) => #sizeWordStack(WS) <=Int 32 andBool #noOverflowAux(WS)
-
-    rule #noOverflowAux(W : WS)     => 0 <=Int W andBool W <Int 256 andBool #noOverflowAux(WS)
-    rule #noOverflowAux(.WordStack) => true
+    rule #noOverflow(WS) => #sizeWordStack(WS) <=Int 32
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
@@ -187,16 +192,6 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #asByteStackInWidthaux(X, I, N, WS) => #asByteStackInWidthaux(X, I -Int 1, N, nthbyteof(X, I, N) : WS) when I >Int 0
     rule #asByteStackInWidthaux(X, 0, N, WS) => nthbyteof(X, 0, N) : WS
-
-
-
-
-  rule #asWord(WS) >>Int ARG => #asWord(#padToWidth(32, WS[0 .. 32 -Int (ARG /Int 8)]))
-         requires #sizeWordStack(WS) ==Int 32
-         andBool ARG modInt 8 ==Int 0
-         andBool 0 <=Int ARG
-         andBool ARG <=Int 256
-
 
     rule 0 +Int N => N
     rule N +Int 0 => N
@@ -241,7 +236,7 @@ rule ACCTCODE in SetItem( 1 )
 
     rule (#if C #then B1 #else B2 #fi) >Int A => true
        requires B1 >Int A andBool B2 >Int A
-    
+
     rule (#if C #then B1 #else B2 #fi) >=Int A => true
        requires B1 >=Int A andBool B2 >=Int A
 
