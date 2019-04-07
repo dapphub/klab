@@ -50,7 +50,7 @@ do_proof () {
   if [[ $name =~ .*_pass_rough$ ]]; then
     # report run
     touch "$RUNNING_DIR/$hash"
-    report || exit 1
+    report
     # do the actual proof
     time klab prove --dump "$KLAB_OUT/specs/$name.k"
     result=$?
@@ -59,7 +59,7 @@ do_proof () {
     # catch SIGINT
     if [ "$result" == "130" ]; then exit $result; fi
     echo $result
-    report || exit 1
+    report
     # log status
     klab status "$hash"
     # generate and upload bundle to proof.dapp.ci
@@ -74,7 +74,7 @@ do_proof () {
   else
     # report run
     touch "$RUNNING_DIR/$hash"
-    report || exit 1
+    report
     # do the actual proof
     time klab prove "$KLAB_OUT/specs/$name.k"
     result=$?
@@ -82,7 +82,7 @@ do_proof () {
     echo $result
     #report finish
     rm "$RUNNING_DIR/$hash"
-    report || exit 1
+    report
   fi;
   exit $result
 }
