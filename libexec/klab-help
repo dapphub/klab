@@ -1,15 +1,28 @@
-#!/bin/sh
+#!/usr/bin/env bash
 echo "Commands:
-klab build [options] <spec>
-klab run [options] <spec>
+klab build [options]
+klab prove [--dump]       <spec>
+klab hash                 <spec>
+klab status               <hash>
+klab debug [options]      <hash>
+klab prove-all
+klab get-gas              <hash>
+klab gas-analyser --input <gas>
+klab bundle [options]     <hash>
 
 klab build options:
   --filter=<filter>
+  --trust
+  --no-oog              Don't generate OOG specs
 
-klab run options:
-  --force               No replay
-  --inspect=<id>
-  --clean
-  --name=<name>
-  --headless
+klab prove options:
+  --dump                State logging for debug
+
+klab debug options:
+  --filter-oog          Don't display OOG branches
+
+klab bundle options:
+  --prune
+  --evm
+  --rules
 "
