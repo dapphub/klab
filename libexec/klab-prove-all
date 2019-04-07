@@ -102,12 +102,12 @@ mkdir -p "$RUNNING_DIR"
 count=1;
 while [ -s "$OBLIGATIONS" ]; do
   if [ $count -gt "$BATCH_LIMIT" ]; then
-    echo "$red Exceeded batch limit, terminating!";
+    echo "${red} Exceeded batch limit, terminating!";
     exit 1;
   fi;
-  echo "${bold}STARTING$reset proof batch $count." ;
+  echo "${bold}STARTING${reset} proof batch $count." ;
   make_batch || exit 1 ;
   count=$((count+1));
 done;
-echo "${bold}COMPLETE$reset: no outstanding proof obligations."
+echo "${bold}COMPLETE${reset}: no outstanding proof obligations."
 klab gc --all
