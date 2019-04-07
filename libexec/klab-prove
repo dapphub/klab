@@ -30,6 +30,10 @@ fi
 
 spec_hash=$("${0%/*/*}/bin/klab" hash "$target_spec")
 
+if [ ! -z "$QUIET" ]; then
+    quietness="> $KLAB_OUT/log/$spec_hash.log 2> $KLAB_OUT/log/$spec_hash.err.log"
+fi
+
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"
     dump_notice="(with ${yellow}state logging${reset})"
@@ -51,7 +55,8 @@ K_OPTS=-Xmx10G \
       --boundary-cells k,pc \
       --smt_prelude $KLAB_OUT/prelude.smt2 \
       --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-      "$target_spec"
+      "$target_spec" \
+      $quietness
 result=$?
 } || echo "weird error"
 
