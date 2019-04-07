@@ -40,7 +40,7 @@ report () {
 }
 export -f report
 
-# perform a single proof
+# perform a single proof and exit
 do_proof () {
   # get the proof hash
   hash=$(klab hash "$1")
@@ -81,6 +81,7 @@ do_proof () {
     rm "$RUNNING_DIR/$hash"
     report
   fi;
+  exit $result
 }
 export -f do_proof
 
@@ -88,7 +89,7 @@ make_batch () {
   # klab build
     xargs -P "$THREADS" -I % sh -c 'do_proof %' < "$OBLIGATIONS"
     result=$?
-    if [ $result == "130" ]; then exit $result; fi;
+    if [ $result -ne "0" ]; then exit $result; fi;
     klab build
 }
 
