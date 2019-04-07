@@ -25,9 +25,9 @@ export BATCH_LIMIT=6
 export THREADS=${THREADS:-2}
 
 if [ ! -z "$KLAB_REPORT_DIR" ]; then
-  export PNAME=$(cat config.json|jq -r '.name')
+  export PNAME=$(jq -r '.name' < config.json)
   if [ ! -d "$KLAB_REPORT_DIR/$PNAME" ]; then
-     mkdir $KLAB_REPORT_DIR/$PNAME
+     mkdir "$KLAB_REPORT_DIR/$PNAME"
   fi;
 fi;
 
@@ -35,69 +35,69 @@ report () {
   klab report
   if [ ! -z "$KLAB_REPORT_DIR" ]; then
     echo "report moved to $KLAB_REPORT_DIR/$PNAME"
-    cp $KLAB_OUT/report/index.html $KLAB_REPORT_DIR/$PNAME
+    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME"
   fi;
 }
 export -f report
 
-# perform a single prove
-do_prove () {
+# perform a single proof
+do_proof () {
   # get the proof hash
-  hash=$(klab hash $1)
+  hash=$(klab hash "$1")
   # remember the name - first argument
   name=$1
   # if pass_rough then dump and do some reporting/gas work
   if [[ $name =~ .*_pass_rough$ ]]; then
     # report run
-    touch $RUNNING_DIR/$hash
+    touch "$RUNNING_DIR/$hash"
     report
     # do the actual proof
-    time klab prove --dump $KLAB_OUT/specs/$name.k
+    time klab prove --dump "$KLAB_OUT/specs/$name.k"
     result=$?
     # report finish
-    rm $RUNNING_DIR/$hash
+    rm "$RUNNING_DIR/$hash"
     # catch SIGINT
     if [ "$result" == "130" ]; then exit $result; fi
     echo $result
     report
     # log status
-    klab status $hash
+    klab status "$hash"
     # generate and upload bundle to proof.dapp.ci
-    klab bundle --prune --evm $hash
+    klab bundle --prune --evm "$hash"
     if [ ! -z "$KLAB_WEBPROOF_DIR" ]; then
-      mv $KLAB_OUT/log/boot_${hash}.json $KLAB_WEBPROOF_DIR
+      mv "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
     # TODO - send to server: out/log/boot_$$(klab hash $<).json
     # analyze gas
-    klab get-gas $hash > $GAS_DIR/${hash}.raw.kast.json
-    klab gas-analyser --input $GAS_DIR/${hash}.raw.kast.json > $GAS_DIR/${hash}.kast
+    klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
+    klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
   else
     # report run
-    touch $RUNNING_DIR/$hash
+    touch "$RUNNING_DIR/$hash"
     report
     # do the actual proof
-    time klab prove $KLAB_OUT/specs/$name.k
+    time klab prove "$KLAB_OUT/specs/$name.k"
     #report finish
-    rm $RUNNING_DIR/$hash
+    rm "$RUNNING_DIR/$hash"
     report
   fi;
 }
-export -f do_prove
+export -f do_proof
 
 make_batch () {
   # klab build
-    cat $OBLIGATIONS |xargs -P $THREADS -I % sh -c 'do_prove %'
+    xargs -P "$THREADS" -I % sh -c 'do_proof %' < "$OBLIGATIONS"
     result=$?
     if [ $result == "130" ]; then exit $result; fi;
     klab build
 }
 
 klab build
-mkdir -p $GAS_DIR
-mkdir -p $RUNNING_DIR
+mkdir -p "$GAS_DIR"
+mkdir -p "$RUNNING_DIR"
 count=1;
-while [ -s $OBLIGATIONS ]; do
-  if [ $count -gt $BATCH_LIMIT ]; then
+while [ -s "$OBLIGATIONS" ]; do
+  if [ $count -gt "$BATCH_LIMIT" ]; then
     echo "$red Exceeded batch limit, terminating!";
     exit 1;
   fi;

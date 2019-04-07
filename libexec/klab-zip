@@ -1,14 +1,14 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-if [ -f out/meta/data/$1 ] ; then
-    spec_name=$(cat out/meta/data/$1 |jq -r '.name')
+if [ -f "out/meta/data/$1" ] ; then
+    spec_name=$(jq -r '.name' < "out/meta/data/$1")
 else
-    spec_name=$1;
+    spec_name="$1";
 fi
 
-zip -r out/log/$1.zip \
-  out/{data,pass,fail,meta/data,gas}/$1* \
-  out/{specs,meta/name}/${spec_name}* \
+zip -r "out/log/$1.zip" \
+  "out/{data,pass,fail,meta/data,gas}/$1"* \
+  "out/{specs,meta/name}/${spec_name}"* \
   out/prelude.smt2 \
   out/rules.k \
   config.json \
