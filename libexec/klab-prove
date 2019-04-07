@@ -65,7 +65,7 @@ if [ "$result" == "0" ]; then
   mkdir -p "$KLAB_OUT/pass" && touch "$KLAB_OUT/pass/$spec_hash"
 else
   if [ "$result" == "130" ]; then
-    echo 'Caught ^C'
+    echo 'Caught SIGINT'
   else
     echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "$dump_notice"
     mkdir -p "$KLAB_OUT/fail" && touch "$KLAB_OUT/fail/$spec_hash"
