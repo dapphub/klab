@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+klab prove-all "$@"
