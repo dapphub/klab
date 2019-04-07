@@ -56,13 +56,13 @@ result=$?
 
 if [ "$result" == "0" ]; then
   echo "${green}Proof ${bold}ACCEPT${reset}:" "$(basename "$target_spec")" "$dump_notice"
-  mkdir -p $KLAB_OUT/pass && touch "$KLAB_OUT/pass/$spec_hash"
+  mkdir -p "$KLAB_OUT/pass" && touch "$KLAB_OUT/pass/$spec_hash"
 else
   if [ "$result" == "130" ]; then
-    echo 'catched'
+    echo 'Caught ^C'
   else
     echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "$dump_notice"
-    mkdir -p $KLAB_OUT/fail && touch "$KLAB_OUT/fail/$spec_hash"
+    mkdir -p "$KLAB_OUT/fail" && touch "$KLAB_OUT/fail/$spec_hash"
   fi;
 fi
 
