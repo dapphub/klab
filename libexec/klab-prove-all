@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# set -x
 set -e
 
 red=$(tput setaf 1)
@@ -9,13 +8,13 @@ bold=$(tput bold)
 reset=$(tput sgr0)
 
 if [ -z "$KLAB_OUT" ]; then
-    echo "KLAB_OUT not set, defaulting to ./out/"
-    export KLAB_OUT=out
+  echo "KLAB_OUT not set, defaulting to ./out/"
+  export KLAB_OUT=out
 fi
 
 if [ -z "$KLAB_EVMS_PATH" ]; then
-    echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
-    exit 1
+  echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
+  exit 1
 fi
 
 export GAS_DIR=$KLAB_OUT/gas
@@ -23,91 +22,116 @@ export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
 export THREADS=${THREADS:-2}
+PNAME=$(jq -r '.name' < config.json)
+export PNAME
 
 if [ ! -z "$KLAB_REPORT_DIR" ]; then
-  export PNAME=$(jq -r '.name' < config.json)
   if [ ! -d "$KLAB_REPORT_DIR/$PNAME" ]; then
-     mkdir "$KLAB_REPORT_DIR/$PNAME"
+    mkdir -p "$KLAB_REPORT_DIR/$PNAME"
   fi;
 fi;
 
 report () {
+  set -e
   klab report
-  if [ ! -z "$KLAB_REPORT_DIR" ]; then
-    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME" || exit 1
-    echo "report moved to $KLAB_REPORT_DIR/$PNAME"
+  if [ ! -z "$KLAB_REPORT_DIR" ] && [ ! -z "$PNAME" ]; then
+    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME"
+    if [ -d ".git" ]; then
+      commit_hash=$(git rev-parse HEAD)
+      cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME/${commit_hash}.html"
+    fi;
+    echo "Report exported to $KLAB_REPORT_DIR/$PNAME"
   fi;
 }
 export -f report
 
 # perform a single proof and exit
 do_proof () {
+  set -e
+  TIMER="/usr/bin/env time"
   # get the proof hash
   hash=$(klab hash "$1")
   # remember the name - first argument
   name=$1
-  # if pass_rough then dump and do some reporting/gas work
-  if [[ $name =~ .*_pass_rough$ ]]; then
-    # report run
-    touch "$RUNNING_DIR/$hash"
-    report
-    # do the actual proof
-    time klab prove --dump "$KLAB_OUT/specs/$name.k"
-    result=$?
-    # report finish
-    rm "$RUNNING_DIR/$hash"
-    # catch SIGINT
-    if [ "$result" == "130" ]; then exit $result; fi
-    echo $result
-    report
-    # log status
-    klab status "$hash"
-    # generate and upload bundle to proof.dapp.ci
-    klab bundle --prune --evm "$hash"
-    if [ ! -z "$KLAB_WEBPROOF_DIR" ]; then
+  # report run
+  touch "$RUNNING_DIR/$hash"
+  report
+  # run proof
+  export QUIET=$QUIET
+  set +e
+  if [[ ! $name =~ .*_pass_oog$ ]]; then
+    # --dump for all specs except OOG
+    PROVE_FLAGS="--dump"
+    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove "$KLAB_OUT/specs/$name.k"
+  fi;
+  $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
+  result=$?
+  set -e
+  # report finish
+  rm "$RUNNING_DIR/$hash"
+  report
+  if [ ! -z "$KLAB_WEBPROOF_DIR" ]; then
+    if [ $result -ne "0" ]; then
+      klab zip "$hash"
+      mv "$KLAB_OUT/log/${hash}.zip" "$KLAB_WEBPROOF_DIR"
+    else
+      # generate and upload bundle to proof.dapp.ci
+      klab bundle --prune --evm "$hash"
       mv "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
-    # TODO - send to server: out/log/boot_$$(klab hash $<).json
-    # analyze gas
+  fi;
+  if [[ $name =~ .*_pass_rough$ ]]; then
+    # gas analysis from the rough pass
     klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
     klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
-  else
-    # report run
-    touch "$RUNNING_DIR/$hash"
-    report
-    # do the actual proof
-    time klab prove "$KLAB_OUT/specs/$name.k"
-    result=$?
-    if [ "$result" == "130" ]; then exit $result; fi
-    echo $result
-    #report finish
-    rm "$RUNNING_DIR/$hash"
-    report
   fi;
   exit $result
 }
 export -f do_proof
 
 make_batch () {
-  # klab build
-    xargs -P "$THREADS" -I % sh -c 'do_proof %' < "$OBLIGATIONS"
-    result=$?
-    if [ $result -ne "0" ]; then exit $result; fi;
-    klab build
+  # timeout after 3 hrs
+  TIMEOUT=10800
+  parallel --timeout $TIMEOUT -uP "$THREADS" do_proof {} < "$OBLIGATIONS"
+  # previously used:
+  # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
+  result=$?
+  if [ $result -ge 255 ]; then
+    echo "Parallel finished with exceptional code:" "$result"
+    exit $result
+  else
+    klab build;
+    return $result
+  fi;
 }
 
 klab build
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
-count=1;
+mkdir -p "$KLAB_OUT/meta/time"
+count=1
+failures=0
 while [ -s "$OBLIGATIONS" ]; do
   if [ $count -gt "$BATCH_LIMIT" ]; then
-    echo "${red} Exceeded batch limit, terminating!";
-    exit 1;
+    echo "${red} Exceeded batch limit, terminating!"
+    exit 1
   fi;
-  echo "${bold}STARTING${reset} proof batch $count." ;
-  make_batch || exit 1 ;
-  count=$((count+1));
+  echo "${bold}STARTING${reset} proof batch $count."
+  set +e
+  make_batch
+  result=$?
+  set -e
+  # 255 means SIGINT, etc.
+  if [ $result -ge 255 ]; then exit 1; fi
+  # parallel exit code is number of failures
+  failures+=$result
+  count=$((count+1))
 done;
 echo "${bold}COMPLETE${reset}: no outstanding proof obligations."
 klab gc --all
+printf "Finished with %d failed proofs." $failures
+if [ $failures -ge 1 ]; then
+  exit 1
+else
+  exit 0
+fi;
