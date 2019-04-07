@@ -4,6 +4,7 @@
 
 const path          = require("path")
 const marked        = require("marked");
+const { execSync }  = require('child_process');
 const Config        = require("../lib/config.js");
 const {
   parseAct
@@ -20,8 +21,25 @@ const {
 const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
 const {getStorageDef} = require("../lib/storage.js");
-const config_json   = JSON.parse(read("./config.json"));
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH || path.join(__dirname, '..', 'evm-semantics');
+const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
+  cwd: KLAB_EVMS_PATH,
+  encoding: 'utf8'
+});
+const klab_HEAD     = execSync(`git rev-parse HEAD`, {
+  cwd: path.join(__dirname, '..'),
+  encoding: 'utf8'
+});
 // const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
+const config_json   = JSON.parse(read("./config.json"));
+
+var project_HEAD = '';
+if(config_json.url) {
+  project_HEAD     = execSync(`git rev-parse HEAD`, {
+    encoding: 'utf8'
+  });
+}
+
 const config        = Config(config_json);
 const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
@@ -287,9 +305,27 @@ const genCoverageReport = (pt) => {
   return `<ul class="contract_coverage">${contract_coverage.join('\n')}</ul>`
 }
 
+const stats_object = [
+  ["Klab version", `<a href="https://github.com/dapphub/klab/tree/${klab_HEAD}">${klab_HEAD}</a>`],
+  ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`]
+].concat(
+  project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
+)
+
+const h = n => s => `<${n}>${s}</${n}>`
+const table = h("table")
+const tr = h("tr")
+const td = h("td")
+
+const stats = table(
+    stats_object
+      .map(([k, v]) => tr(td(k) + td(v)))
+      .join("\n")
+)
+
 const enriched_tokens = [{
   type: 'html',
-  text: `<div id="coverage">${genCoverageReport(parsed_tokens)}</div>`
+  text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(parsed_tokens)}</div>`
 }].concat(parsed_tokens
   .reduce((a, t) => {
     return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
