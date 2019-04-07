@@ -34,8 +34,8 @@ fi;
 report () {
   klab report
   if [ ! -z "$KLAB_REPORT_DIR" ]; then
+    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME" || exit 1
     echo "report moved to $KLAB_REPORT_DIR/$PNAME"
-    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME"
   fi;
 }
 export -f report
@@ -50,7 +50,7 @@ do_proof () {
   if [[ $name =~ .*_pass_rough$ ]]; then
     # report run
     touch "$RUNNING_DIR/$hash"
-    report
+    report || exit 1
     # do the actual proof
     time klab prove --dump "$KLAB_OUT/specs/$name.k"
     result=$?
@@ -59,7 +59,7 @@ do_proof () {
     # catch SIGINT
     if [ "$result" == "130" ]; then exit $result; fi
     echo $result
-    report
+    report || exit 1
     # log status
     klab status "$hash"
     # generate and upload bundle to proof.dapp.ci
@@ -74,12 +74,15 @@ do_proof () {
   else
     # report run
     touch "$RUNNING_DIR/$hash"
-    report
+    report || exit 1
     # do the actual proof
     time klab prove "$KLAB_OUT/specs/$name.k"
+    result=$?
+    if [ "$result" == "130" ]; then exit $result; fi
+    echo $result
     #report finish
     rm "$RUNNING_DIR/$hash"
-    report
+    report || exit 1
   fi;
   exit $result
 }
