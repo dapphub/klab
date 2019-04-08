@@ -164,26 +164,21 @@ rule ACCTCODE in SetItem( 1 )
 
    // for Vyper
     rule #padToWidth(N, #asByteStack(#asWord(WS))) => WS
-      requires #noOverflow(WS) andBool N ==Int #sizeWordStack(WS)
+      requires #sizeWordStack(WS) <=Int 32 andBool N ==Int #sizeWordStack(WS)
 
     // for Solidity
     rule #asWord(WS) /Int D => #asWord(#take(#sizeWordStack(WS) -Int log256Int(D), WS))
       requires D modInt 256 ==Int 0 andBool D >=Int 0
        andBool #sizeWordStack(WS) >=Int log256Int(D)
-       andBool #noOverflow(WS)
+       andBool #sizeWordStack(WS) <=Int 32
 
     // for Solidity >= 0.5.6
     rule #asWord(WS) >>Int D => #asWord(#take(#sizeWordStack(WS) -Int (D /Int 8), WS))
      requires D modInt 8 ==Int 0 andBool D >=Int 0
        andBool #sizeWordStack(WS) >=Int (D /Int 8)
-       andBool #noOverflow(WS)
+       andBool #sizeWordStack(WS) <=Int 32
     rule #sizeWordStack(#take(N, _)) => N
     rule #sizeWordStack(#take(N, _), M) => N +Int M
-
-    syntax Bool ::= #noOverflow    ( WordStack ) [function]
-                  | #noOverflowAux ( WordStack ) [function]
- // -------------------------------------------------------
-    rule #noOverflow(WS) => #sizeWordStack(WS) <=Int 32
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
