@@ -35,5 +35,8 @@
     "websocket": "^1.0.26",
     "xml2json": "^0.11.2",
     "xstream": "^11.3.0"
+  },
+  "devDependencies": {
+    "node-sass": "^4.11.0",
   }
 }
