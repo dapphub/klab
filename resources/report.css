@@ -7,6 +7,12 @@ body {
 .actstatus {
   font-size: 0.7em;
   margin-bottom: 4em; }
+  .actstatus table {
+    width: 100%; }
+    .actstatus table td {
+      border: 1px solid; }
+      .actstatus table td:last-child {
+        text-align: right; }
 
 pre > code {
   display: block;
@@ -26,51 +32,45 @@ pre > code > span.comment > span.var, p > code {
 p {
   text-align: justify; }
 
+.boldtitle {
+  font-weight: bold;
+  padding: 0 10px; }
+
 .double-val-label {
   display: inline-block;
-  font-family: 'Dejavu Sans','Arial';
-  margin-right: 0.5em; }
+  font-family: 'Dejavu Sans','Arial'; }
 
 .double-val-label > span {
   background-color: #656565;
   color: #ffffff;
-  display: table-cell;
+  display: inline-block;
   font-size: 0.9em;
-  font-weight: 400;
   line-height: 1;
-  padding: 0.3em 0.6em;
-  text-align: center;
-  vertical-align: baseline;
-  white-space: nowrap; }
+  padding: 0.3em 0.6em; }
 
 .double-val-label > span:nth-child(2).inactive {
   background-color: #dddddd;
   color: #1c1c1c; }
 
-.double-val-label > span:first-child {
-  border-bottom-left-radius: 0.25em;
-  border-top-left-radius: 0.25em; }
-
-.double-val-label > span:nth-child(2) {
-  border-bottom-right-radius: 0.25em;
-  border-top-right-radius: 0.25em; }
+.double-val-label > span {
+  border-radius: 0.25em; }
 
 .double-val-label > span.running {
   background-color: #337ab7; }
 
-.double-val-label > span.pass {
+.double-val-label > span.accept {
   background-color: #5cb85c; }
 
-.double-val-label > span.pass.inactive {
+.double-val-label > span.accept.inactive {
   background-color: #6f976f; }
 
 .double-val-label > span.queue {
   background-color: #5bc0de; }
 
-.double-val-label > span.warn {
+.double-val-label > span.blocked {
   background-color: #f0ad4e; }
 
-.double-val-label > span.fail {
+.double-val-label > span.reject {
   background-color: #d9534f; }
 
 table.abi {

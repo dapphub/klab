@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -22,34 +22,38 @@ export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
 export THREADS=${THREADS:-2}
+export QUIET=1
 PNAME=$(jq -r '.name' < config.json)
 if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
 
-if [ -n "$KLAB_REPORT_DIR" ]; then
-  if [ ! -d "$KLAB_REPORT_DIR/$PNAME" ]; then
-    mkdir -p "$KLAB_REPORT_DIR/$PNAME"
+if [ -d ".git" ]; then
+  export commit_hash=$(git rev-parse HEAD)
+  if [ -n "$KLAB_REPORT_DIR" ]; then
+    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
+    mkdir -p "$KLAB_REPORT_PROJECT_DIR"
   fi;
 fi;
 
 report () {
   set -e
   klab report
-  if [ -n "$KLAB_REPORT_DIR" ] && [ -n "$PNAME" ]; then
-    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME"
-    if [ -d ".git" ]; then
-      commit_hash=$(git rev-parse HEAD)
-      cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME/${commit_hash}.html"
-    fi;
-    echo "Report exported to $KLAB_REPORT_DIR/$PNAME"
+  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
+    # TODO - redirect
+    # cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR"
+    # if [ ! -z "$commit_hash" ]; then
+    #   cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME/${commit_hash}.html"
+    # fi;
+    echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
   fi;
 }
 export -f report
 
 # perform a single proof and exit
 do_proof () {
-  set -e
-  TIMER="/usr/bin/env time"
+  set -ex
+  TIMER="/usr/bin/env time --quiet"
   # get the proof hash
   hash=$(klab hash "$1")
   # remember the name - first argument
@@ -57,7 +61,6 @@ do_proof () {
   # report run
   touch "$RUNNING_DIR/$hash"
   report
-  export QUIET
   if [[ $name =~ .*_pass_oog$ ]]; then
     # --dump for all specs except OOG
     PROVE_FLAGS=""
@@ -78,14 +81,16 @@ do_proof () {
   # report finish
   rm "$RUNNING_DIR/$hash"
   report
-  if [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
+  if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
+    cp "$KLAB_OUT/specs/$name.k" "$KLAB_REPORT_PROJECT_DIR"
     if [ $result -ne "0" ]; then
       klab zip "$hash"
-      mv "$KLAB_OUT/log/${hash}.zip" "$KLAB_WEBPROOF_DIR"
+      cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_PROJECT_DIR"
+      cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_PROJECT_DIR"
     else
       # generate and upload bundle to proof.dapp.ci
       klab bundle --prune --evm "$hash"
-      mv "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
+      cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
   fi;
   if [[ $name =~ .*_pass_rough$ ]]; then

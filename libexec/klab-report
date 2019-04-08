@@ -6,6 +6,7 @@ const path          = require("path")
 const marked        = require("marked");
 const { execSync }  = require('child_process');
 const Config        = require("../lib/config.js");
+const moment        = require('moment');
 const {
   parseAct
 }    = require("../lib/build.js");
@@ -33,6 +34,14 @@ const klab_HEAD     = execSync(`git rev-parse HEAD`, {
 // const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
 const config_json   = JSON.parse(read("./config.json"));
 
+const h = n => s => `<${Array.isArray(n) ? n.join(' ') : n}>${Array.isArray(s) && s.join('') || s}</${Array.isArray(n) ? n[0] : n}>`
+const table = h("table")
+const tr = h("tr")
+const td = h("td")
+const span = h("span")
+const bspan = h(["span", 'class="boldtitle"'])
+
+
 var project_HEAD = '';
 if(config_json.url) {
   project_HEAD     = execSync(`git rev-parse HEAD`, {
@@ -57,9 +66,6 @@ const tokens        = marked.lexer(raw_md_config)
 const badge = (name, status) => `<div class="double-val-label">
   <span class="${status}">
     ${status}
-  </span>
-  <span>
-    ${name}
   </span>
 </div>`
 
@@ -90,24 +96,38 @@ const getCases = act => [ {
   }] : [] )
 
 const mapCaseStatus = cases => cases
-  .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
-  .map(spec_path => {
-    let proofid = testPath(spec_path) && read(spec_path);
-    let status = proofid
-      && testPath(path.join(KLAB_OUT, `pass`, proofid))
-      && `pass`
+  // .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
+  .map(c => {
+    const spec_path = path.join(KLAB_OUT, `meta/name/${c.name}`);
+    const proofid = testPath(spec_path) && read(spec_path);
+    const status = proofid
+      && testPath(path.join(KLAB_OUT, `accept`, proofid))
+      && `accept`
       || (proofid
-        && testPath(path.join(KLAB_OUT, `fail`, proofid))
-        && `fail`)
+        && testPath(path.join(KLAB_OUT, `reject`, proofid))
+        && `reject`)
       || (proofid
         && testPath(path.join(KLAB_OUT, `meta`, `running`, proofid))
         && `running`)
-      || `queue`
+      || (proofid
+        && `queue`)
+      || `blocked`
       ;
-    return {
+    const ret = {
       proofid,
-      status
+      status,
+      spec: c.name
     };
+    if(status == 'accept' || status == 'reject') {
+      var stats = fs.statSync(path.join(KLAB_OUT, status, proofid));
+      var mtime = new Date(stats.mtime);
+      ret.date = moment(mtime).format('YYYY-MM-DD, HH:mm');
+
+      const duration_raw = fs.readFileSync(path.join(KLAB_OUT, 'meta', 'time', proofid));
+      const duration = (/\d*/).exec(duration_raw)[0]
+      ret.duration = Math.floor(duration / 60) + ' min ' + (duration % 60) + ' sec'
+    }
+    return ret;
   })
 
 const __a2n = act => act.subject + "_" + act.name;
@@ -122,15 +142,47 @@ const getBadges = act => {
     //   && {proofid: pid, status: JSON.parse(read(log_path)).status}
     //   || {status: "???"}
     // )
-  let links = cases
-    .map((c, i) => c.suffix === 'pass_oog'
-      ? badge(c.suffix, status[i].status)
-      : `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.suffix, status[i].status)}</a>`
-    )
-    .join("\n")
+  // let links = cases
+  //   .map((c, i) => c.suffix === 'pass_oog'
+  //     ? badge(c.suffix, status[i].status)
+  //     : `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.suffix, status[i].status)}</a>`
+  //   )
+  //   .join("\n")
+  const links = cases
+    .map((c, i) => {
+      const s = status[i];
+
+      var proof_info = [
+        td(span(s.spec+'.k'))
+      ]
+
+      var zip = '';
+
+      const finished = s.status == 'accept' || s.status == 'reject';
+
+      proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
+      // proof_info.push(td(finished ?  : ""))
+
+      const rejected = s.status == 'reject';
+
+      proof_info.push(td(rejected ? 'stderr' : ""))
+      proof_info.push(td(rejected ? 'stdout' : ""))
+
+      proof_info.push(td(badge(c.suffix, s.status)))
+
+      if(rejected) {
+        zip = tr(`<td colspan="5">${span(s.proofid+'.zip')}</td>`)
+      }
+
+      console.log(c);
+
+
+      return tr(proof_info) + zip
+    })
+    .join('\n')
   return {
     type: "html",
-    text: `<div class="actstatus">${links}</div>`,
+    text: `<div class="actstatus">${table(links)}</div>`,
     pre: false
   }
 };
@@ -242,7 +294,7 @@ const genCoverageReport = (pt) => {
       return {
         contract: contract_name.name,
         sig: o.obj.signature,
-        status: cstatus.filter(o => o.status == 'pass').length / cstatus.length
+        status: cstatus.filter(o => o.status == 'accept').length / cstatus.length
       }
     })
     .reduce((a, o) => ({
@@ -311,11 +363,6 @@ const stats_object = [
 ].concat(
   project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
 )
-
-const h = n => s => `<${n}>${s}</${n}>`
-const table = h("table")
-const tr = h("tr")
-const td = h("td")
 
 const stats = table(
     stats_object
