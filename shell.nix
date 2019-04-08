@@ -23,6 +23,7 @@ stdenv.mkDerivation {
     python3
     zip
     z3
+    getopt
   ];
   shellHook = ''
     export PATH=$PWD/node_modules/.bin/:$PWD/bin:$PATH

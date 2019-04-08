@@ -45,10 +45,6 @@ echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
 spec_hash=$("${0%/*/*}/bin/klab" hash "$target_spec")
 
-if [ ! -z "$QUIET" ]; then
-    quietness="> $KLAB_OUT/log/$spec_hash.log 2> $KLAB_OUT/log/$spec_hash.err.log"
-fi
-
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"
     dump_notice="(with ${yellow}state logging${reset})"
@@ -57,33 +53,51 @@ fi
 echo "Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "$dump_notice"
 
 {
-K_OPTS=-Xmx10G \
-      "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
-      $dump_flags \
-      --directory "$KLAB_EVMS_PATH/.build/java/" \
-      --def-module RULES \
-      --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
-      --output-flatten "_Map_ #And" \
-      --no-alpha-renaming \
-      --no-sort-collections \
-      --output json \
-      --boundary-cells k,pc \
-      --smt_prelude $KLAB_OUT/prelude.smt2 \
-      --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-      "$target_spec" \
-      $quietness
-result=$?
+if [ ! -z "$QUIET" ]; then
+  mkdir -p $KLAB_OUT/log/
+  K_OPTS=-Xmx10G \
+    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
+    $dump_flags \
+    --directory "$KLAB_EVMS_PATH/.build/java/" \
+    --def-module RULES \
+    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
+    --output-flatten "_Map_ #And" \
+    --no-alpha-renaming \
+    --no-sort-collections \
+    --output json \
+    --boundary-cells k,pc \
+    --smt_prelude $KLAB_OUT/prelude.smt2 \
+    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
+    "$target_spec" > $KLAB_OUT/log/$spec_hash.log 2> $KLAB_OUT/log/$spec_hash.err.log
+  result=$?
+else
+  K_OPTS=-Xmx10G \
+    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
+    $dump_flags \
+    --directory "$KLAB_EVMS_PATH/.build/java/" \
+    --def-module RULES \
+    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
+    --output-flatten "_Map_ #And" \
+    --no-alpha-renaming \
+    --no-sort-collections \
+    --output json \
+    --boundary-cells k,pc \
+    --smt_prelude $KLAB_OUT/prelude.smt2 \
+    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
+    "$target_spec"
+  result=$?
+fi
 } || echo "weird error"
 
 if [ "$result" == "0" ]; then
   echo "${green}Proof ${bold}ACCEPT${reset}:" "$(basename "$target_spec")" "$dump_notice"
-  mkdir -p "$KLAB_OUT/pass" && touch "$KLAB_OUT/pass/$spec_hash"
+  mkdir -p "$KLAB_OUT/accept" && touch "$KLAB_OUT/accept/$spec_hash"
 else
   if [ "$result" == "130" ]; then
     echo 'Caught SIGINT'
   else
     echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "$dump_notice"
-    mkdir -p "$KLAB_OUT/fail" && touch "$KLAB_OUT/fail/$spec_hash"
+    mkdir -p "$KLAB_OUT/reject" && touch "$KLAB_OUT/reject/$spec_hash"
   fi;
 fi
 
