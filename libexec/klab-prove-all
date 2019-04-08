@@ -57,14 +57,15 @@ do_proof () {
   # report run
   touch "$RUNNING_DIR/$hash"
   report
-  # run proof
   export QUIET=$QUIET
-  set +e
-  if [[ ! $name =~ .*_pass_oog$ ]]; then
+  if [[ $name =~ .*_pass_oog$ ]]; then
     # --dump for all specs except OOG
+    PROVE_FLAGS=""
+  else
     PROVE_FLAGS="--dump"
-    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove "$KLAB_OUT/specs/$name.k"
   fi;
+  set +e
+  # run proof
   $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
   result=$?
   set -e
