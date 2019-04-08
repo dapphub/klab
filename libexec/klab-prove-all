@@ -23,6 +23,7 @@ export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
 export THREADS=${THREADS:-2}
 PNAME=$(jq -r '.name' < config.json)
+if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
 
 if [ ! -z "$KLAB_REPORT_DIR" ]; then
