@@ -10,8 +10,6 @@ reset=$(tput sgr0)
 
 # parse args
 usage() { echo "Usage: klab prove [-d] <spec>" 1>&2; exit 1; }
-
-
 OPTS=`getopt -o "d" -l "dump" -- "$@"`
 dump=false
 if [ $? != 0 ]
