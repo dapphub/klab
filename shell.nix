@@ -5,6 +5,7 @@ stdenv.mkDerivation {
     autoconf
     flex
     gcc
+    getopt
     git
     gmp
     gnumake
@@ -15,6 +16,7 @@ stdenv.mkDerivation {
     opam
     openjdk8
     pandoc
+    parallel
     pkgconfig
     python
     python3
