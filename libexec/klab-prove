@@ -8,25 +8,42 @@ yellow=$(tput setaf 3)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+# parse args
+usage() { echo "Usage: klab prove [-d] <spec>" 1>&2; exit 1; }
+
+
+OPTS=`getopt -o "d" -l "dump" -- "$@"`
+dump=false
+if [ $? != 0 ]
+then
+    exit 1
+fi
+eval set -- "$OPTS"
+while true; do
+    case "$1" in
+	-d | --dump)  dump=true; shift;;
+	--)           shift; break;;
+	*)            usage
+    esac
+done
+target_spec=$1
+if [ -z "$target_spec" ]; then
+    usage
+fi
+
+
+# check env vars
 if [ -z "$KLAB_OUT" ]; then
     echo "KLAB_OUT not set, defaulting to ./out/"
     export KLAB_OUT=out
 fi
-
 if [ -z "$KLAB_EVMS_PATH" ]; then
     echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
     exit 1
 fi
-
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
-if [[ $1 == --dump ]]; then
-    dump=true
-    target_spec=$2
-else
-    dump=false
-    target_spec=$1
-fi
+
 
 spec_hash=$("${0%/*/*}/bin/klab" hash $target_spec)
 
