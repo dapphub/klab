@@ -78,7 +78,7 @@ do_proof () {
   # report finish
   rm "$RUNNING_DIR/$hash"
   report
-  if [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n $PROVE_FLAGS ]; then
+  if [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
     if [ $result -ne "0" ]; then
       klab zip "$hash"
       mv "$KLAB_OUT/log/${hash}.zip" "$KLAB_WEBPROOF_DIR"
