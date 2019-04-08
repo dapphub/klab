@@ -26,7 +26,7 @@ PNAME=$(jq -r '.name' < config.json)
 if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
 
-if [ ! -z "$KLAB_REPORT_DIR" ]; then
+if [ -n "$KLAB_REPORT_DIR" ]; then
   if [ ! -d "$KLAB_REPORT_DIR/$PNAME" ]; then
     mkdir -p "$KLAB_REPORT_DIR/$PNAME"
   fi;
@@ -35,7 +35,7 @@ fi;
 report () {
   set -e
   klab report
-  if [ ! -z "$KLAB_REPORT_DIR" ] && [ ! -z "$PNAME" ]; then
+  if [ -n "$KLAB_REPORT_DIR" ] && [ -n "$PNAME" ]; then
     cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME"
     if [ -d ".git" ]; then
       commit_hash=$(git rev-parse HEAD)
@@ -57,7 +57,7 @@ do_proof () {
   # report run
   touch "$RUNNING_DIR/$hash"
   report
-  export QUIET=$QUIET
+  export QUIET
   if [[ $name =~ .*_pass_oog$ ]]; then
     # --dump for all specs except OOG
     PROVE_FLAGS=""
@@ -68,11 +68,17 @@ do_proof () {
   # run proof
   $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
   result=$?
+  if [ $result -ne "0" ] && [ -z $PROVE_FLAGS ]; then
+    # run proof again with --dump if necessary
+    PROVE_FLAGS="--dump"
+    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
+    result=$?
+  fi;
   set -e
   # report finish
   rm "$RUNNING_DIR/$hash"
   report
-  if [ ! -z "$KLAB_WEBPROOF_DIR" ]; then
+  if [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n $PROVE_FLAGS ]; then
     if [ $result -ne "0" ]; then
       klab zip "$hash"
       mv "$KLAB_OUT/log/${hash}.zip" "$KLAB_WEBPROOF_DIR"
