@@ -9,6 +9,7 @@ stdenv.mkDerivation {
     git
     gmp
     gnumake
+    jq
     maven
     mpfr
     ncurses
@@ -20,6 +21,7 @@ stdenv.mkDerivation {
     pkgconfig
     python
     python3
+    zip
     z3
   ];
   shellHook = ''
