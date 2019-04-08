@@ -8,13 +8,33 @@ body {
 h1, h2, h3, h4 {
 }
 
+a {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+#stats {
+  padding: 2em 0em 5em;
+  table {
+    font-family: mono;
+    font-size: 0.7em;
+    width: 50%;
+  }
+}
+
 .actstatus {
   font-size: 0.7em;
   margin-bottom: 4em;
   table {
+    border-spacing: 0px;
     width: 100%;
+    td.zipselect {
+      padding-bottom: 1em;
+    }
     td {
-      border: 1px solid;
+      // border: 1px solid;
       &:last-child {
         text-align: right;
       }
@@ -46,7 +66,20 @@ p {
 
 .boldtitle {
   font-weight: bold;
-  padding: 0 10px;
+  padding: 0 7px;
+}
+.sspan {
+  padding: 0 7px;
+}
+
+.autoselect {
+  width: calc(100% - 10px);
+  background: #fff;
+  border: 1px solid #1c1c1c;
+  margin: 0px 0;
+  border-radius: 2px;
+  line-height: 17px;
+  padding: 2px 5px;
 }
 
 
@@ -91,73 +124,37 @@ p {
 }
 
 
-table.abi {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0.5em 0px;
-}
-table.abi td.status {
-  width: 30%;
-}
-table.abi td.status div.status {
-  text-align: right;
-  position: relative;
-  height: 1.2em;
-  background: #1c1c1c;
-  border-radius: 4px;
-  color: #ccc;
-  line-height: 10px;
-}
-table.abi td.status .progress {
-  display: inline-block;
-  left: 0px;
-  position: absolute;
-}
-table.abi .status .text {
-  position: absolute;
-  padding-left: 5px;
-  padding-top: 6px;
-  color: #1c1c1c;
-  width: 100px;
-  text-align: left;
-}
 
 #coverage {
-  width: 70%;
-  margin: 3em auto 5em;
-}
-#coverage .contract_coverage .contractstatus {
-  float: right;
-  display: inline-block;
-  width: 30%;
-  background: #1c1c1c;
-  border-radius: 4px;
-  text-align: right;
-  color: #ccc;
-  position: relative;
-}
-#coverage .progress {
-  height: 1em;
-  background-color: #5cb85c;
-  border-radius: 2px;
-  margin: 2px;
-  padding-right: 0px;
-}
-#coverage .contractstatus .text {
-  position: absolute;
-  top: 0px;
-  padding-left: 5px;
-  color: #1c1c1c;
-  width: 100px;
-  text-align: left;
-}
-#coverage li {
-  margin: 4px 0;
-}
-li.contract_coverage {
-  padding: 0.5em 0;
-}
-ul.contractCoverage {
-  list-style: none;
-  padding: 0;
+  width: 50%;
+  padding-bottom: 5em;
+  font-size: 0.7em;
+  ul.contract_coverage {
+    padding-left: 0px;
+    list-style: none;
+    padding: 0;
+    li {
+      padding: 0.5em 0;
+      margin: 4px 0;
+      .name {
+        font-weight: bold;
+      }
+      .progress {
+        float: right;
+        margin-right: 1px;
+      }
+    }
+  }
+
+  table.abi {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5em 0px;
+    td.status {
+      text-align: right;
+    }
+    td.sig {
+      width: 70%;
+    }
+  }
 }

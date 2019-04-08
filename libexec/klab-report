@@ -40,6 +40,8 @@ const tr = h("tr")
 const td = h("td")
 const span = h("span")
 const bspan = h(["span", 'class="boldtitle"'])
+const sspan = h(["span", 'class="sspan"'])
+// const textinput = h(["input", 'type="text"'])
 
 
 var project_HEAD = '';
@@ -153,7 +155,7 @@ const getBadges = act => {
       const s = status[i];
 
       var proof_info = [
-        td(span(s.spec+'.k'))
+        td(span(h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k')))
       ]
 
       var zip = '';
@@ -165,19 +167,20 @@ const getBadges = act => {
 
       const rejected = s.status == 'reject';
 
-      proof_info.push(td(rejected ? 'stderr' : ""))
-      proof_info.push(td(rejected ? 'stdout' : ""))
+      proof_info.push(td(rejected
+        ? [
+            sspan(h(['a', `href="${s.proofid}.log"`])('stdout')),
+            sspan(h(['a', `href="${s.proofid}.err.log"`])('stderr')),
+          ]
+        : ""))
 
       proof_info.push(td(badge(c.suffix, s.status)))
 
       if(rejected) {
-        zip = tr(`<td colspan="5">${span(s.proofid+'.zip')}</td>`)
+        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${project_HEAD}/${s.proofid+'.zip'}" autofocus="autofocus" onfocus="this.select()"`])("")}</td>`)
       }
 
-      console.log(c);
-
-
-      return tr(proof_info) + zip
+      return h(["tr", `class="${s.status}"`])(proof_info) + zip
     })
     .join('\n')
   return {
@@ -315,11 +318,12 @@ const genCoverageReport = (pt) => {
         }))
       const contract_coverage = abi_functions
         .map(f => f.status)
-        .reduce((a,b) => a+b, 0) / abi_functions.length
+        .reduce((a,b) => a+b, 0)
       return {
         name: contract_name,
         abi_functions,
-        coverage: contract_coverage
+        coverage: contract_coverage,
+        total: abi_functions.length
       }
     })
   // console.log(JSON.stringify(coverage, false, 2));
@@ -333,23 +337,13 @@ const genCoverageReport = (pt) => {
           ${o.msg}
         </td>
         <td class="status">
-          <div class="status">
-            <div class="progress" style="width: calc(${o.status*100}% - 4px)"></div>
-            <span class="text">
-              ${Math.floor(o.status * 100)} %
-            </span>
-          </div>
+          ${Math.floor(o.status*100)}%
         </td>
         </tr>`)
         .join('\n')
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
-        <div class="contractstatus">
-          <div class="progress" style="width: calc(${cc.coverage * 100}% - 4px)"></div>
-          <span class="text">
-            ${Math.floor(cc.coverage * 100)} %
-          </span>
-        </div>
+        <span class="progress">${Math.floor(cc.coverage)} / ${cc.total}</span>
         <table class="abi">${abi_list}</table>
         </li>`
     })
