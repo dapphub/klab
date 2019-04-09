@@ -92,7 +92,7 @@ do_proof () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
     cp "$KLAB_OUT/specs/$name.k" "$KLAB_REPORT_PROJECT_DIR"
     if [ $result -ne "0" ]; then
-      klab zip "$hash"
+      klab zip "$hash" > /dev/null
       cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
       cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
       cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
