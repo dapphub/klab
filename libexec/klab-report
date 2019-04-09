@@ -327,8 +327,8 @@ const genCoverageReport = (pt) => {
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
         .map(sig => ({
           sig,
-          status: proofs[contract_name + '.' + sig].status || 0,
-          total: proofs[contract_name + '.' + sig].total || 0,
+          status: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].status || 0,
+          total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'noimpl' : 'ok'
         }))
       const contract_coverage = abi_functions
