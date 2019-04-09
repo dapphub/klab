@@ -75,6 +75,10 @@ do_proof () {
   # run proof
   $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
   result=$?
+  if [ $result -ne "0" ]; then
+    cat "$KLAB_OUT/log/${hash}.log"
+    cat "$KLAB_OUT/log/${hash}.err.log"
+  fi;
   if [ $result -ne "0" ] && [ -z $PROVE_FLAGS ]; then
     # run proof again with --dump if necessary
     PROVE_FLAGS="--dump"
