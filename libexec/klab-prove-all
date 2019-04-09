@@ -9,7 +9,7 @@ reset=$(tput sgr0)
 
 if [ -z "$KLAB_OUT" ]; then
   echo "KLAB_OUT not set, defaulting to ./out/"
-  export KLAB_OUT=out
+  KLAB_OUT=out
 fi
 
 if [ -z "$KLAB_EVMS_PATH" ]; then
@@ -17,6 +17,7 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
   exit 1
 fi
 
+export KLAB_OUT
 export GAS_DIR=$KLAB_OUT/gas
 export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
@@ -120,6 +121,7 @@ make_batch () {
   fi;
 }
 
+echo "Doing initial spec build, this may take a while..."
 klab build
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
