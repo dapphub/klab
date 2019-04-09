@@ -11,12 +11,16 @@ else
     spec_name="$1";
 fi
 
-zip -r "$KLAB_OUT/log/$1.zip" \
-  "$KLAB_OUT/{data,pass,fail,meta/data,gas}/$1"* \
-  "$KLAB_OUT/{specs,meta/name}/${spec_name}"* \
-  $KLAB_OUT/prelude.smt2 \
-  $KLAB_OUT/rules.k \
-  config.json \
-  >/dev/null
+if [ ! -d "out/log" ]; then
+    mkdir -p out/log
+fi
 
-echo "$spec_name zip created: $KLAB_OUT/log/$1.zip"
+find out/ \
+     \( -wholename "*$1*" -or -wholename "*$spec_name*" \) \
+     -and ! -wholename "out/log/*" \
+     -exec zip "out/log/$1.zip" {} +
+
+zip -r "out/log/$1.zip" \
+    out/prelude.smt2 \
+    out/rules.k \
+    config.json
