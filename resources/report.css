@@ -52,6 +52,11 @@ p {
 .sspan {
   padding: 0 7px; }
 
+.codespan {
+  font-family: mono;
+  width: 6em;
+  display: inline-block; }
+
 .autoselect {
   width: calc(100% - 10px);
   background: #fff;
