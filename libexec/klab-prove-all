@@ -144,8 +144,8 @@ while [ -s "$OBLIGATIONS" ]; do
   make_batch
   result=$?
   set -e
-  # 255 means SIGINT, etc.
-  if [ $result -ge 255 ]; then exit 1; fi
+  # > 100 means SIGINT, etc.
+  if [ $result -gt 100 ]; then exit 1; fi
   # parallel exit code is number of failures
   failures+=$result
   count=$((count+1))
