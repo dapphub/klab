@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
 
-if [ -f "out/meta/data/$1" ] ; then
-    spec_name=$(jq -r '.name' < "out/meta/data/$1")
+if [ -z "$KLAB_OUT" ]; then
+  echo "KLAB_OUT not set, defaulting to ./out/"
+  KLAB_OUT=out
+fi
+
+if [ -f "$KLAB_OUT/meta/data/$1" ] ; then
+    spec_name=$(jq -r '.name' < "$KLAB_OUT/meta/data/$1")
 else
     spec_name="$1";
 fi
 
-zip -r "out/log/$1.zip" \
-  "out/{data,pass,fail,meta/data,gas}/$1"* \
-  "out/{specs,meta/name}/${spec_name}"* \
-  out/prelude.smt2 \
-  out/rules.k \
+zip -r "$KLAB_OUT/log/$1.zip" \
+  "$KLAB_OUT/{data,pass,fail,meta/data,gas}/$1"* \
+  "$KLAB_OUT/{specs,meta/name}/${spec_name}"* \
+  $KLAB_OUT/prelude.smt2 \
+  $KLAB_OUT/rules.k \
   config.json \
   >/dev/null
 
-echo "$spec_name zip created: out/log/$1.zip"
+echo "$spec_name zip created: $KLAB_OUT/log/$1.zip"
