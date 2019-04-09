@@ -11,7 +11,7 @@ data NullOp = StartGas | Literal Int
   deriving (Eq, Show)
 data UnOp = SixtyFourth
   deriving (Eq, Show)
-data BinOp = Add | Sub
+data BinOp = Add | Sub | Mul
   deriving (Eq, Show)
 data Cond = Cond String
   deriving (Eq, Show)
