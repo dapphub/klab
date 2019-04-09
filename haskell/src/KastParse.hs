@@ -5,7 +5,7 @@ import GHC.Generics
 import Data.ByteString.Lazy.UTF8 (fromString)
 import Data.Aeson                (FromJSON, decode)
 import Data.Either               (lefts, rights)
-import Data.List                 (intercalate, isPrefixOf)
+import Data.List                 (intercalate, isPrefixOf, isSuffixOf)
 
 import Gas
 
@@ -35,7 +35,7 @@ kastToGasExpr kast = case node kast of
             Just t = token kast
     Just somesort -> Left $ "Can't have sorts other than Int, found: " ++ somesort
 
-  "KApply" -> case label kast of
+  "KApply" -> case stripModuleTag <$> (label kast) of
     Just "_+Int_" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error
@@ -43,21 +43,14 @@ kastToGasExpr kast = case node kast of
           Left error -> Left error
           Right f -> Right $ Binary Add e f
 
-    Just "_+Int__INT" -> let Just [arg1, arg2] = args kast in
-      case kastToGasExpr arg1 of
-        Left error -> Left error
-        Right e -> case kastToGasExpr arg2 of
-          Left error -> Left error
-          Right f -> Right $ Binary Add e f
-
-    Just "_-Int__INT" -> let Just [arg1, arg2] = args kast in
+    Just "_-Int_" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error
         Right e -> case kastToGasExpr arg2 of
           Left error -> Left error
           Right f -> Right $ Binary Sub e f
 
-    Just "_/Int__INT" -> let Just [arg1, arg2] = args kast in
+    Just "_/Int_" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error
         Right e -> case kastToGasExpr arg2 of
@@ -65,7 +58,7 @@ kastToGasExpr kast = case node kast of
           Right (Nullary (Literal 64)) -> Right $ Unary SixtyFourth e
           Right div -> Left $ "Gas expressions should have /64 only, found: /" ++ (show div)
 
-    Just "#if_#then_#else_#fi_K-EQUAL" -> let Just [arg_c, arg1, arg2] = args kast in
+    Just "#if_#then_#else_#fi" -> let Just [arg_c, arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error
         Right e -> case kastToGasExpr arg2 of
@@ -113,3 +106,17 @@ formatKApply func fargs = let bracket s = "( " ++ s ++ " )" in
     (_, _, _) -> Right $ bracket $ func_trim ++ (bracket (intercalate " , " fargs))
       where func_trim = "`" ++ func ++ "`"
 
+-- the module names will be stripped from the labels
+modules :: [String]
+modules = [ "_INT",
+            "_INT-COMMON",
+            "_K-EQUAL"
+          ]
+
+stripSuffix :: (Eq a) => [a] -> [a] -> [a]
+stripSuffix a s = if a `isSuffixOf` s
+                  then take (length s - length a) s
+                  else s
+
+stripModuleTag :: String -> String
+stripModuleTag = foldl (.) id (stripSuffix <$> modules)
