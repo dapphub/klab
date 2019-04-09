@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // TODO - include returns in output
-
 const path          = require("path")
 const marked        = require("marked");
 const { execSync }  = require('child_process');
@@ -155,7 +154,7 @@ const getBadges = act => {
       const s = status[i];
 
       var proof_info = [
-        td(span(h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k')))
+        td(span( s.status !== 'blocked' ? h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
       ]
 
       var zip = '';
@@ -177,7 +176,7 @@ const getBadges = act => {
       proof_info.push(td(badge(c.suffix, s.status)))
 
       if(rejected) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${project_HEAD}/${s.proofid+'.zip'}" autofocus="autofocus" onfocus="this.select()"`])("")}</td>`)
+        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" autofocus="autofocus" onfocus="this.select()"`])("")}</td>`)
       }
 
       return h(["tr", `class="${s.status}"`])(proof_info) + zip

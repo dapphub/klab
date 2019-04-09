@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -30,6 +30,7 @@ export PNAME
 if [ -d ".git" ]; then
   export commit_hash=$(git rev-parse HEAD)
   if [ -n "$KLAB_REPORT_DIR" ]; then
+    export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
   fi;
@@ -52,7 +53,7 @@ export -f report
 
 # perform a single proof and exit
 do_proof () {
-  set -ex
+  set -e
   TIMER="/usr/bin/env time --quiet"
   # get the proof hash
   hash=$(klab hash "$1")
@@ -85,8 +86,9 @@ do_proof () {
     cp "$KLAB_OUT/specs/$name.k" "$KLAB_REPORT_PROJECT_DIR"
     if [ $result -ne "0" ]; then
       klab zip "$hash"
-      cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_PROJECT_DIR"
-      cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_PROJECT_DIR"
+      cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+      cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
+      cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
     else
       # generate and upload bundle to proof.dapp.ci
       klab bundle --prune --evm "$hash"
