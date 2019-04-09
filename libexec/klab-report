@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 // TODO - include returns in output
+//
 const path          = require("path")
 const marked        = require("marked");
 const { execSync }  = require('child_process');
@@ -41,6 +42,7 @@ const td = h("td")
 const span = h("span")
 const bspan = h(["span", 'class="boldtitle"'])
 const sspan = h(["span", 'class="sspan"'])
+const codespan = h(["span", 'class="codespan"'])
 // const textinput = h(["input", 'type="text"'])
 
 
@@ -154,11 +156,14 @@ const getBadges = act => {
   //   )
   //   .join("\n")
   const links = cases
-    .map((c, i) => {
-      const s = status[i];
-
+    .map((c, i) => [c, status[i]])
+    .sort((a, b) => {
+      let s = x => ['accept', 'running', 'queue', 'blocked', 'reject'].indexOf(x.status)
+      return s(a[1]) - s(b[1]);
+    })
+    .map(([c, s]) => {
       var proof_info = [
-        td(span( s.status !== 'blocked' ? h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
+        td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
       ]
 
       var zip = '';
@@ -177,7 +182,7 @@ const getBadges = act => {
             sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')),
           ]
         || accepted && [
-          sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect proof'))
+          sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect-proof'))
         ]
         || ''
       ))
