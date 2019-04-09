@@ -53,6 +53,7 @@ evalUnOp SixtyFourth x = quot x 64
 evalBinOp :: BinOp -> Int -> Int -> Int
 evalBinOp Add x y = x + y
 evalBinOp Sub x y = x - y
+evalBinOp Mul x y = x * y
 
 -- only works for unconditional GasExpr
 eval :: GasExpr -> Int -> Int

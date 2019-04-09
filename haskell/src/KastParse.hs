@@ -50,6 +50,13 @@ kastToGasExpr kast = case node kast of
           Left error -> Left error
           Right f -> Right $ Binary Sub e f
 
+    Just "_*Int_" -> let Just [arg1, arg2] = args kast in
+      case kastToGasExpr arg1 of
+        Left error -> Left error
+        Right e -> case kastToGasExpr arg2 of
+          Left error -> Left error
+          Right f -> Right $ Binary Mul e f
+
     Just "_/Int_" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left error -> Left error
