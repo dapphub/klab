@@ -34,6 +34,8 @@ if [ -d ".git" ]; then
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
+    jq -r '.src.rules[]' < config.json |xargs -I {} cp {} $KLAB_REPORT_PROJECT_DIR
+    jq -r '.src.smt_prelude' < config.json |xargs -I {} cp {} $KLAB_REPORT_PROJECT_DIR
   fi;
 fi;
 

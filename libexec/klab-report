@@ -16,7 +16,8 @@ const {
   revert,
   render,
   warn,
-  ensureDir
+  ensureDir,
+  sha3
 }                   = require("../lib/util.js")
 const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
@@ -51,13 +52,16 @@ if(config_json.url) {
 }
 
 const config        = Config(config_json);
+const prelude_path  = config.src.smt_prelude;
+const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
 const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
 const raw_md_config = read(config_path)
 const title         = path.basename(config_path, ".md");
-const raw_rules     = rule_paths.map(p => read(p)).join("\n\n")
+const raw_rules     = rule_paths.map(p => read(p))
+const rule_hashes   = raw_rules.map(str => sha3(str).slice(0, 40))
 const rules         = marked
-  .lexer(raw_rules)
+  .lexer(raw_rules.join("\n\n"))
   .filter(block => block.type === "code")
   .map(block => block.text)
   .join("\n\n")
@@ -159,19 +163,24 @@ const getBadges = act => {
 
       var zip = '';
 
-      const finished = s.status == 'accept' || s.status == 'reject';
+      const rejected = s.status == 'reject';
+      const accepted = s.status == 'accept';
+      const finished = accepted || rejected;
 
       proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
       // proof_info.push(td(finished ?  : ""))
 
-      const rejected = s.status == 'reject';
 
-      proof_info.push(td(rejected
-        ? [
-            sspan(h(['a', `href="${s.proofid}.log"`])('stdout')),
-            sspan(h(['a', `href="${s.proofid}.err.log"`])('stderr')),
+      proof_info.push(td(
+           rejected && [
+            sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')),
+            sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')),
           ]
-        : ""))
+        || accepted && [
+          sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect proof'))
+        ]
+        || ''
+      ))
 
       proof_info.push(td(badge(c.suffix, s.status)))
 
@@ -296,12 +305,13 @@ const genCoverageReport = (pt) => {
       return {
         contract: contract_name.name,
         sig: o.obj.signature,
-        status: cstatus.filter(o => o.status == 'accept').length / cstatus.length
+        status: cstatus.filter(o => o.status == 'accept').length,
+        total: cstatus.length
       }
     })
     .reduce((a, o) => ({
       ...a,
-      [o.contract + '.' +o.sig]: o.status
+      [o.contract + '.' +o.sig]: o
     }), {})
 
   const coverage = Object.keys(config.contracts)
@@ -312,17 +322,18 @@ const genCoverageReport = (pt) => {
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
         .map(sig => ({
           sig,
-          status: proofs[contract_name + '.' + sig] || 0,
-          msg: !proofs[contract_name + '.' +sig] ? 'noimpl' : 'ok'
+          status: proofs[contract_name + '.' + sig].status || 0,
+          total: proofs[contract_name + '.' + sig].total || 0,
+          msg: !proofs[contract_name + '.' + sig] ? 'noimpl' : 'ok'
         }))
       const contract_coverage = abi_functions
         .map(f => f.status)
-        .reduce((a,b) => a+b, 0)
+        .reduce((a, b) => a + b, 0)
       return {
         name: contract_name,
         abi_functions,
         coverage: contract_coverage,
-        total: abi_functions.length
+        total: abi_functions.reduce((a, o) => a + o.total, 0)
       }
     })
   // console.log(JSON.stringify(coverage, false, 2));
@@ -336,7 +347,7 @@ const genCoverageReport = (pt) => {
           ${o.msg}
         </td>
         <td class="status">
-          ${Math.floor(o.status*100)}%
+          ${o.status} / ${o.total}
         </td>
         </tr>`)
         .join('\n')
@@ -355,6 +366,10 @@ const stats_object = [
   ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`]
 ].concat(
   project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
+).concat(
+  rule_paths.map((rule_path, i) => [path.basename(rule_path), h(["a", `href="${path.basename(rule_path)}"`])(rule_hashes[i])])
+).concat(
+  prelude_path ? [[path.basename(prelude_path), h(["a", `href="${path.basename(prelude_path)}"`])(prelude_hash)]] : []
 )
 
 const stats = table(
