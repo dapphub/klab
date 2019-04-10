@@ -50,7 +50,7 @@ var project_HEAD = '';
 if(config_json.url) {
   project_HEAD     = execSync(`git rev-parse HEAD`, {
     encoding: 'utf8'
-  });
+  }).trim();
 }
 
 const config        = Config(config_json);
@@ -190,7 +190,7 @@ const getBadges = act => {
       proof_info.push(td(badge(c.suffix, s.status)))
 
       if(rejected) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" autofocus="autofocus" onfocus="this.select()"`])("")}</td>`)
+        zip = tr(`<td colspan="4" class="zipselect">${h(['span', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
       }
 
       return h(["tr", `class="${s.status}"`])(proof_info) + zip
@@ -300,24 +300,7 @@ const parsed_tokens = tokens
     : t
   );
 
-const genCoverageReport = (pt) => {
-  const proofs = pt
-    .filter(o => o.type == 'code')
-    .map(o => {
-      const cases = getCases(o.obj);
-      const contract_name = config.implementations[o.obj.subject];
-      const cstatus = mapCaseStatus(cases)
-      return {
-        contract: contract_name.name,
-        sig: o.obj.signature,
-        status: cstatus.filter(o => o.status == 'accept').length,
-        total: cstatus.length
-      }
-    })
-    .reduce((a, o) => ({
-      ...a,
-      [o.contract + '.' +o.sig]: o
-    }), {})
+const genCoverageReport = (proofs) => {
 
   const coverage = Object.keys(config.contracts)
     .map(contract_name => {
@@ -327,12 +310,12 @@ const genCoverageReport = (pt) => {
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
         .map(sig => ({
           sig,
-          status: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].status || 0,
+          accept: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept || 0,
           total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'noimpl' : 'ok'
         }))
       const contract_coverage = abi_functions
-        .map(f => f.status)
+        .map(f => f.accept)
         .reduce((a, b) => a + b, 0)
       return {
         name: contract_name,
@@ -352,7 +335,7 @@ const genCoverageReport = (pt) => {
           ${o.msg}
         </td>
         <td class="status">
-          ${o.status} / ${o.total}
+          ${o.accept} / ${o.total}
         </td>
         </tr>`)
         .join('\n')
@@ -383,9 +366,28 @@ const stats = table(
       .join("\n")
 )
 
+const proofs = parsed_tokens
+  .filter(o => o.type == 'code')
+  .map(o => {
+    const cases = getCases(o.obj);
+    const contract_name = config.implementations[o.obj.subject];
+    const cstatus = mapCaseStatus(cases)
+    return {
+      contract: contract_name.name,
+      sig: o.obj.signature,
+      accept: cstatus.filter(o => o.status == 'accept').length,
+      total: cstatus.length,
+      proofs: cstatus
+    }
+  })
+  .reduce((a, o) => ({
+    ...a,
+    [o.contract + '.' +o.sig]: o
+  }), {})
+
 const enriched_tokens = [{
   type: 'html',
-  text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(parsed_tokens)}</div>`
+  text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(proofs)}</div>`
 }].concat(parsed_tokens
   .reduce((a, t) => {
     return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
@@ -402,3 +404,11 @@ const htmlString = render(htmlTemplate, {
 
 ensureDir(path.join(KLAB_OUT, 'report'))
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'index.html'), htmlString);
+
+const json_report = {
+  [project_HEAD]: {
+    date: new Date(),
+    proofs
+  }
+}
+fs.writeFileSync(path.join(KLAB_OUT, 'report', 'report.json'), JSON.stringify(json_report))

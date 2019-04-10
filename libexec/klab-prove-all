@@ -31,6 +31,9 @@ export PNAME
 if [ -d ".git" ]; then
   export commit_hash=$(git rev-parse HEAD)
   if [ -n "$KLAB_REPORT_DIR" ]; then
+    if [ ! -f "$KLAB_REPORT_DIR"/report.json ]; then
+      echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
+    fi;
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
@@ -44,11 +47,7 @@ report () {
   klab report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
-    # TODO - redirect
-    # cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR"
-    # if [ ! -z "$commit_hash" ]; then
-    #   cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_DIR/$PNAME/${commit_hash}.html"
-    # fi;
+    cat <<< $(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME"/report.json "$KLAB_OUT"/report/report.json) > "$KLAB_REPORT_DIR/$PNAME"/report.json
     echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
   fi;
 }
