@@ -43,7 +43,8 @@ media/%.pdf: media/%.md
 
 KLAB = $(CURDIR)/bin/klab
 
-examples=$(wildcard examples/*)
+# doing them in this order should save time
+examples := $(addprefix examples/,d0_suck multipleCalls token SafeAdd)
 
 # this is now redundant
 build-test:
