@@ -31,12 +31,12 @@ export PNAME
 if [ -d ".git" ]; then
   export commit_hash=$(git rev-parse HEAD)
   if [ -n "$KLAB_REPORT_DIR" ]; then
-    if [ ! -f "$KLAB_REPORT_DIR"/report.json ]; then
-      echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
-    fi;
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
+    if [ ! -f "$KLAB_REPORT_DIR"/report.json ]; then
+      echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
+    fi;
     jq -r '.src.rules[]' < config.json |xargs -I {} cp {} $KLAB_REPORT_PROJECT_DIR
     jq -r '.src.smt_prelude' < config.json |xargs -I {} cp {} $KLAB_REPORT_PROJECT_DIR
   fi;
