@@ -190,7 +190,7 @@ const getBadges = act => {
       proof_info.push(td(badge(c.suffix, s.status)))
 
       if(rejected) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['span', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
+        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
       }
 
       return h(["tr", `class="${s.status}"`])(proof_info) + zip
