@@ -90,7 +90,6 @@ do_proof () {
   rm "$RUNNING_DIR/$hash"
   report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
-    cp "$KLAB_OUT/specs/$name.k" "$KLAB_REPORT_PROJECT_DIR"
     if [ $result -ne "0" ]; then
       klab zip "$hash" > /dev/null
       cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
@@ -112,6 +111,9 @@ do_proof () {
 export -f do_proof
 
 make_batch () {
+  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+    cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_PROJECT_DIR"
+  fi;
   # timeout after 3 hrs
   TIMEOUT=10800
   parallel --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"

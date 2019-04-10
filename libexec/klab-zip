@@ -15,12 +15,15 @@ if [ ! -d "$KLAB_OUT/log" ]; then
     mkdir -p "$KLAB_OUT/log"
 fi
 
-find "$KLAB_OUT" \
+zip -r "$KLAB_OUT/log/$1.zip" \
+  config.json
+
+cd $KLAB_OUT
+find . \
      \( -wholename "*$1*" -or -wholename "*$spec_name*" \) \
-     -and ! -wholename "$KLAB_OUT/log/*" \
+     -and ! -wholename "*/log/*.zip" \
      -exec zip "$KLAB_OUT/log/$1.zip" {} +
 
-zip -r "$KLAB_OUT/log/$1.zip" \
-    "$KLAB_OUT/prelude.smt2" \
-    "$KLAB_OUT/rules.k" \
-    config.json
+zip -r "log/$1.zip" \
+    "prelude.smt2" \
+    "rules.k" \

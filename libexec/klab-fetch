@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
+if [ -z "$KLAB_OUT" ]; then
+  echo "KLAB_OUT not set, defaulting to ./out/"
+  KLAB_OUT=out
+fi
+
 url=$1
 
-mkdir -p out/log
-wget -q "$url" -P out/log/
-unzip -qu "out/log/${url##*/}"
+mkdir -p "$KLAB_OUT"/log
+wget -q "$url" -P "$KLAB_OUT"/log/
+unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
 # log the proof hash
 basename "$url" '.zip'
