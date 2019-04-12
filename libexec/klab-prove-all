@@ -126,7 +126,7 @@ make_batch () {
   fi;
   # timeout after 3 hrs
   TIMEOUT=10800
-  parallel --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
+  parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
   result=$?
