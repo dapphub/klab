@@ -50,7 +50,8 @@ report () {
   klab report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
-    cat <<< $(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME"/report.json "$KLAB_OUT"/report/report.json) > "$KLAB_REPORT_DIR/$PNAME"/report.json
+    cat <<< $(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME"/report.json "$KLAB_OUT"/report/report.json) > "$KLAB_REPORT_DIR/$PNAME"/report.json_
+    mv "$KLAB_REPORT_DIR/$PNAME"/report.json_ "$KLAB_REPORT_DIR/$PNAME"/report.json
     echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
   fi;
 }
