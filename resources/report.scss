@@ -132,7 +132,7 @@ p {
 
 
 #coverage {
-  width: 50%;
+  width: 100%;
   padding-bottom: 5em;
   font-size: 0.7em;
   ul.contract_coverage {
@@ -147,20 +147,31 @@ p {
       }
       .progress {
         float: right;
-        margin-right: 1px;
+        margin-right: 0.5em;
       }
     }
   }
-
   table.abi {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px;
+    tr:nth-child(2n) {
+      background: #e6e6e6;
+    }
     td.status {
       text-align: right;
+      padding: 2px 0.5em;
+      &.accept {
+        font-weight: bold;
+        color: #5cb85c;
+        &:after {
+          content: "✓"
+        }
+      }
     }
     td.sig {
       width: 70%;
+      padding: 2px 0.5em;
     }
   }
 }

@@ -1,3 +1,4 @@
+@charset "UTF-8";
 body {
   font-family: Arial,Helvetica Neue,Helvetica,sans-serif;
   color: #1c1c1c;
@@ -104,7 +105,7 @@ p {
   background-color: #d9534f; }
 
 #coverage {
-  width: 50%;
+  width: 100%;
   padding-bottom: 5em;
   font-size: 0.7em; }
   #coverage ul.contract_coverage {
@@ -118,14 +119,23 @@ p {
         font-weight: bold; }
       #coverage ul.contract_coverage li .progress {
         float: right;
-        margin-right: 1px; }
+        margin-right: 0.5em; }
   #coverage table.abi {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px; }
+    #coverage table.abi tr:nth-child(2n) {
+      background: #e6e6e6; }
     #coverage table.abi td.status {
-      text-align: right; }
+      text-align: right;
+      padding: 2px 0.5em; }
+      #coverage table.abi td.status.accept {
+        font-weight: bold;
+        color: #5cb85c; }
+        #coverage table.abi td.status.accept:after {
+          content: "✓"; }
     #coverage table.abi td.sig {
-      width: 70%; }
+      width: 70%;
+      padding: 2px 0.5em; }
 
 /*# sourceMappingURL=report.css.map */

@@ -53,6 +53,7 @@ if(config_json.url) {
   }).trim();
 }
 
+
 const config        = Config(config_json);
 const prelude_path  = config.src.smt_prelude;
 const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
@@ -290,7 +291,9 @@ const cleanupCode = act_obj => {
 
   // console.log(JSON.stringify(act_obj, false, 2));
   // console.log(code_);
-  return "<pre><code>" + code_ + "</code></pre>";
+
+  let id = act_obj.subject + "_" + act_obj.sig;
+  return `<div id="${id}"><pre><code>${code_}</code></pre></div>`;
 }
 
 
@@ -312,7 +315,7 @@ const genCoverageReport = (proofs) => {
           sig,
           accept: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept || 0,
           total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
-          msg: !proofs[contract_name + '.' + sig] ? 'noimpl' : 'ok'
+          msg: !proofs[contract_name + '.' + sig] ? 'nospec' : 'ok'
         }))
       const contract_coverage = abi_functions
         .map(f => f.accept)
@@ -324,20 +327,24 @@ const genCoverageReport = (proofs) => {
         total: abi_functions.reduce((a, o) => a + o.total, 0)
       }
     })
-  // console.log(JSON.stringify(coverage, false, 2));
   const contract_coverage = coverage
     .map(cc => {
       const abi_list = cc
         .abi_functions
-        .map(o => `<tr>
-        <td class="sig">${o.sig}</td>
+        .map(o => {
+          let sig = o.msg == "ok"
+            ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
+            : o.sig
+          return `<tr>
+        <td class="sig">${sig}</td>
         <td>
           ${o.msg}
         </td>
-        <td class="status">
+        <td class="status ${o.accept == o.total ? "accept" : ""}">
           ${o.accept} / ${o.total}
         </td>
-        </tr>`)
+        </tr>`
+        })
         .join('\n')
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
