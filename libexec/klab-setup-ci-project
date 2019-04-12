@@ -2,8 +2,8 @@
 
 resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
-cp -n $resources_path/overview.{js,css} "$KLAB_REPORT_DIR"
-cp -n $resources_path/report.{css} "$KLAB_REPORT_DIR"
+cp -n $resources_path/overview.{js, css} "$KLAB_REPORT_DIR"
+cp -n $resources_path/report.css "$KLAB_REPORT_DIR"
 cp -n $resources_path/overview.html "$KLAB_REPORT_DIR"/"$1"/index.html
 
 
