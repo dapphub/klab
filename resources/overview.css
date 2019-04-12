@@ -1,0 +1,62 @@
+body {
+  font-family: Arial,Helvetica Neue,Helvetica,sans-serif;
+  color: #1c1c1c;
+  font-size: 1.2em;
+  margin: 2em; }
+
+a {
+  text-decoration: none; }
+  a:hover {
+    text-decoration: underline; }
+
+.proofs {
+  border-top: solid 1px #c1c1c1;
+  border-bottom: solid 1px #c1c1c1; }
+  .proofs .proof {
+    padding: 1em; }
+    .proofs .proof .proofinfo {
+      display: flex; }
+    .proofs .proof .diff {
+      display: flex;
+      margin-top: 1.5em; }
+      .proofs .proof .diff > div {
+        flex: 1; }
+        .proofs .proof .diff > div > span.title {
+          font-weight: bold;
+          display: inline-block;
+          padding-bottom: 0.5em; }
+        .proofs .proof .diff > div .change {
+          padding: 2px 1em;
+          font-family: mono; }
+        .proofs .proof .diff > div .pos {
+          background: #ceffb4; }
+        .proofs .proof .diff > div .neg {
+          background: #ffc7bc; }
+  .proofs .proof + .proof {
+    border-top: solid 1px #c1c1c1; }
+
+.link {
+  flex: 1; }
+  .link .info {
+    display: block;
+    font-size: 0.7em;
+    margin-top: 1em; }
+    .link .info .running {
+      font-weight: bold;
+      margin: 0 1em; }
+
+div.status {
+  flex: 1;
+  justify-content: flex-end; }
+
+table.status {
+  border-spacing: 0;
+  border-collapse: collapse;
+  font-size: 0.7em; }
+  table.status td:first-child {
+    font-weight: bold;
+    padding-right: 2em; }
+  table.status td:last-child {
+    text-align: right; }
+
+/*# sourceMappingURL=overview.css.map */

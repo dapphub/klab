@@ -34,7 +34,10 @@ if [ -d ".git" ]; then
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
-    if [ ! -f "$KLAB_REPORT_DIR"/report.json ]; then
+    if [ -n "$PNAME" ]; then
+      klab setup-ci-project "$PNAME"
+    fi;
+    if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
       echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
     fi;
     jq -r '.src.rules[]' < config.json |xargs -I {} cp {} $KLAB_REPORT_PROJECT_DIR
@@ -109,6 +112,14 @@ do_proof () {
 }
 export -f do_proof
 
+function clean_running_dir {
+  echo "trapped $RUNNING_DIR"
+  rm -fdr "$RUNNING_DIR"
+  report
+}
+trap clean_running_dir EXIT
+
+
 make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_PROJECT_DIR"
@@ -159,3 +170,4 @@ if [ $failures -ge 1 ]; then
 else
   exit 0
 fi;
+

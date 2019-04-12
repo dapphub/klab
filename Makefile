@@ -38,6 +38,22 @@ deps-haskell:
 
 media: media/introduction.pdf
 
+ci-resources: resources/report.tmp.html overview_html
+
+overview_html: resources/overview.css
+
+resources/overview.css: resources/overview.scss
+	 ./node_modules/node-sass/bin/node-sass --source-map resources -o resources resources/overview.scss
+
+overview_js:
+	echo "done"
+
+resources/report.tmp.html: resources/report.css
+	# node -e 'const fs=require("fs"); const t=fs.readFileSync("./resources/report.tmp.csstmp.html", "utf8"); const s=t.replace("{{style}}", fs.readFileSync("./resources/report.css")); fs.writeFileSync("resources/report.tmp.html", s);'
+
+resources/report.css: resources/report.scss
+	 ./node_modules/node-sass/bin/node-sass --source-map resources -o resources resources/report.scss
+
 media/%.pdf: media/%.md
 	pandoc --from markdown --to beamer --output $@ $<
 

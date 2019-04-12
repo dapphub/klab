@@ -409,6 +409,8 @@ const json_report = {
   [project_HEAD]: {
     date: new Date(),
     proofs
-  }
+  },
+  url: config.url,
+  name: config.name
 }
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'report.json'), JSON.stringify(json_report))
