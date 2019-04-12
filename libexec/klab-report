@@ -340,7 +340,7 @@ const genCoverageReport = (proofs) => {
         <td>
           ${o.msg}
         </td>
-        <td class="status ${o.accept == o.total ? "accept" : ""}">
+        <td class="status ${o.accept == o.total && o.total !== 0 ? "accept" : ""}">
           ${o.accept} / ${o.total}
         </td>
         </tr>`
