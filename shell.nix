@@ -4,6 +4,7 @@ stdenv.mkDerivation {
   buildInputs = [
     autoconf
     flex
+    flock
     gcc
     getopt
     git
