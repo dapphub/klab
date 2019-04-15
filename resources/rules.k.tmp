@@ -1,6 +1,6 @@
 // VERIFICATION.k
 
-    rule #rangeUInt    (   2 ,      X ) => #range ( 0               <= X <= 1               ) [macro]
+    rule #rangeUInt    (   1 ,      X ) => #range ( 0               <= X <= 1               ) [macro]
 
     syntax Int ::= nthbyteof ( Int , Int , Int ) [function, smtlib(smt_nthbyteof), proj]
  // ------------------------------------------------------------------------------
