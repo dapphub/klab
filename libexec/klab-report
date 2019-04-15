@@ -47,7 +47,7 @@ const codespan = h(["span", 'class="codespan"'])
 
 
 var project_HEAD = '';
-if(config_json.url) {
+if(testPath('.git')) {
   project_HEAD     = execSync(`git rev-parse HEAD`, {
     encoding: 'utf8'
   }).trim();

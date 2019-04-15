@@ -47,15 +47,19 @@ fi;
 
 report () {
   set -e
-  exec 3>"$KLAB_REPORT_DIR/$PNAME"/report.json.lock
-  flock -x 3
+  if [ ! -z $KLAB_REPORT_NAME_DIR ]; then
+    exec 3>"$KLAB_REPORT_NAME_DIR"/report.json.lock
+    flock -x 3
+  fi;
   klab report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
     cat <<< $(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME"/report.json "$KLAB_OUT"/report/report.json) > "$KLAB_REPORT_DIR/$PNAME"/report.json
     echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
   fi;
-  exec 3>&-
+  if [ ! -z $KLAB_REPORT_NAME_DIR ]; then
+    exec 3>&-
+  fi;
 }
 export -f report
 
