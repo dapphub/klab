@@ -14,7 +14,7 @@ stdenv.mkDerivation {
     maven
     mpfr
     ncurses
-    nodejs
+    nodejs-8_x
     opam
     openjdk8
     pandoc
