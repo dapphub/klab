@@ -28,8 +28,13 @@ On OSX, using Homebrew, after installing the command line tools package:
 ```sh
 brew tap homebrew/cask-versions
 brew cask install caskroom/versions/java8
-brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node
+brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node gnu-getopt
 ```
+This project uses `gnu-getopt` for dealing with argument handling. `OSX` and `gnu` have a complicated relationship but you can run:
+```sh
+export PATH=/usr/local/opt/gnu-getopt/bin:$PATH
+```
+to make them get along.
 
 ### Building
 
@@ -75,6 +80,8 @@ It sets three environment variables:
 -   `KLAB_K_PATH`: override implementation of K.
 
 **OPTIONAL**: You might also want to add the K tool binaries in `evm-semantics/.build/k/k-distribution/bin` to your `$PATH`, if you didn't already have K installed.
+
+**OPTIONAL**: You can also use `nix-shell` for a more deterministic environment experience. If you have `nix` installed, run `nix-shell` in this repo to start a deterministic shell environment.
 
 Usage
 -----
