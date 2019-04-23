@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 if [[ $1 == --all ]]; then
-  rm -fdR out/data
+  rm -fdR "$KLAB_OUT"/data
 else
-  comm -2 -3 <(ls out/data|sed 's/\(\.log\|\_blobs\)//'|uniq) <(awk 1 out/meta/name/*|sort)|xargs -I {} rm -fdR out/data/{}
-  comm -2 -3 <(ls out/meta/data) <(awk 1 out/meta/name/*|sort)|xargs -I {} rm -fdR out/meta/data/{}
+  comm -2 -3 <(ls "$KLAB_OUT"/data|sed 's/\(\.log\|\_blobs\)//'|uniq) <(awk 1 "$KLAB_OUT"/meta/name/*|sort)|xargs -I {} rm -fdR "$KLAB_OUT"/data/{}
+  comm -2 -3 <(ls "$KLAB_OUT"/meta/data) <(awk 1 "$KLAB_OUT"/meta/name/*|sort)|xargs -I {} rm -fdR "$KLAB_OUT"/meta/data/{}
 fi
 
 
