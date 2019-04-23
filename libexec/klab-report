@@ -118,6 +118,9 @@ const mapCaseStatus = cases => cases
         && testPath(path.join(KLAB_OUT, `meta`, `running`, proofid))
         && `running`)
       || (proofid
+        && testPath(path.join(KLAB_OUT, `timeout`, proofid))
+        && `timeout`)
+      || (proofid
         && `queue`)
       || `blocked`
       ;
@@ -159,7 +162,7 @@ const getBadges = act => {
   const links = cases
     .map((c, i) => [c, status[i]])
     .sort((a, b) => {
-      let s = x => ['accept', 'running', 'queue', 'blocked', 'reject'].indexOf(x.status)
+      let s = x => ['accept', 'running', 'queue', 'blocked', 'reject', 'timeout'].indexOf(x.status)
       return s(a[1]) - s(b[1]);
     })
     .map(([c, s]) => {

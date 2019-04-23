@@ -66,6 +66,12 @@ export -f report
 # perform a single proof and exit
 do_proof () {
   set -e
+
+  timeout () {
+    touch "$KLAB_OUT/timeout/$hash";
+  }
+  trap timeout SIGTERM
+
   TIMER="/usr/bin/env time --quiet"
   # get the proof hash
   hash=$(klab hash "$1")
@@ -132,11 +138,12 @@ make_batch () {
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_PROJECT_DIR"
   fi;
   # timeout after 3 hrs
-  TIMEOUT=10800
+  TIMEOUT=14400
   parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
   result=$?
+  echo $result
   if [ $result -ge 255 ]; then
     echo "Parallel finished with exceptional code:" "$result"
     exit $result
@@ -147,10 +154,12 @@ make_batch () {
 }
 
 echo "Doing initial spec build, this may take a while..."
-klab build
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
 mkdir -p "$KLAB_OUT/meta/time"
+rm -fdr  "$KLAB_OUT/timeout"
+mkdir -p "$KLAB_OUT/timeout"
+klab build
 count=1
 failures=0
 while [ -s "$OBLIGATIONS" ]; do
