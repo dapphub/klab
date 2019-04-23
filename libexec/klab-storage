@@ -1,0 +1,255 @@
+#!/usr/bin/env node
+
+const xml2json = require("xml2json");
+
+const fs = require("fs");
+const _ = require("lodash");
+const jsondiffpatch = require("jsondiffpatch").create({
+   textDiff: {
+        // default 60, minimum string length (left and right sides) to use text diff algorythm: google-diff-match-patch
+        minLength: 10
+    }
+});
+const clc = require('cli-color');
+var clear = require("cli-clear");
+const {
+  testPath,
+  revert,
+  warn,
+  read
+} = require("../lib/util.js");
+const uniq = arr => Object.keys(arr.reduce((a, k) => ({...a, [k]: true}), {}))
+const { formatStep } = require("./../lib/formatter.js");
+const makeConfig = require("../lib/config.js");
+
+const {
+  getCodeStringFromPc,
+  get_pc_to_inst_map,
+  genSrcmapArr
+} = require("../lib/srchandler.js");
+
+var stdin = process.stdin;
+stdin.setRawMode( true );
+stdin.resume();
+stdin.setEncoding( 'utf8' );
+const tw = process.stdout.columns; // total width
+
+const _config = JSON.parse(fs.readFileSync("./config.json"));
+const config = makeConfig(_config);
+
+// console.log(config.contracts.Vat.instructions.join("\n"));
+const getRoot = (name, i) => {
+  const pc = config.contracts[name].inst_to_pc[i];
+  const pc_to_inst_map = config.contracts[name].pc_to_inst_map;
+  const srcmapArr = config.contracts[name].srcmapArr;
+  const cpos = srcmapArr[pc_to_inst_map[pc]];
+  const source = cpos.f == -1 ? "" : config.srcs[config.contracts[name].srcs[cpos.f]];
+  const root = source.slice(cpos.s, cpos.s + cpos.l);
+  return root;
+}
+const getLastInst = (inst, i, n) => {
+  return inst.slice(Math.max(0, i - n), i + 1);
+}
+
+const typePrefixes = ["mapping", "uint", "int", "bool", "byte", "address"]
+
+Object.keys(config.contracts)
+.forEach(cname => {
+  const storage_map = {};
+  const struct_pot = {}
+  const storage_map_unsure = {};
+  config.contracts[cname].instructions.forEach((inst, i) => {
+
+    const isTypedef = str => typePrefixes
+      .map(prefix => new RegExp('^' + prefix))
+      .map(r => r.test(str))
+      .reduce((a, b) => a || b, false)
+
+    if(inst == "SLOAD") {
+      const root = getRoot(cname, i)
+      if(isTypedef(root)) {
+        const mapNum = (root.match(new RegExp('=>','g')) || []).length;
+        if(mapNum == 0) {
+          // console.log(config.contracts[cname].instructions[i - 1]);
+          if(config.contracts[cname].instructions[i - 1].split(" ")[0] == "PUSH1") {
+            storage_map[`#${cname}.${root.split("=")[0].trim().split(" ").slice(-1)[0]}`] = parseInt(config.contracts[cname].instructions[i - 1].split(" ")[1], 16)
+          } else if(
+            config.contracts[cname].instructions[i - 1].split(" ")[0] == "SWAP1"
+            && config.contracts[cname].instructions[i - 2].split(" ")[0] == "PUSH1"
+            && config.contracts[cname].instructions[i - 3].split(" ")[0] == "PUSH1"
+          ) {
+            storage_map[`#${cname}.${root.split('=')[0].trim().split(" ").slice(-1)[0]}`] = parseInt(config.contracts[cname].instructions[i - 3].split(" ")[1], 16)
+          } else {
+            console.log();
+            console.log(getLastInst(config.contracts[cname].instructions, i, 12).join('\n'));
+            console.log(root);
+          }
+        } else {
+          const inst = getLastInst(config.contracts[cname].instructions, i, 12 * mapNum + 3);
+          const pot  = inst
+            .filter(str => /^PUSH1/.test(str))
+            .map(str => str.split(' ')[1])
+            .filter(i => ["00", "20", "40"].indexOf(i) == -1)
+            .map(i => parseInt(i, 16))
+          const isNoStruct = isTypedef(root.split('=>').slice(-1)[0].trim())
+          if(isNoStruct && pot.length == 1) {
+            storage_map[`#${cname}.${root.split(' ').slice(-1)[0]}`] = pot[0];
+          } else {
+            // console.log("\n");
+            // console.log(inst.join('\n'));
+            // console.log(mapNum, root);
+          }
+        }
+        // TODO  test wether the last element is a word
+      } else if(root.split('.').length > 1 && /^\w+$/.test(root.split(".").slice(-1)[0])) {
+        const soft_inst = getLastInst(config.contracts[cname].instructions, i, 12);
+        if(soft_inst[soft_inst.length - 2] == "ADD" && soft_inst[soft_inst.length - 3].split(' ')[0] == "PUSH1") {
+          let struct_key = root.split('.')[1];
+          let offset = parseInt(soft_inst[soft_inst.length - 3].split(' ')[1], 16);
+          if(!struct_pot[struct_key]) struct_pot[struct_key] = {};
+          if(!struct_pot[struct_key][offset]) struct_pot[struct_key][offset] = []
+          struct_pot[struct_key][offset].push(root);
+        } else {
+          // console.log("??");
+          // console.log('');
+          // console.log(soft_inst.join('\n'));
+          // console.log('> ', root);
+        }
+      } else {
+        // JUNK?
+        // console.log();
+        // console.log(getLastInst(config.contracts.Vat.instructions, i, 12).join('\n'));
+        // console.log(root);
+      }
+    } else if(inst == "SSTORE") {
+      // const rroot = getRoot("Vat", i)
+      //   console.log();
+      //   console.log(getLastInst(config.contracts.Vat.instructions, i, 12).join('\n'));
+      //   console.log(rroot);
+    }
+  })
+
+  if(Object.keys(storage_map).length > 0 || Object.keys(struct_pot).length > 0) {
+    console.log(`\n\ncontract ${cname}`);
+    if(Object.keys(storage_map).length > 0) {
+      console.log("\nstorage");
+      Object.keys(storage_map)
+        .forEach(id => {
+          console.log('  ' + id + " : " + storage_map[id])
+        })
+    }
+    if(Object.keys(struct_pot).length > 0) {
+      console.log('\nstructs');
+      Object.keys(struct_pot)
+        .forEach(struct_key => {
+          let hyp = Object.keys(struct_pot[struct_key]).length > 1
+            ? "\n    " + Object.keys(struct_pot[struct_key])
+            .map(h => h +':\n      ' + uniq(struct_pot[struct_key][h]).join('\n      '))
+            : Object.keys(struct_pot[struct_key]).map(h => ": " + h + "\n    " + uniq(struct_pot[struct_key][h]).join("\n    ") )
+          console.log(`  .${struct_key} ${hyp}`);
+        })
+    }
+  }
+
+});
+// Object.keys(storage_map_unsure)
+//   .forEach(id => {
+//   console.log("\n\n");
+//   console.log(id, "\n" + storage_map_unsure[id])
+// })
+
+// process.exit();
+//
+// if (testPath(config.solJson)) {
+//     config.solJson = JSON.parse(fs.readFileSync(config.solJson));
+//     contract_path = Object
+//       .keys(config.solJson.contracts)
+//       .find(name => (new RegExp(config.name + "$")).test(name))
+//     // contract_path = config
+//     //   .source
+//     //   .replace('/','')
+//     //   .replace('.','')
+//     // + config
+//     //   .source
+//     //   .replace('./',':')
+//     //   .replace('.sol','');
+//     contract_json = config.solJson.contracts[contract_path];
+//     config["bin_runtime"] = contract_json["bin-runtime"].toString();
+//     config["sourcemap"]   = contract_json["srcmap-runtime"].toString();
+// } else {
+//     config["bin_runtime"] = fs.readFileSync(config["bin_runtime"]).toString()
+//     config["sourcemap"]   = fs.readFileSync(config["sourcemap"]).toString()
+// }
+//
+//
+//
+// // READ the spec files
+// [
+//   "spec",
+//   "lemmas",
+//   "source",
+// ].forEach(filetype => {
+//   let content = fs.readFileSync(config[filetype]).toString()
+//   config[filetype] = content;
+// })
+// const {
+//   instructions,
+//   pc_to_inst_map
+// } = get_pc_to_inst_map(config.bin_runtime)
+// const srcmapArr = genSrcmapArr(config.sourcemap);
+// const inst_to_pc = instructions.map((inst, i) => pc_to_inst_map.indexOf(i));
+//
+// const state = {
+//   inst: 0
+// };
+//
+// const r = s => " ".repeat(4 - s.length) + s
+// const hex = n => n.toString(16).length % 2 == 0 ? n.toString(16) : "0" + n.toString(16);
+//
+// const draw = () => {
+//   let pc = inst_to_pc[state.inst];
+//   let from = Math.max(0, state.inst - 8);
+//   let to   = Math.min(instructions.length, from + 17);
+//   let str = instructions
+//     .slice(from, to)
+//     .map((s, i) => (from + i === state.inst ? "> " : "  ") + r(hex(inst_to_pc[from + i])) + "  " + r(hex(from + i)) + "  " + (s.length > 20 ? s.slice(0, 20) + "..." : s))
+//     .join("\n")
+//   str = str +"\n\n"+ getCodeStringFromPc(config, pc, true, pc_to_inst_map, srcmapArr)
+//
+//   let status_line = ` PC: ${pc} (0x${hex(pc)})`;
+//   status_line += " ".repeat(tw - status_line.length);
+//   status_line = clc.bgXterm(236)(status_line);
+//
+//   let header = ("    PC    ID  Opcode");
+//   console.log(status_line + `\n\n${header}\n` + str);
+// }
+//
+// stdin.on( 'data', function (key, e) {
+//   clear();
+//   if(key === "q" || key === "\u0003") {
+//     process.exit();
+//   } else if(key === "\u001B\u005B\u0041" // UP
+//     || key === "k"
+//   ) {
+//     if(state.inst > 0) {
+//       state.inst = state.inst - 1;
+//     }
+//   } else if(key === "\u001B\u005B\u0042"
+//     || key === "j"
+//   ) {
+//     if(state.inst < instructions.length) {
+//       state.inst = state.inst + 1;
+//     }
+//   } else if(key === "\u0004") {
+//     state.inst = Math.min(instructions.length - 1, state.inst + 8)
+//   } else if(key === "\u0015") {
+//     state.inst = Math.max(0, state.inst - 8)
+//   } else {
+//     console.log("Unknown key:" + key.split("").map(s => s.charCodeAt(0).toString(16)));
+//   }
+//   draw();
+// })
+//
+// clear();
+// draw();
+//
