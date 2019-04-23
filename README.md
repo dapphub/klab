@@ -7,14 +7,6 @@ Klab is a tool for generating and debugging proofs in the [K Framework](http://w
 Installation
 ------------
 
-One option is to use Docker:
-
-```sh
-docker run -it dapphub/klab
-```
-
-[See below](#docker) for details on using Docker.
-
 ### Dependencies
 
 Installing klab automatically installs `K` and `KEVM`. You will therefore need the dependencies of K.
@@ -216,23 +208,6 @@ make clean && make deps
 ```
 
 This will remove and recompile the KEVM semantics.
-
-### Docker
-
-Example usage:
-```sh
-# Build server
-docker build -t klab .
-
-# Start server and mount ./examples to /docker
-docker run --rm -it -v $(pwd)/examples:/docker --name klab klab
-klab server
-
-# Start client
-docker exec -it klab bash
-cd /docker/SafeAdd
-klab debug
-```
 
 # License
 All contributions to this repository are licensed under AGPL-3.0. Authors:
