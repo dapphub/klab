@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -x
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -52,41 +52,27 @@ fi
 
 echo "Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "$dump_notice"
 
+logging=''
 {
 if [ ! -z "$QUIET" ]; then
-  mkdir -p $KLAB_OUT/log/
-  K_OPTS=-Xmx10G \
-    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
-    $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/java/" \
-    --def-module RULES \
-    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
-    --output-flatten "_Map_ #And" \
-    --no-alpha-renaming \
-    --no-sort-collections \
-    --output json \
-    --boundary-cells k,pc \
-    --smt_prelude $KLAB_OUT/prelude.smt2 \
-    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec" > $KLAB_OUT/log/$spec_hash.log 2> $KLAB_OUT/log/$spec_hash.err.log
-  result=$?
-else
-  K_OPTS=-Xmx10G \
-    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
-    $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/java/" \
-    --def-module RULES \
-    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
-    --output-flatten "_Map_ #And" \
-    --no-alpha-renaming \
-    --no-sort-collections \
-    --output json \
-    --boundary-cells k,pc \
-    --smt_prelude $KLAB_OUT/prelude.smt2 \
-    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec"
-  result=$?
+    mkdir -p $KLAB_OUT/log/
+    logging='> $KLAB_OUT/log/$spec_hash.log 2> $KLAB_OUT/log/$spec_hash.err.log'
 fi
+  K_OPTS=-Xmx10G \
+    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
+    $dump_flags \
+    --directory "$KLAB_EVMS_PATH/.build/java/" \
+    --def-module RULES \
+    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
+    --output-flatten "_Map_ #And" \
+    --no-alpha-renaming \
+    --no-sort-collections \
+    --output json \
+    --boundary-cells k,pc \
+    --smt_prelude $KLAB_OUT/prelude.smt2 \
+    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
+    "$target_spec" $logging
+  result=$?
 } || echo "weird error"
 
 if [ "$result" == "0" ]; then
