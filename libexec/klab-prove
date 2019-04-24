@@ -65,7 +65,7 @@ fi
     --def-module RULES \
     --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <gasUsed> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages>" \
     --output-flatten "_Map_ #And" \
-    --z3-impl-timeout 300 --deterministic-functions --no-exc-wrap \
+    --z3-impl-timeout 300 --no-exc-wrap \
     --cache-func-optimized --format-failures \
     --no-alpha-renaming \
     --no-sort-collections \
