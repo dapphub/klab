@@ -69,6 +69,8 @@ do_proof () {
 
   timeout () {
     touch "$KLAB_OUT/timeout/$hash";
+    klab zip "$hash" > /dev/null
+    cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
   }
   trap timeout SIGTERM
 
