@@ -159,7 +159,6 @@ echo "Doing initial spec build, this may take a while..."
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
 mkdir -p "$KLAB_OUT/meta/time"
-rm -fdr  "$KLAB_OUT/timeout"
 mkdir -p "$KLAB_OUT/timeout"
 klab build
 count=1
