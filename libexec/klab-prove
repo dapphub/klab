@@ -63,10 +63,9 @@ fi
     $dump_flags \
     --directory "$KLAB_EVMS_PATH/.build/java/" \
     --def-module RULES \
-    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData>" \
+    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <gasUsed> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages>" \
     --output-flatten "_Map_ #And" \
     --z3-impl-timeout 300 --deterministic-functions --no-exc-wrap \
-    --shutdown-wait-time 5000 \
     --cache-func-optimized --format-failures \
     --no-alpha-renaming \
     --no-sort-collections \
