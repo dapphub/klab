@@ -14,13 +14,13 @@ Installing klab automatically installs `K` and `KEVM`. You will therefore need t
 To install all of these dependencies on Ubuntu, try:
 
 ```sh
-sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm
+sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm parallel
 ```
 
 On ArchLinux:
 
 ```sh
-sudo pacman -S  base-devel rsync opam pandoc jre8-openjdk mpfr maven z3 nodejs npm
+sudo pacman -S  base-devel rsync opam pandoc jre8-openjdk mpfr maven z3 nodejs npm parallel
 ```
 
 On OSX, using Homebrew, after installing the command line tools package:
