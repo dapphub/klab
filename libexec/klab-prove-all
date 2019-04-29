@@ -106,22 +106,26 @@ do_proof () {
   # report finish
   rm "$RUNNING_DIR/$hash"
   report
+  if [[ $name =~ .*_pass_rough$ ]]; then
+    # gas analysis from the rough pass
+    klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
+    klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
+  fi;
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
     if [ $result -ne "0" ]; then
       klab zip "$hash" > /dev/null
       cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
       cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
       cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
+      if [[ $name =~ .*_pass_rough$ ]]; then
+        cp "$GAS_DIR/${hash}.kast" "$KLAB_REPORT_NAME_DIR"
+        cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
+      fi;
     else
       # generate and upload bundle to proof.dapp.ci
       klab bundle --prune --evm "$hash"
       cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
-  fi;
-  if [[ $name =~ .*_pass_rough$ ]]; then
-    # gas analysis from the rough pass
-    klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
-    klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
   fi;
   exit $result
 }
@@ -161,6 +165,7 @@ mkdir -p "$RUNNING_DIR"
 rm -fdr "$KLAB_OUT/meta/name"
 mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
+rm -fdr "$KLAB_OUT/meta/name"
 klab build
 count=1
 failures=0
