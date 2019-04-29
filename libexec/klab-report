@@ -172,7 +172,7 @@ const getBadges = act => {
 
       var zip = '';
 
-      const rejected = s.status == 'reject';
+      const rejected = s.status == 'reject' || s.status == 'timeout';
       const accepted = s.status == 'accept';
       const finished = accepted || rejected;
 
