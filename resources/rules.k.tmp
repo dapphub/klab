@@ -350,3 +350,11 @@ rule keccakIntList(A) ==K keccakIntList(C) +Int B => false
 
 rule A ==K keccakIntList(C) => false
      requires 0 <=Int A andBool A <=Int 20
+
+rule Csstore(SCHED, NEW, CURR, ORIG)
+  => #if CURR ==Int NEW orBool ORIG =/=Int CURR #then Gsload < SCHED > #else #if ORIG ==Int 0 #then Gsstoreset < SCHED > #else Gsstorereset < SCHED > #fi #fi
+  requires Ghasdirtysstore << SCHED >>
+
+rule Csstore(SCHED, NEW, CURR, ORIG)
+  => #if CURR ==Int 0 andBool NEW =/=Int 0 #then Gsstoreset < SCHED > #else Gsstorereset < SCHED > #fi
+  requires notBool Ghasdirtysstore << SCHED >>
