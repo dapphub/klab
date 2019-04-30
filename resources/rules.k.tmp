@@ -210,6 +210,7 @@ rule ACCTCODE in SetItem( 1 )
     rule _ *Int 0 => 0
 
     rule N /Int 1 => N
+    rule N *Int A /Int A => N
 
     rule 0 |Int N => N
     rule N |Int 0 => N
