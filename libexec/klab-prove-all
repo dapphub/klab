@@ -158,6 +158,7 @@ make_batch () {
 echo "Doing initial spec build, this may take a while..."
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
+rm -fdr "$KLAB_OUT/meta/name"
 mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
 klab build
