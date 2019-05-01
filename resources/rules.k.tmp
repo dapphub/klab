@@ -92,15 +92,10 @@ rule ACCTCODE in SetItem( 1 )
     rule keccaktIntList(N) <Int pow256 => true
 
 
-    rule #padToWidth(32, #asByteStack( #unsigned(V) )) => #asByteStackInWidth( #unsigned(V), 32)
-      requires #rangeSInt(256, V)
-
-
     rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
       requires 0 <=Int V andBool V <Int pow256
 
 
-    rule #padToWidth(32, #asByteStack( keccakIntList (V) )) => #asByteStackInWidth( keccakIntList (V), 32)
 
 
 
@@ -139,6 +134,7 @@ rule ACCTCODE in SetItem( 1 )
     rule N +Int 0 => N
 
     rule N -Int 0 => N
+    rule A -Int A => 0
 
     rule 1 *Int N => N
     rule N *Int 1 => N
@@ -197,8 +193,6 @@ rule ACCTCODE in SetItem( 1 )
        requires notBool C
 
 
-    rule A -Int A => 0
-
     rule bool2Word(A) |Int bool2Word(B) => bool2Word(A  orBool B)
     rule bool2Word(A) &Int bool2Word(B) => bool2Word(A andBool B)
 
@@ -234,9 +228,6 @@ rule ACCTCODE in SetItem( 1 )
       => #sizeWordStack ( WS , 0 ) +Int N
       requires N =/=K 0
       [lemma]
-
-rule chop(#unsigned(W)) => #unsigned(W)
-  requires #rangeSInt(256, W)
 
 rule #signed(#unsigned(W)) => W
   requires #rangeSInt(256, W)
