@@ -255,8 +255,6 @@ rule ACCTCODE in SetItem( 1 )
 
     rule bool2Word(A)  ==K 0 => notBool(A)
     rule bool2Word(A)  ==K 1 => A
-    rule bool2Word(A) =/=K 0 => A
-    rule bool2Word(A) =/=K 1 => notBool(A)
 
     rule chop(bool2Word(B)) => bool2Word(B)
 
@@ -321,54 +319,34 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
 //RULES MUST USE ==K and not ==Int
 //Warning: assumes injective hashing
 rule keccakIntList(A B .IntList) ==K keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
-rule keccakIntList(A B .IntList) =/=K keccakIntList(C D .IntList) => A =/=Int C orBool B =/=Int D
 
 rule keccakIntList(A B C .IntList) ==K keccakIntList(D E F .IntList) => A ==Int D andBool B ==Int E andBool C ==Int F
-rule keccakIntList(A B C .IntList) =/=K keccakIntList(D E F .IntList) => A =/=Int D orBool B =/=Int E orBool C =/=Int F
 
 
 rule keccakIntList(C) ==K A => false
      requires 0 <=Int A andBool A <=Int 20
-rule keccakIntList(C) =/=K A => true
-     requires 0 <=Int A andBool A <=Int 20
 
 rule keccakIntList(C) +Int B ==K A => false
-     requires 0 <=Int A andBool A <=Int 20
-     andBool 0 <=Int B andBool B <=Int 20
-rule keccakIntList(C) +Int B =/=K A => true
      requires 0 <=Int A andBool A <=Int 20
      andBool 0 <=Int B andBool B <=Int 20
 
 rule A ==K keccakIntList(C) +Int B => false
      requires 0 <=Int A andBool A <=Int 20
      andBool 0 <=Int B andBool B <=Int 20
-rule A =/=K keccakIntList(C) +Int B => true
-     requires 0 <=Int A andBool A <=Int 20
-     andBool 0 <=Int B andBool B <=Int 20
 
 rule keccakIntList(C) +Int B ==K keccakIntList(A) => false
-     requires 0 <=Int B andBool B <=Int 20
-rule keccakIntList(C) +Int B =/=K keccakIntList(A) => true
      requires 0 <=Int B andBool B <=Int 20
 
 rule keccakIntList(A) +Int B ==K keccakIntList(A) +Int C => false
      requires B =/=Int C
-rule keccakIntList(A) +Int B =/=K keccakIntList(A) +Int C => true
-     requires B =/=Int C
 
 rule keccakIntList(A) +Int B ==K keccakIntList(C) +Int D => false
-     requires B =/=K C
-rule keccakIntList(A) +Int B =/=K keccakIntList(C) +Int D => true
      requires B =/=K C
 
 
 rule keccakIntList(A) ==K keccakIntList(C) +Int B => false
      requires 0 <=Int B andBool B <=Int 20
-rule keccakIntList(A) =/=K keccakIntList(C) +Int B => true
-     requires 0 <=Int B andBool B <=Int 20
 
 
 rule A ==K keccakIntList(C) => false
-     requires 0 <=Int A andBool A <=Int 20
-rule A =/=K keccakIntList(C)=> true
      requires 0 <=Int A andBool A <=Int 20
