@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+const xml2json = require("xml2json");
+
+const fs = require("fs");
+const _ = require("lodash");
+const clc = require('cli-color');
+var clear = require("cli-clear");
+
+const makeConfig    = require("../lib/config.js");
+const {
+  read,
+  testPath,
+  revert,
+  ensureDirs,
+  warn,
+  sha3
+}                   = require("../lib/util.js");
+const {
+  getCodeStringFromPc,
+  get_pc_to_inst_map,
+  genSrcmapArr
+} = require("../lib/srchandler.js");
+const {
+  formatStep
+} = require("./../lib/formatter.js");
+
+var stdin = process.stdin;
+stdin.setRawMode( true );
+stdin.resume();
+stdin.setEncoding( 'utf8' );
+const tw = process.stdout.columns; // total width
+
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = makeConfig(config_json);
+
+const contract_name = process.argv[2];
+const c = config.contracts[contract_name];
+
+const state = {
+  inst: 0
+};
+
+const r = s => " ".repeat(4 - s.length) + s
+const hex = n => n.toString(16).length % 2 == 0 ? n.toString(16) : "0" + n.toString(16);
+
+const draw = () => {
+  let pc = c.inst_to_pc[state.inst];
+  let from = Math.max(0, state.inst - 8);
+  let to   = Math.min(c.instructions.length, from + 17);
+  let str = c.instructions
+    .slice(from, to)
+    .map((s, i) => (from + i === state.inst ? "> " : "  ") + r(hex(c.inst_to_pc[from + i])) + "  " + r(hex(from + i)) + "  " + (s.length > 20 ? s.slice(0, 20) + "..." : s))
+    .join("\n")
+
+  str = str +"\n\n"+ getCodeStringFromPc(config.srcs, c, pc, true)
+
+  let status_line = ` PC: ${pc} (0x${hex(pc)})`;
+  status_line += " ".repeat(tw - status_line.length);
+  status_line = clc.bgXterm(236)(status_line);
+
+  let header = ("    PC    ID  Opcode");
+  console.log(status_line + `\n\n${header}\n` + str);
+}
+
+stdin.on( 'data', function (key, e) {
+  clear();
+  if(key === "q" || key === "\u0003") {
+    process.exit();
+  } else if(key === "\u001B\u005B\u0041" // UP
+    || key === "k"
+  ) {
+    if(state.inst > 0) {
+      state.inst = state.inst - 1;
+    }
+  } else if(key === "\u001B\u005B\u0042"
+    || key === "j"
+  ) {
+    if(state.inst < c.instructions.length) {
+      state.inst = state.inst + 1;
+    }
+  } else if(key === "\u0004") {
+    state.inst = Math.min(c.instructions.length - 1, state.inst + 8)
+  } else if(key === "\u0015") {
+    state.inst = Math.max(0, state.inst - 8)
+  } else {
+    console.log("Unknown key:" + key.split("").map(s => s.charCodeAt(0).toString(16)));
+  }
+  draw();
+})
+
+clear();
+draw();
