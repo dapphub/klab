@@ -49,7 +49,7 @@ report () {
   set -e
   if [ ! -z $KLAB_REPORT_NAME_DIR ]; then
     exec 3>"$KLAB_REPORT_NAME_DIR"/report.json.lock
-    flock -x 3
+    flock -x 3 || exit 0
   fi;
   klab report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
@@ -127,12 +127,16 @@ do_proof () {
       cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
   fi;
+  # cleanup dumped data
+  rm -fdr "$KLAB_OUT/data/${hash}_blobs"
+  rm -fdr "$KLAB_OUT/data/${hash}.log"
   exit $result
 }
 export -f do_proof
 
 function clean_running_dir {
   echo "trapped $RUNNING_DIR"
+  rm -fdr "$KLAB_OUT/data"
   rm -fdr "$RUNNING_DIR"
   report
 }
@@ -162,7 +166,6 @@ make_batch () {
 echo "Doing initial spec build, this may take a while..."
 mkdir -p "$GAS_DIR"
 mkdir -p "$RUNNING_DIR"
-rm -fdr "$KLAB_OUT/meta/name"
 mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
 rm -fdr "$KLAB_OUT/meta/name"
@@ -186,7 +189,6 @@ while [ -s "$OBLIGATIONS" ]; do
   count=$((count+1))
 done;
 echo "${bold}COMPLETE${reset}: no outstanding proof obligations."
-klab gc --all
 printf "Finished with %d failed proofs." $failures
 if [ $failures -ge 1 ]; then
   exit 1
