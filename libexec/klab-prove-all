@@ -29,10 +29,10 @@ if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
 
 if [ -d ".git" ]; then
-  export commit_hash=$(git rev-parse HEAD)
+  export build_hash=$(klab get-build-id)
   if [ -n "$KLAB_REPORT_DIR" ]; then
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
-    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$commit_hash
+    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
     mkdir -p "$KLAB_REPORT_PROJECT_DIR"
     if [ -n "$PNAME" ]; then
       klab setup-ci-project "$PNAME"
@@ -127,6 +127,7 @@ do_proof () {
       cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
   fi;
+
   # cleanup dumped data
   rm -fdr "$KLAB_OUT/data/${hash}_blobs"
   rm -fdr "$KLAB_OUT/data/${hash}.log"

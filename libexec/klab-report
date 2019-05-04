@@ -18,7 +18,10 @@ const {
   render,
   warn,
   ensureDir,
-  sha3
+  sha3,
+  getBuildId,
+  getKlabHEAD,
+  getProjectHEAD
 }                   = require("../lib/util.js")
 const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
@@ -28,11 +31,8 @@ const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
   cwd: KLAB_EVMS_PATH,
   encoding: 'utf8'
 });
-const klab_HEAD     = execSync(`git rev-parse HEAD`, {
-  cwd: path.join(__dirname, '..'),
-  encoding: 'utf8'
-});
-// const out           = JSON.parse(read(path.join(KLAB_OUT, "out.json")));
+const klab_HEAD     = getKlabHEAD()
+const project_HEAD  = getProjectHEAD();
 const config_json   = JSON.parse(read("./config.json"));
 
 const h = n => s => `<${Array.isArray(n) ? n.join(' ') : n}>${Array.isArray(s) && s.join('') || s}</${Array.isArray(n) ? n[0] : n}>`
@@ -46,12 +46,8 @@ const codespan = h(["span", 'class="codespan"'])
 // const textinput = h(["input", 'type="text"'])
 
 
-var project_HEAD = '';
-if(testPath('.git')) {
-  project_HEAD     = execSync(`git rev-parse HEAD`, {
-    encoding: 'utf8'
-  }).trim();
-}
+const build_hash = getBuildId();
+
 
 
 const config        = Config(config_json);
@@ -63,11 +59,6 @@ const raw_md_config = read(config_path)
 const title         = path.basename(config_path, ".md");
 const raw_rules     = rule_paths.map(p => read(p))
 const rule_hashes   = raw_rules.map(str => sha3(str).slice(0, 40))
-const rules         = marked
-  .lexer(raw_rules.join("\n\n"))
-  .filter(block => block.type === "code")
-  .map(block => block.text)
-  .join("\n\n")
 const tokens        = marked.lexer(raw_md_config)
 // const act2specs     = Object.keys(out)
 //   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
@@ -247,7 +238,7 @@ const cleanupCode = act_obj => {
     .join("\n\n")
 
   const behaviour_title = `behaviour ${act_obj.name} of ${act_obj.subject}`
-  const iface_args = act_obj.interface.map(i => i[0] + " " + i[1]).join(", ");
+  const iface_args = (act_obj.interface || []).map(i => i[0] + " " + i[1]).join(", ");
   const interface = `interface ${act_obj.fname}(${iface_args})`;
   var iff = "";
   if(act_obj.iff_orig) {
@@ -301,10 +292,18 @@ const cleanupCode = act_obj => {
 
 
 const parsed_tokens = tokens
-  .map(t => t.type == 'code'
-    ? {type: 'code', obj: parseAct({})(t.text, true), text: t.text}
-    : t
-  );
+  .map(t => {
+    if(t.type == 'code' && t.lang === "act") {
+      return {
+        type: 'code',
+        lang: "act",
+        obj: parseAct({})(t.text, true),
+        text: t.text
+      };
+    } else {
+      return t;
+    }
+  });
 
 const genCoverageReport = (proofs) => {
 
@@ -377,7 +376,7 @@ const stats = table(
 )
 
 const proofs = parsed_tokens
-  .filter(o => o.type == 'code')
+  .filter(o => o.type == 'code' && o.lang === "act")
   .map(o => {
     const cases = getCases(o.obj);
     const contract_name = config.implementations[o.obj.subject];
@@ -400,7 +399,7 @@ const enriched_tokens = [{
   text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(proofs)}</div>`
 }].concat(parsed_tokens
   .reduce((a, t) => {
-    return a.concat(t.type == "code" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
+    return a.concat(t.type == "code" && t.lang === "act" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
   }, []))
 enriched_tokens.links = tokens.links;
 
@@ -416,7 +415,7 @@ ensureDir(path.join(KLAB_OUT, 'report'))
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'index.html'), htmlString);
 
 const json_report = {
-  [project_HEAD]: {
+  [build_hash]: {
     date: new Date(),
     proofs
   },
