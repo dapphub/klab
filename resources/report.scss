@@ -158,23 +158,39 @@ p {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px;
-    tr:nth-child(2n) {
-      background: #e6e6e6;
+    tr:not(:last-child) {
+      border-bottom: 1px solid #e6e6e6;
     }
+    // tr:nth-child(2n) {
+    //   background: #e6e6e6;
+    // }
     td.status {
-      text-align: right;
-      padding: 2px 0.5em;
+      text-align: center;
+      width: 1.2em;
+      &.empty {
+        color: #e6e6e6;
+      }
       &.accept {
         font-weight: bold;
         color: #5cb85c;
-        &:after {
-          content: "✓"
-        }
+      }
+      &.reject {
+        font-weight: bold;
+        color: #d9534f;
+      }
+      &.timeout {
+        font-weight: bold;
+        color: #dddddd;
+      }
+      &.running {
+        font-weight: bold;
+        color: #337ab7;
       }
     }
     td.sig {
       width: 70%;
-      padding: 2px 0.5em;
+      padding: 2px 2.5em;
     }
   }
 }
+

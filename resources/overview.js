@@ -41,12 +41,6 @@ loadJSON(json => {
   delete json.url;
   const name = json.name;
   delete json.name;
-  const map = Object.keys(json)
-    .map(hash => ({
-      ...json[hash],
-      hash
-    }))
-    .sort((a, b) => (new Date(b.date) - new Date(a.date)))
 
   const process_proofs = proofs => {
     const prooflist = Object.keys(proofs)
@@ -67,6 +61,21 @@ loadJSON(json => {
       grouped_proofs
     };
   }
+
+  const map = Object.keys(json)
+    .map(hash => ({
+      ...json[hash],
+      hash
+    }))
+    .sort((a, b) => (new Date(b.date) - new Date(a.date)))
+    .filter((o, i) => {
+      const {
+        prooflist,
+        grouped_proofs
+      } = process_proofs(o.proofs)
+
+      return i == 0 || !grouped_proofs.running;
+    })
 
   const html = map
     .map((o, i) => {

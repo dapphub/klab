@@ -1,4 +1,3 @@
-@charset "UTF-8";
 body {
   font-family: Arial,Helvetica Neue,Helvetica,sans-serif;
   color: #1c1c1c;
@@ -127,18 +126,27 @@ p {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px; }
-    #coverage table.abi tr:nth-child(2n) {
-      background: #e6e6e6; }
+    #coverage table.abi tr:not(:last-child) {
+      border-bottom: 1px solid #e6e6e6; }
     #coverage table.abi td.status {
-      text-align: right;
-      padding: 2px 0.5em; }
+      text-align: center;
+      width: 1.2em; }
+      #coverage table.abi td.status.empty {
+        color: #e6e6e6; }
       #coverage table.abi td.status.accept {
         font-weight: bold;
         color: #5cb85c; }
-        #coverage table.abi td.status.accept:after {
-          content: "✓"; }
+      #coverage table.abi td.status.reject {
+        font-weight: bold;
+        color: #d9534f; }
+      #coverage table.abi td.status.timeout {
+        font-weight: bold;
+        color: #dddddd; }
+      #coverage table.abi td.status.running {
+        font-weight: bold;
+        color: #337ab7; }
     #coverage table.abi td.sig {
       width: 70%;
-      padding: 2px 0.5em; }
+      padding: 2px 2.5em; }
 
 /*# sourceMappingURL=report.css.map */

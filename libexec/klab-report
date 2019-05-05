@@ -316,6 +316,9 @@ const genCoverageReport = (proofs) => {
         .map(sig => ({
           sig,
           accept: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept || 0,
+          reject: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].reject || 0,
+          timeout: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].timeout || 0,
+          running: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].running || 0,
           total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'nospec' : 'ok'
         }))
@@ -338,12 +341,24 @@ const genCoverageReport = (proofs) => {
             ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
             : o.sig
           return `<tr>
+        <td class="status ${o.accept > 0 ? "accept" : "empty"}">
+          ${o.accept > 0 ? o.accept : "-"}
+        </td>
+        <td class="status ${o.reject > 0 ? "reject" : "empty"}">
+          ${o.reject > 0 ? o.reject : "-"}
+        </td>
+        <td class="status ${o.timeout > 0 ? "timeout" : "empty"}">
+          ${o.timeout > 0 ? o.timeout : "-"}
+        </td>
+        <td class="status ${o.running > 0 ? "running" : "empty"}">
+          ${o.running > 0 ? o.running : "-"}
+        </td>
+        <td class="status ${o.total > 0 ? "" : "empty"}">
+          ${o.total > 0 ? o.total : "-"}
+        </td>
         <td class="sig">${sig}</td>
         <td>
           ${o.msg}
-        </td>
-        <td class="status ${o.accept == o.total && o.total !== 0 ? "accept" : ""}">
-          ${o.accept} / ${o.total}
         </td>
         </tr>`
         })
@@ -385,6 +400,9 @@ const proofs = parsed_tokens
       contract: contract_name.name,
       sig: o.obj.signature,
       accept: cstatus.filter(o => o.status == 'accept').length,
+      reject: cstatus.filter(o => o.status == 'reject').length,
+      running: cstatus.filter(o => o.status == 'running').length,
+      timeout: cstatus.filter(o => o.status == 'timeout').length,
       total: cstatus.length,
       proofs: cstatus
     }
