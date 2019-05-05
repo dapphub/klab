@@ -149,7 +149,7 @@ make_batch () {
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_PROJECT_DIR"
   fi;
   # timeout after 3 hrs
-  TIMEOUT=14400
+  TIMEOUT=7200
   parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
