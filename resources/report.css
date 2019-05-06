@@ -128,6 +128,8 @@ p {
     margin: 0.5em 0px; }
     #coverage table.abi tr:not(:last-child) {
       border-bottom: 1px solid #e6e6e6; }
+    #coverage table.abi tr.outstanding {
+      background: #FFEFEF; }
     #coverage table.abi td.status {
       text-align: center;
       width: 1.2em; }

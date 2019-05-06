@@ -313,6 +313,7 @@ const genCoverageReport = (proofs) => {
         total: abi_functions.reduce((a, o) => a + o.total, 0)
       }
     })
+
   const contract_coverage = coverage
     .map(cc => {
       const abi_list = cc
@@ -321,7 +322,7 @@ const genCoverageReport = (proofs) => {
           let sig = o.msg == "ok"
             ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
             : o.sig
-          return `<tr>
+          return `<tr class="${o.accept == o.total ? "" : "outstanding"}">
         <td class="status ${o.accept > 0 ? "accept" : "empty"}">
           ${o.accept > 0 ? o.accept : "-"}
         </td>

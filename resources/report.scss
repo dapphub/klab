@@ -161,9 +161,9 @@ p {
     tr:not(:last-child) {
       border-bottom: 1px solid #e6e6e6;
     }
-    // tr:nth-child(2n) {
-    //   background: #e6e6e6;
-    // }
+    tr.outstanding {
+      background: #FFEFEF;
+    }
     td.status {
       text-align: center;
       width: 1.2em;
