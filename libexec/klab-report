@@ -322,7 +322,7 @@ const genCoverageReport = (proofs) => {
           let sig = o.msg == "ok"
             ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
             : o.sig
-          return `<tr class="${o.accept == o.total ? "" : "outstanding"}">
+          return `<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">
         <td class="status ${o.accept > 0 ? "accept" : "empty"}">
           ${o.accept > 0 ? o.accept : "-"}
         </td>
