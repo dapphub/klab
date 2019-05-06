@@ -121,6 +121,40 @@
                 : nthbyteof(keccakIntList(V), 31, 32)
                 : .WordStack ) => keccakIntList(V)
 
+    rule #asWord( nthbyteof(#symEcrec(V),  0, 32)
+                : nthbyteof(#symEcrec(V),  1, 32)
+                : nthbyteof(#symEcrec(V),  2, 32)
+                : nthbyteof(#symEcrec(V),  3, 32)
+                : nthbyteof(#symEcrec(V),  4, 32)
+                : nthbyteof(#symEcrec(V),  5, 32)
+                : nthbyteof(#symEcrec(V),  6, 32)
+                : nthbyteof(#symEcrec(V),  7, 32)
+                : nthbyteof(#symEcrec(V),  8, 32)
+                : nthbyteof(#symEcrec(V),  9, 32)
+                : nthbyteof(#symEcrec(V), 10, 32)
+                : nthbyteof(#symEcrec(V), 11, 32)
+                : nthbyteof(#symEcrec(V), 12, 32)
+                : nthbyteof(#symEcrec(V), 13, 32)
+                : nthbyteof(#symEcrec(V), 14, 32)
+                : nthbyteof(#symEcrec(V), 15, 32)
+                : nthbyteof(#symEcrec(V), 16, 32)
+                : nthbyteof(#symEcrec(V), 17, 32)
+                : nthbyteof(#symEcrec(V), 18, 32)
+                : nthbyteof(#symEcrec(V), 19, 32)
+                : nthbyteof(#symEcrec(V), 20, 32)
+                : nthbyteof(#symEcrec(V), 21, 32)
+                : nthbyteof(#symEcrec(V), 22, 32)
+                : nthbyteof(#symEcrec(V), 23, 32)
+                : nthbyteof(#symEcrec(V), 24, 32)
+                : nthbyteof(#symEcrec(V), 25, 32)
+                : nthbyteof(#symEcrec(V), 26, 32)
+                : nthbyteof(#symEcrec(V), 27, 32)
+                : nthbyteof(#symEcrec(V), 28, 32)
+                : nthbyteof(#symEcrec(V), 29, 32)
+                : nthbyteof(#symEcrec(V), 30, 32)
+                : nthbyteof(#symEcrec(V), 31, 32)
+                : .WordStack ) => #symEcrec(V)
+
 
 rule ACCTCODE in SetItem( 1 )
                  SetItem ( 2 )
@@ -153,7 +187,7 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #padToWidth(32, #asByteStack( keccakIntList (V) )) => #asByteStackInWidth( keccakIntList (V), 32)
 
-
+    rule #padToWidth(32, #asByteStack( #symEcrec(V) )) => #asByteStackInWidth( #symEcrec(V), 32)
 
 
    // for Vyper
@@ -367,3 +401,12 @@ rule Rsstore(SCHED, NEW, CURR, ORIG) => #if CURR =/=Int 0 andBool NEW ==Int 0 #t
 rule Cextra(SCHED, ISEMPTY, VALUE) => Gcall < SCHED > +Int Cnew(SCHED, ISEMPTY, VALUE) +Int Cxfer(SCHED, VALUE)
 
 rule Cmem(SCHED, N) => (N *Int Gmemory < SCHED >) +Int ((N *Int N) /Int Gquadcoeff < SCHED >)
+
+//Symbolic wrapper over the argument of #ecrec, no implementation.
+syntax Int ::= #symEcrec ( WordStack ) [function]
+
+rule <k> ECREC => #end EVMC_SUCCESS ... </k>
+       <callData> DATA </callData>
+       <output> _ => #ecrec(#symEcrec(DATA)) </output>
+    requires notBool #isConcrete(DATA) andBool #sizeWordStack(DATA) ==Int 128
+    [trusted]
