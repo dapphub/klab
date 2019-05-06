@@ -198,30 +198,28 @@ const getBadges = act => {
   }
 };
 
-const cleanupCode = act_obj => {
+const newCleanup = (act, text) => {
 
-  // build storage
-  // fold subjects
   let storages_blocks = Object
-    .keys(act_obj.storage || {})
+    .keys(act.storage || {})
     .map(subjectName => {
       // TODO - export this one level higher - all storages
       let max_key_length = Object
-        .keys(act_obj.storage[subjectName])
+        .keys(act.storage[subjectName])
         .map(key => key.length)
         .reduce((a, l) => Math.max(a, l), 0);
       let max_lhs_length = Object
-        .keys(act_obj.storage[subjectName])
-        .map(key => act_obj.storage[subjectName][key][0].length)
+        .keys(act.storage[subjectName])
+        .map(key => act.storage[subjectName][key][0].length)
         .reduce((a, l) => Math.max(a, l), 0);
       let storage = Object
-        .keys(act_obj.storage[subjectName])
+        .keys(act.storage[subjectName])
         .map(key => {
-          let rewrites = act_obj.storage[subjectName][key];
-          const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act_obj.subject : subjectName}.${key}`
+          let rewrites = act.storage[subjectName][key];
+          const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act.subject : subjectName}.${key}`
           const def = getStorageDef(key_);
           if(!def && false) {
-            warn(`Storage key ${key_} in ${act_obj.subject}.${act_obj.name} not declared!`)
+            warn(`Storage key ${key_} in ${act.subject}.${act.name} not declared!`)
           }
           rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
           let storage_str = "  "
@@ -233,63 +231,46 @@ const cleanupCode = act_obj => {
           return comment_str + storage_str;
         })
         .join("\n")
-      return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage;
+      return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage + "\n";
     })
     .join("\n\n")
 
-  const behaviour_title = `behaviour ${act_obj.name} of ${act_obj.subject}`
-  const iface_args = (act_obj.interface || []).map(i => i[0] + " " + i[1]).join(", ");
-  const interface = `interface ${act_obj.fname}(${iface_args})`;
-  var iff = "";
-  if(act_obj.iff_orig) {
-    iff = "\niff\n" + act_obj
-      .iff_orig
-      .map(s => "  " + s)
-      .join("\n")
-      .replace(/\/\/ doc:/g, "//")
-      .replace(/\/\/ act:/g, "//")
-  }
+  const code_ = text
+    .split(/\n/)
+    .reduce(({isStorage, display}, line) => {
+      const isStorageBlock = (/^storage$/).test(line);
+      const isOtherStorageBlock = (/^storage\s+\w/).test(line);
+      const isBlock = (/^\w/).test(line);
+      const isStorage_ = isStorageBlock || isOtherStorageBlock || (isStorage && !isBlock);
 
-  var if_ = "";
-  if(act_obj.if_orig) {
-    if_ += "\nif\n" + act_obj
-      .if_orig
-      .map(s => "  " + s)
-      .join("\n")
-      .replace(/\/\/ doc:/g, "//")
-      .replace(/\/\/ act:/g, "//")
-  }
-
-  var returns = "";
-  if(act_obj.returns) {
-    returns += "\nreturns " + act_obj
-      .returns
-      .map(s => s.trim())
-      .join(" : ");
-  }
-
-  const display = [
-    behaviour_title,
-    interface
-  ];
-  if(storages_blocks != "") display.push("\n" + storages_blocks)
-  if(iff != "") display.push(iff)
-  if(if_ != "") display.push(if_)
-  if(returns != "") display.push(returns)
-
-  const code_ = display
+      return {
+        isStorage: isStorage_,
+        display: display
+          .concat(
+            isStorage_ && !isStorageBlock
+            ? []
+            : isStorageBlock && storages_blocks || line
+          )
+      };
+    }, {
+      isStorage: false,
+      display: []
+    })
+    .display
     .join("\n")
+    .replace(/\/\/ doc:/g, "//")
+    .replace(/\/\/ act:/g, "//")
     .replace(/\/\/(.*)\n/gm, (_1, _2, l) => `<span class="comment">//${_2}</span>\n`)
     .replace(/\s*\`[^\?\`]*\?([^\:\`]*)\:[^\`]*\`\s*/g, (_1, s) => s.trim() == "" ? " " : ` ${s.trim()} `)
     .replace(/\`([^\`]*)\`/g, (_, s) => `<span class="var">${s}</span>`)
 
-  // console.log(JSON.stringify(act_obj, false, 2));
-  // console.log(code_);
 
-  let id = act_obj.subject + "_" + act_obj.sig;
+  const id = act.subject + "_" + act.sig;
+
+
+
   return `<div id="${id}"><pre><code>${code_}</code></pre></div>`;
 }
-
 
 const parsed_tokens = tokens
   .map(t => {
@@ -417,7 +398,7 @@ const enriched_tokens = [{
   text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(proofs)}</div>`
 }].concat(parsed_tokens
   .reduce((a, t) => {
-    return a.concat(t.type == "code" && t.lang === "act" ? [{...t, type: "html", text: cleanupCode(t.obj)}, getBadges(t.obj)] : t)
+    return a.concat(t.type == "code" && t.lang === "act" ? [{...t, type: "html", text: newCleanup(t.obj, t.text)}, getBadges(t.obj)] : t)
   }, []))
 enriched_tokens.links = tokens.links;
 
