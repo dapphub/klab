@@ -165,6 +165,8 @@ p {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px;
+    border-radius: 4px;
+    overflow: hidden;
     tr:not(:last-child) {
       border-bottom: 1px solid #e6e6e6;
     }
