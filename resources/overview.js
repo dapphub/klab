@@ -88,14 +88,20 @@ loadJSON(json => {
       const rejected_num = (grouped_proofs.reject || []).length;
       const total_num    = prooflist.length;
       const running = !!grouped_proofs.running;
+      const skip = (grouped_proofs.running || [])
+        .concat(grouped_proofs.queue || [])
+        .map(o => o.spec)
 
       var diff = '';
       if(i == 0 && map.length > 1) {
         const diff_basis = process_proofs(map[1].proofs)
         const types = ['accept', 'reject']
         const do_diff = type => {
-          const da = (diff_basis.grouped_proofs[type] || []).map(o => o.spec)
-          const db = (grouped_proofs[type] || []).map(o => o.spec)
+          const da = (diff_basis.grouped_proofs[type] || [])
+            .map(o => o.spec)
+          const db = (grouped_proofs[type] || [])
+            .map(o => o.spec)
+
           const all = Object.keys(da.concat(db)
             .reduce((a, o) => {
               a[o] = true;
@@ -104,6 +110,7 @@ loadJSON(json => {
 
           const diffstr = all
             .filter(spec => !(da.indexOf(spec) > -1 && db.indexOf(spec) > -1))
+            .filter(spec => skip.indexOf(spec) == -1)
             .map(spec => {
               const pol = da.indexOf(spec) > -1
               const prefix = (pol ? "- " : "+ ")
@@ -134,7 +141,7 @@ loadJSON(json => {
             h(['a', `href="${o.hash}"`])(o.hash),
             h(['div', 'class="info"'])([
               date(o.date),
-              h(['span', 'class="running"'])(running ? 'running' : '')
+              h(['span', 'class="running"'])(running ? 'running (' + skip.length + ')' : '')
             ])
           ]),
           status([
