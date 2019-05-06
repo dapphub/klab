@@ -301,7 +301,7 @@ const genCoverageReport = (proofs) => {
           timeout: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].timeout || 0,
           running: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].running || 0,
           total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
-          msg: !proofs[contract_name + '.' + sig] ? 'nospec' : 'ok'
+          msg: !proofs[contract_name + '.' + sig] ? 'not specified' : ''
         }))
       const contract_coverage = abi_functions
         .map(f => f.accept)
