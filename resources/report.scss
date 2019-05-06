@@ -43,6 +43,13 @@ a {
   }
 }
 
+.codeheader {
+  font-size: 0.7em;
+  .jumptop {
+    float: right;
+  }
+}
+
 pre > code {
   display: block;
   background: #1c1c1c;

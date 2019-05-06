@@ -267,9 +267,12 @@ const newCleanup = (act, text) => {
 
   const id = act.subject + "_" + act.sig;
 
+  const header = `<div class="codeheader">
+      ${h(['a', `class="anchor" href="#${id}"`])('anchor')}
+      ${h(['a', `class="jumptop" href="#top"`])('top')}
+    </div>`;
 
-
-  return `<div id="${id}"><pre><code>${code_}</code></pre></div>`;
+  return `<div id="${id}">${header}<pre><code>${code_}</code></pre></div>`;
 }
 
 const parsed_tokens = tokens
@@ -319,7 +322,7 @@ const genCoverageReport = (proofs) => {
       const abi_list = cc
         .abi_functions
         .map(o => {
-          let sig = o.msg == "ok"
+          let sig = o.total > 0
             ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
             : o.sig
           return `<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">

@@ -27,6 +27,11 @@ a {
     .actstatus table td:last-child {
       text-align: right; }
 
+.codeheader {
+  font-size: 0.7em; }
+  .codeheader .jumptop {
+    float: right; }
+
 pre > code {
   display: block;
   background: #1c1c1c;
