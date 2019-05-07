@@ -170,6 +170,7 @@ mkdir -p "$RUNNING_DIR"
 mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
 rm -fdr "$KLAB_OUT/meta/name"
+rm -fdr "$KLAB_OUT/specs"
 klab build
 count=1
 failures=0
