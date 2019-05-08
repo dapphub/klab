@@ -130,34 +130,34 @@ p {
       #coverage ul.contract_coverage li .progress {
         float: right;
         margin-right: 0.5em; }
-  #coverage table.abi {
+  #coverage table.abi, #coverage table.lemmas {
     width: 100%;
     border-collapse: collapse;
     margin: 0.5em 0px;
     border-radius: 4px;
     overflow: hidden; }
-    #coverage table.abi tr:not(:last-child) {
+    #coverage table.abi tr:not(:last-child), #coverage table.lemmas tr:not(:last-child) {
       border-bottom: 1px solid #e6e6e6; }
-    #coverage table.abi tr.outstanding {
+    #coverage table.abi tr.outstanding, #coverage table.lemmas tr.outstanding {
       background: #FFEFEF; }
-    #coverage table.abi td.status {
+    #coverage table.abi td.status, #coverage table.lemmas td.status {
       text-align: center;
       width: 1.2em; }
-      #coverage table.abi td.status.empty {
+      #coverage table.abi td.status.empty, #coverage table.lemmas td.status.empty {
         color: #e6e6e6; }
-      #coverage table.abi td.status.accept {
+      #coverage table.abi td.status.accept, #coverage table.lemmas td.status.accept {
         font-weight: bold;
         color: #5cb85c; }
-      #coverage table.abi td.status.reject {
+      #coverage table.abi td.status.reject, #coverage table.lemmas td.status.reject {
         font-weight: bold;
         color: #d9534f; }
-      #coverage table.abi td.status.timeout {
+      #coverage table.abi td.status.timeout, #coverage table.lemmas td.status.timeout {
         font-weight: bold;
         color: #dddddd; }
-      #coverage table.abi td.status.running {
+      #coverage table.abi td.status.running, #coverage table.lemmas td.status.running {
         font-weight: bold;
         color: #337ab7; }
-    #coverage table.abi td.sig {
+    #coverage table.abi td.sig, #coverage table.lemmas td.sig {
       width: 70%;
       padding: 2px 2.5em; }
 

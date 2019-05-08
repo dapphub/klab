@@ -94,8 +94,8 @@ const getCases = act => [ {
     suffix: 'fail'
   }] : [] )
 
+
 const mapCaseStatus = cases => cases
-  // .map((c, i) => path.join(KLAB_OUT, `meta/name/${c.name}`))
   .map(c => {
     const spec_path = path.join(KLAB_OUT, `meta/name/${c.name}`);
     const proofid = testPath(spec_path) && read(spec_path);
@@ -294,9 +294,11 @@ const genCoverageReport = (proofs) => {
   const coverage = Object.keys(config.contracts)
     .map(contract_name => {
       const c = config.contracts[contract_name];
-      const abi_functions = JSON.parse(c.abi)
+      const abi_signatures = JSON.parse(c.abi)
         .filter(fabi => fabi.type == 'function')
-        .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`)
+        .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`);
+
+      const abi_functions = abi_signatures
         .map(sig => ({
           sig,
           accept: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept || 0,
@@ -306,26 +308,42 @@ const genCoverageReport = (proofs) => {
           total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'not specified' : ''
         }))
-      const contract_coverage = abi_functions
+        .sort((a, b) => a.sig < b.sig ? -1 : 1)
+
+      const lemmas = Object.keys(proofs)
+        .filter(key => (new RegExp("^" + contract_name + "\\.")).test(key))
+        .filter(key => abi_signatures.map(sig => contract_name + "." + sig).indexOf(key) == -1)
+        .map(key => ({
+          sig: key.slice(contract_name.length + 1),
+          accept: proofs[key].accept,
+          reject: proofs[key].reject,
+          timeout: proofs[key].timeout,
+          running: proofs[key].running,
+          total: proofs[key].total,
+          msg: ''
+        }))
+        .sort((a, b) => a.sig < b.sig ? -1 : 1)
+
+      const contract_coverage = abi_functions.concat(lemmas)
         .map(f => f.accept)
+        .sort((a, b) => a.sig < b.sig ? -1 : 1)
         .reduce((a, b) => a + b, 0)
       return {
         name: contract_name,
         abi_functions,
+        lemmas,
         coverage: contract_coverage,
-        total: abi_functions.reduce((a, o) => a + o.total, 0)
+        total: abi_functions.concat(lemmas).reduce((a, o) => a + o.total, 0)
       }
     })
 
   const contract_coverage = coverage
     .map(cc => {
-      const abi_list = cc
-        .abi_functions
-        .map(o => {
-          let sig = o.total > 0
-            ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
-            : o.sig
-          return `<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">
+      const render = o => {
+        let sig = o.total > 0
+          ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
+          : o.sig
+        return `<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">
         <td class="status ${o.accept > 0 ? "accept" : "empty"}">
           ${o.accept > 0 ? o.accept : "-"}
         </td>
@@ -346,12 +364,23 @@ const genCoverageReport = (proofs) => {
           ${o.msg}
         </td>
         </tr>`
-        })
+      }
+      const abi_list = cc
+        .abi_functions
+        .map(render)
         .join('\n')
+      const lemmas_list = cc
+        .lemmas
+        .map(render)
+        .join('\n')
+      const lemmas_str = lemmas_list.length == 0 ? "" : `
+        <span class="lemmas">lemmas:</span>
+        <table class="lemmas">${lemmas_list}</table>`
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
         <span class="progress">${Math.floor(cc.coverage)} / ${cc.total}</span>
         <table class="abi">${abi_list}</table>
+        ${lemmas_str}
         </li>`
     })
 
@@ -383,7 +412,7 @@ const proofs = parsed_tokens
     const cstatus = mapCaseStatus(cases)
     return {
       contract: contract_name.name,
-      sig: o.obj.signature,
+      sig: o.obj.signature || "lemma." + o.obj.name,
       accept: cstatus.filter(o => o.status == 'accept').length,
       reject: cstatus.filter(o => o.status == 'reject').length,
       running: cstatus.filter(o => o.status == 'running').length,
@@ -392,10 +421,20 @@ const proofs = parsed_tokens
       proofs: cstatus
     }
   })
-  .reduce((a, o) => ({
-    ...a,
-    [o.contract + '.' +o.sig]: o
-  }), {})
+  .reduce((a, o) => {
+    const id = o.contract + '.' + o.sig;
+    if(id in a) {
+      a[id].accept += o.accept;
+      a[id].reject += o.reject;
+      a[id].running += o.running;
+      a[id].timeout += o.timeout;
+      a[id].total += o.total;
+      a[id].proofs = a[id].proofs.concat(o.proofs)
+    } else {
+      a[id] = o;
+    }
+    return a;
+  }, {})
 
 const enriched_tokens = [{
   type: 'html',
@@ -426,3 +465,4 @@ const json_report = {
   name: config.name
 }
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'report.json'), JSON.stringify(json_report))
+console.log(new Date());
