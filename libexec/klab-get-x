@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+// TODO - compile needs to carry on the act
+
+const fs = require("fs");
+const path = require("path");
+const {docopt}      = require("docopt");
+const {
+  testPath,
+  read,
+  ensureDir
+} = require("../lib/util.js");
+const { deltaCC } = require("../lib/constraints.js")
+const kast = require("../lib/kast.js")
+
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
+
+const usage = `
+Usage:
+  klab get-x [options] <kpath> <hash>
+`
+
+const cmd = docopt(usage, {
+  argv: ["get-x"].concat(process.argv.slice(2))
+});
+const kpath = cmd['<kpath>']
+const proofid = cmd['<hash>']
+
+const {
+  prune_edges
+} = require("../lib/compile.js");
+
+const {pruned_edges, initt, finished} = prune_edges(proofid, false);
+
+const if_else_fi = args => ({
+  node: "KApply",
+  label: "#if_#then_#else_#fi_K-EQUAL",
+  variable: false,
+  arity: 3,
+  args: args
+})
+
+const blob = blobid => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")));
+
+const E = pruned_edges;
+const traverse = (firstNode) => {
+  var c = firstNode;
+  while(c in E && E[c].length == 1) {
+    c = E[c][0].to;
+  }
+  if (!(c in E) || E[c].length == 0) {
+    return kast.get(blob(c.split('_')[0]).term, kpath)
+  } else {
+    const l = traverse(E[c][0].to);
+    const r = traverse(E[c][1].to);
+    return JSON.stringify(l) == JSON.stringify(r)
+      ? r
+      : if_else_fi([
+        deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1]))[0], l, r
+      ])
+  }
+}
+
+console.log(kast.format(traverse(initt), true));

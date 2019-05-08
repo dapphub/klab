@@ -19,6 +19,7 @@ fi
 
 export KLAB_OUT
 export GAS_DIR=$KLAB_OUT/gas
+export BEHAVIOUR_DIR=$KLAB_OUT/behaviour
 export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=6
@@ -109,6 +110,7 @@ do_proof () {
   if [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
     klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
+    klab get-x "ethereum.evm.callState.callDepth" "$hash" > "$BEHAVIOUR_DIR/${hash}.callDepth"
     klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
   fi;
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
@@ -166,6 +168,7 @@ make_batch () {
 
 echo "Doing initial spec build, this may take a while..."
 mkdir -p "$GAS_DIR"
+mkdir -p "$BEHAVIOUR_DIR"
 mkdir -p "$RUNNING_DIR"
 mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
