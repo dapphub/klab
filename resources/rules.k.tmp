@@ -241,11 +241,8 @@ rule ACCTCODE in SetItem( 1 )
     rule N &Int 0 => 0
     rule N &Int N => N
 
-
-
-
-
-
+    rule N <<Int 0 => N
+    rule N >>Int 0 => N
 
     rule (I1 +Int I2) +Int I3 => I1 +Int (I2 +Int I3) when #isConcrete(I2) andBool #isConcrete(I3)
     rule (I1 +Int I2) -Int I3 => I1 +Int (I2 -Int I3) when #isConcrete(I2) andBool #isConcrete(I3)
