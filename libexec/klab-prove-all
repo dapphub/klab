@@ -111,7 +111,9 @@ do_proof () {
     # gas analysis from the rough pass
     klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
     klab get-x "ethereum.evm.callState.callDepth" "$hash" > "$BEHAVIOUR_DIR/${hash}.callDepth"
-    klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast"
+    if [ "$(klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast")" ]; then
+      rm "$GAS_DIR/${hash}.kast"
+    fi;
   fi;
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
     if [ $result -ne "0" ]; then
