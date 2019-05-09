@@ -39,6 +39,13 @@ const if_else_fi = args => ({
   arity: 3,
   args: args
 })
+const or = args => ({
+  node: "KApply",
+  label: "_andBool_",
+  variable: false,
+  arity: 2,
+  args: args
+})
 
 const blob = blobid => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")));
 
@@ -48,13 +55,29 @@ const traverse = (firstNode) => {
   while(c in E && E[c].length == 1) {
     c = E[c][0].to;
   }
-  return (!(c in E) || E[c].length == 0)
-    && kast.get(blob(c.split('_')[0]).term, "ethereum.evm.callState.gas")
-    || if_else_fi([
-      deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1]))[0],
-      traverse(E[c][0].to),
-      traverse(E[c][1].to)
-    ])
+  if (!(c in E) || E[c].length == 0) {
+    return kast.get(blob(c.split('_')[0]).term, "ethereum.evm.callState.gas")
+  } else {
+    const l = traverse(E[c][0].to);
+    const r = traverse(E[c][1].to);
+
+    if(l.label && l.label == "#if_#then_#else_#fi_K-EQUAL" && JSON.stringify(l.args[2]) == JSON.stringify(r)) {
+      return if_else_fi([
+        or([
+          deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1]))[0],
+          l.args[0]
+        ]),
+        l.args[1],
+        r
+      ])
+    }
+
+    return JSON.stringify(l) == JSON.stringify(r)
+      ? r
+      : if_else_fi([
+        deltaCC(blob(E[c][0].from.split('_')[1]), blob(E[c][0].to.split('_')[1]))[0], l, r
+      ])
+  }
 }
 
 console.log(JSON.stringify(traverse(initt)));
