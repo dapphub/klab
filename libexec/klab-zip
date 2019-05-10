@@ -22,7 +22,7 @@ cd $KLAB_OUT
 find . \
      \( -wholename "*$1*" -or -wholename "*$spec_name*" \) \
      -and ! -wholename "*/log/*.zip" \
-     -exec zip "$KLAB_OUT/log/$1.zip" {} +
+     -exec zip "./log/$1.zip" {} +
 
 zip -r "log/$1.zip" \
     "prelude.smt2" \
