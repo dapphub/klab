@@ -110,7 +110,6 @@ do_proof () {
   if [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
     klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
-    klab get-x "ethereum.evm.callState.callDepth" "$hash" > "$BEHAVIOUR_DIR/${hash}.callDepth"
     if [ "$(klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast")" ]; then
       rm "$GAS_DIR/${hash}.kast"
     fi;
