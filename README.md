@@ -14,7 +14,7 @@ Installing klab automatically installs `K` and `KEVM`. You will therefore need t
 To install all of these dependencies on Ubuntu, try:
 
 ```sh
-sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm parallel
+sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm parallel gnu-time
 ```
 
 On ArchLinux:
@@ -30,9 +30,9 @@ brew tap homebrew/cask-versions
 brew cask install caskroom/versions/java8
 brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node gnu-getopt
 ```
-This project uses `gnu-getopt` for dealing with argument handling. `OSX` and `gnu` have a complicated relationship but you can run:
+This project uses the `GNU` version of `getopt` and `time`. `OSX` and `gnu` have a complicated relationship but you can run:
 ```sh
-export PATH=/usr/local/opt/gnu-getopt/bin:$PATH
+export PATH=/usr/local/opt/gnu-getopt/bin:/usr/local/opt/gnu-time/libexec/gnubin:$PATH
 ```
 to make them get along.
 
