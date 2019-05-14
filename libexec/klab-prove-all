@@ -83,8 +83,8 @@ do_proof () {
   # report run
   touch "$RUNNING_DIR/$hash"
   report
-  if [[ $name =~ .*_pass_oog$ ]]; then
-    # --dump for all specs except OOG
+  if [[ ! $name =~ .*_pass_rough$ ]]; then
+    # only dump pass_rough specs
     PROVE_FLAGS=""
   else
     PROVE_FLAGS="--dump"
