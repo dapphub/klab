@@ -271,6 +271,9 @@ rule ACCTCODE in SetItem( 1 )
     rule (#if C #then B1 #else B2 #fi) >Int A => true
        requires B1 >Int A andBool B2 >Int A
 
+    rule (A -Int A /Int 64) -Int B -Int (#if C #then B1 #else B2 #fi) =>
+    #if C #then (A -Int A /Int 64) -Int B1 #else (A -Int A /Int 64) -Int B2 #fi -Int B
+
     rule (#if C #then B1 #else B2 #fi) >=Int A => true
        requires B1 >=Int A andBool B2 >=Int A
 
