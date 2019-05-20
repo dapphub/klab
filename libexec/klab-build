@@ -36,7 +36,6 @@ Usage:
 
 Options:
   --filter=<filter>
-  --trust
   --debug
   --no-oog
 `
@@ -52,7 +51,6 @@ const filter_subject= cmd["--filter"] || null;
 const OOG           = !cmd["--no-oog"];
 const DEBUG         = cmd["--debug"] || false;
 config.DEBUG        = DEBUG;
-config.trusted      = cmd["--trust"];
 
 const raw_md_config = read(config_path)
 
