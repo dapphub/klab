@@ -11,6 +11,12 @@
       "solc_output": "dapp/out/vat.sol.json"
     }
   },
+  "split_fail": [
+    "Vat_heal"
+  ],
+  "no_oog": [
+    "Vat_heal"
+    ],
   "dapp_root": "dapp"
 }
 
