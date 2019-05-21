@@ -74,6 +74,11 @@ do_proof () {
       echo "Sending SIGTERM to $proof_child in do_proof()."
       kill -s TERM "$proof_child"
     fi;
+    # check if SIGTERM is due to timeout
+    if [ -n "$PROOF_START" ] && (( ($(date +%s) - PROOF_START) < TIMEOUT )); then
+      exit 1
+    fi;
+    echo "Cause of death was timeout."
     if [ -n "$hash" ]; then
       touch "$KLAB_OUT/timeout/$hash";
       klab zip "$hash" > /dev/null
@@ -100,11 +105,14 @@ do_proof () {
   fi;
   set +e
   # run proof
+  PROOF_START=$(date +%s)
+  export PROOF_START
   $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
   proof_child=$!
   wait "$proof_child"
   result=$?
   unset proof_child
+  unset PROOF_START
   if [ $result -ne "0" ]; then
     cat "$KLAB_OUT/log/${hash}.log"
     cat "$KLAB_OUT/log/${hash}.err.log"
@@ -112,11 +120,14 @@ do_proof () {
   if [ $result -ne "0" ] && [ -z $PROVE_FLAGS ]; then
     # run proof again with --dump if necessary
     PROVE_FLAGS="--dump"
+    PROOF_START=$(date +%s)
+    export PROOF_START
     $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
     proof_child=$!
     wait "$proof_child"
     result=$?
     unset proof_child
+    unset PROOF_START
   fi;
   set -e
   # report finish
@@ -168,6 +179,7 @@ make_batch () {
   fi;
   # timeout after 3 hrs
   TIMEOUT=7200
+  export TIMEOUT
   parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
