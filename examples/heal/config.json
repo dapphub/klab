@@ -14,8 +14,8 @@
   "split_fail": [
     "Vat_heal"
   ],
-  "no_oog": [
-    "Vat_heal"
+  "oog": [
+    "Vat_subui"
     ],
   "dapp_root": "dapp"
 }

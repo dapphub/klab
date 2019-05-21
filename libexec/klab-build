@@ -47,7 +47,7 @@ const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
-const noOOGActs     = config.no_oog || [];
+const OOGActs     = config.oog || [];
 const splitActs     = config.split_fail  || [];
 const DEBUG         = cmd["--debug"] || false;
 config.DEBUG        = DEBUG;
@@ -97,7 +97,7 @@ const acts_str_arr = getActs(raw_md_config);
 let act_collection = acts_str_arr
   .map(parseAct(config))
 
-const act_proofs = buildActs({...config, noOOGActs, splitActs}, act_collection);
+const act_proofs = buildActs({...config, OOGActs, splitActs}, act_collection);
 
 // write names
 Object.keys(act_proofs)
