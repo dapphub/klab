@@ -8,6 +8,15 @@ yellow=$(tput setaf 3)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+_term() {
+  echo "Trapped SIGTERM in klab prove."
+  if [ -n "$kprove_child" ]; then
+    echo "Sending SIGTERM to $kprove_child in klab prove."
+    kill -s TERM "$kprove_child"
+  fi;
+}
+trap _term TERM
+
 # parse args
 usage() { echo "Usage: klab prove [-d] <spec>" 1>&2; exit 1; }
 OPTS=`getopt -o "d" -l "dump" -- "$@"`
@@ -71,8 +80,11 @@ if [ ! -z "$QUIET" ]; then
     --boundary-cells k,pc \
     --smt_prelude $KLAB_OUT/prelude.smt2 \
     --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec" >"$KLAB_OUT/log/$spec_hash.log" 2>"$KLAB_OUT/log/$spec_hash.err.log"
+    "$target_spec" >"$KLAB_OUT/log/$spec_hash.log" 2>"$KLAB_OUT/log/$spec_hash.err.log" &
+  kprove_child=$!
+  wait "$kprove_child"
   result=$?
+  unset kprove_child
 else
   K_OPTS=-Xmx10G \
     "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
@@ -89,8 +101,11 @@ else
     --boundary-cells k,pc \
     --smt_prelude $KLAB_OUT/prelude.smt2 \
     --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec"
+    "$target_spec" &
+  kprove_child=$!
+  wait "$kprove_child"
   result=$?
+  unset kprove_child
 fi
 } || echo "weird error"
 
