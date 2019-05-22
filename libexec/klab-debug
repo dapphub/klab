@@ -32,7 +32,7 @@ const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const usage = `
 Usage:
-  klab debug [options] <hash>
+  klab debug [options] [<hash>]
 
 Options:
   --filter-oog
@@ -42,7 +42,7 @@ const cmd = docopt(usage, {
   argv: ["debug"].concat(process.argv.slice(2))
 });
 
-const proofid = cmd['<hash>'];
+const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KLAB_OUT, "HEAD")) && read(path.join(KLAB_OUT, "HEAD"))).trim();
 const FILTER_OOG = cmd['--filter-oog'];
 
 const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);

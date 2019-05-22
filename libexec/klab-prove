@@ -18,7 +18,7 @@ _term() {
 trap _term TERM
 
 # parse args
-usage() { echo "Usage: klab prove [-d] <spec>" 1>&2; exit 1; }
+usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
 OPTS=`getopt -o "d" -l "dump" -- "$@"`
 dump=false
 if [ $? != 0 ]
@@ -33,15 +33,9 @@ while true; do
 	*)            usage
     esac
 done
-target_spec=$1
-if [ -z "$target_spec" ]; then
-    usage
-fi
-
 
 # check env vars
 if [ -z "$KLAB_OUT" ]; then
-    echo "KLAB_OUT not set, defaulting to ./out/"
     export KLAB_OUT=out
 fi
 if [ -z "$KLAB_EVMS_PATH" ]; then
@@ -50,9 +44,26 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
 fi
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
+if [ -z "$1" ]; then
+  spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
+  if [ -z $spec_hash ]; then
+    echo "ERROR: $1 no spec or active HEAD found"
+    exit 1;
+  fi
+else
+  if [ -f "$KLAB_OUT/meta/name/$1" ]; then
+    spec_hash=$(cat "$KLAB_OUT/meta/name/$1")
+  else
+    if [ -f "$KLAB_OUT/meta/data/$1" ]; then
+      spec_hash="$1"
+    else
+      echo "ERROR: $1 is unknown"
+      exit 1;
+    fi;
+  fi;
+fi
 
-
-spec_hash=$("${0%/*/*}/bin/klab" hash "$target_spec")
+target_spec="$KLAB_OUT/specs/${spec_hash}.k"
 
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"

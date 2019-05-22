@@ -26,6 +26,11 @@ const cmd = docopt(usage, {
 const kpath = cmd['<kpath>']
 const proofid = cmd['<hash>']
 
+if(!testPath(path.join(KLAB_OUT, "data", proofid + ".log"))) {
+  console.error("ERROR: no logfile for " + proofid);
+  process.exit(1);
+}
+
 const {
   prune_edges
 } = require("../lib/compile.js");
@@ -61,4 +66,4 @@ const traverse = (firstNode) => {
   }
 }
 
-console.log(kast.format(traverse(initt), true));
+console.log(JSON.stringify(traverse(initt)));

@@ -1,0 +1,133 @@
+#!/usr/bin/env node
+
+const fs            = require("fs");
+const path          = require("path");
+const marked        = require("marked");
+const {docopt}      = require("docopt");
+const clc           = require("cli-color");
+const _             = require("lodash");
+const kjson         = require("../lib/kjson.js");
+const kast          = require("../lib/kast.js");
+const { execSync }  = require('child_process');
+const makeConfig    = require("../lib/config.js");
+const {
+  proofCollection,
+  makePrelude,
+  makeRules,
+  getActs,
+  parseAct,
+  buildAct,
+  buildActs
+}                   = require("../lib/build.js");
+const {
+  read,
+  testPath,
+  revert,
+  ensureDirs,
+  warn,
+  sha3
+}                   = require("../lib/util.js");
+
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+
+const usage = `
+Usage:
+  klab build [options] [<spec>]
+
+Options:
+  --filter=<filter>
+  --debug
+`
+const cmd = docopt(usage, {
+  argv: ["build"].concat(process.argv.slice(2))
+});
+
+if (!testPath("./config.json")) {revert("No config.json file in directory. Review `klab/examples` folder for inspiration")}
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = makeConfig(config_json);
+const config_path   = cmd["<spec>"] || config.src.specification;
+const filter_subject= cmd["--filter"] || null;
+const OOGActs     = config.oog || [];
+const splitActs     = config.split_fail  || [];
+const DEBUG         = cmd["--debug"] || false;
+config.DEBUG        = DEBUG;
+const raw_md_config = read(config_path)
+
+// RULES
+const {rules_str, write_rules} = makeRules(config);
+// prelude
+const {prelude_str, write_prelude} = makePrelude(config);
+// TODO error when not set
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH || path.join(__dirname, '..', 'evm-semantics');
+const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
+  cwd: KLAB_EVMS_PATH,
+  encoding: 'utf8'
+});
+
+config.get_proof_hash = spec => sha3(JSON.stringify({
+  evms: EVM_SEMANTICS_VERSION,
+  rules: rules_str,
+  spec : spec,
+  smt_prelude: prelude_str
+}));
+
+const acts_str_arr = getActs(raw_md_config);
+
+
+// searches and adds abi variables with "ABI_" prefix
+
+let act_collection = acts_str_arr
+  .map(parseAct(config))
+
+const act_proofs = buildActs({...config, OOGActs, splitActs}, act_collection);
+
+// write names
+Object.keys(act_proofs)
+.filter(proof_name => act_proofs[proof_name].status && act_proofs[proof_name].status != '????')
+.forEach(proof_name => {
+  const rule = act_proofs[proof_name];
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
+})
+
+
+// write module
+Object.keys(act_proofs)
+.filter(proof_name => act_proofs[proof_name].status == '????')
+.forEach(proof_name => {
+  const rule = act_proofs[proof_name];
+  // let _rules      = [rule.spec].concat(rule.ctx.spec)
+  // let module      = kjson.renderModule(_rules, rule.name)
+  const module_path = path.join(KLAB_OUT, "specs", `${rule.hash}.k`)
+
+  var old_module  = "";
+  if(testPath(module_path)) old_module = read(module_path);
+  if(old_module != rule.module) {
+    console.log(rule.hash + " " + rule.name + rule.ctx.map(r => "\n - " + r.name));
+    fs.writeFileSync(module_path, rule.module);
+  }
+
+  // METADATA
+  // name -> hash
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
+  // hash -> data
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", rule.hash), JSON.stringify({
+    v2n: rule.v2n,
+    act: rule.act_name,
+    name: rule.name,
+    src: config.src,
+    srcs: config.srcs,
+    contracts: config.contracts,
+    implementations: config.implementations
+  }));
+})
+
+fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), Object.keys(act_proofs).filter(n => act_proofs[n].status === '????').join("\n"))
+
+if(write_prelude) {
+  console.log('write prelude')
+  fs.writeFileSync(path.join(KLAB_OUT, "prelude.smt2"), prelude_str)
+}
+if(write_rules) {
+  console.log('write rules.k')
+  fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
+}
