@@ -57,13 +57,19 @@ else
     if [ -f "$KLAB_OUT/meta/data/$1" ]; then
       spec_hash="$1"
     else
-      echo "ERROR: $1 is unknown"
-      exit 1;
+      if [[ $1 =~ .k$ ]]; then
+        target_spec=$1
+      else
+        echo "ERROR: $1 is unknown"
+        exit 1;
+      fi;
     fi;
   fi;
 fi
 
-target_spec="$KLAB_OUT/specs/${spec_hash}.k"
+target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
+
+echo $target_spec
 
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"

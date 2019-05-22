@@ -107,7 +107,7 @@ do_proof () {
   # run proof
   PROOF_START=$(date +%s)
   export PROOF_START
-  $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
+  $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$hash" &
   proof_child=$!
   wait "$proof_child"
   result=$?
@@ -122,7 +122,7 @@ do_proof () {
     PROVE_FLAGS="--dump"
     PROOF_START=$(date +%s)
     export PROOF_START
-    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
+    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$hash" &
     proof_child=$!
     wait "$proof_child"
     result=$?
@@ -135,10 +135,8 @@ do_proof () {
   report
   if [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
-    klab get-gas "$hash" > "$GAS_DIR/${hash}.raw.kast.json"
-    if [ "$(klab gas-analyser --input "$GAS_DIR/${hash}.raw.kast.json" > "$GAS_DIR/${hash}.kast")" ]; then
-      rm "$GAS_DIR/${hash}.kast"
-    fi;
+    klab get-gas "$hash"
+    klab solve-gas "$hash"
   fi;
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
     if [ $result -ne "0" ]; then
