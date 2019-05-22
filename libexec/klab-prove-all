@@ -69,11 +69,25 @@ do_proof () {
   set -e
 
   timeout () {
-    touch "$KLAB_OUT/timeout/$hash";
-    klab zip "$hash" > /dev/null
-    cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+    echo "Trapped SIGTERM in do_proof()."
+    if [ -n "$proof_child" ]; then
+      echo "Sending SIGTERM to $proof_child in do_proof()."
+      kill -s TERM "$proof_child"
+    fi;
+    # check if SIGTERM is due to timeout
+    if [ -n "$PROOF_START" ] && (( ($(date +%s) - PROOF_START) < TIMEOUT )); then
+      exit 1
+    fi;
+    echo "Cause of death was timeout."
+    if [ -n "$hash" ]; then
+      touch "$KLAB_OUT/timeout/$hash";
+      klab zip "$hash" > /dev/null
+      if [ -n "$KLAB_REPORT_NAME_DIR" ]; then
+        cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+      fi;
+    fi;
   }
-  trap timeout SIGTERM
+  trap timeout TERM
 
   TIMER="/usr/bin/env time --quiet"
   # get the proof hash
@@ -91,8 +105,14 @@ do_proof () {
   fi;
   set +e
   # run proof
-  $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
+  PROOF_START=$(date +%s)
+  export PROOF_START
+  $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
+  proof_child=$!
+  wait "$proof_child"
   result=$?
+  unset proof_child
+  unset PROOF_START
   if [ $result -ne "0" ]; then
     cat "$KLAB_OUT/log/${hash}.log"
     cat "$KLAB_OUT/log/${hash}.err.log"
@@ -100,8 +120,14 @@ do_proof () {
   if [ $result -ne "0" ] && [ -z $PROVE_FLAGS ]; then
     # run proof again with --dump if necessary
     PROVE_FLAGS="--dump"
-    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k"
+    PROOF_START=$(date +%s)
+    export PROOF_START
+    $TIMER -o "$KLAB_OUT/meta/time/$hash" klab prove $PROVE_FLAGS "$KLAB_OUT/specs/$name.k" &
+    proof_child=$!
+    wait "$proof_child"
     result=$?
+    unset proof_child
+    unset PROOF_START
   fi;
   set -e
   # report finish
@@ -139,9 +165,9 @@ do_proof () {
 export -f do_proof
 
 function clean_running_dir {
-  echo "trapped $RUNNING_DIR"
-  rm -fdr "$KLAB_OUT/data"
-  rm -fdr "$RUNNING_DIR"
+  echo "Trapped EXIT, cleaning $RUNNING_DIR."
+  rm -fdr "$KLAB_OUT/data" || true
+  rm -fdr "$RUNNING_DIR" || true
   report
 }
 trap clean_running_dir EXIT
@@ -153,6 +179,7 @@ make_batch () {
   fi;
   # timeout after 3 hrs
   TIMEOUT=7200
+  export TIMEOUT
   parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
