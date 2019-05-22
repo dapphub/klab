@@ -68,6 +68,8 @@ const badge = (name, status) => `<div class="double-val-label">
   </span>
 </div>`
 
+let oogActs = config.oog || [];
+
 const getCases = act => [ {
     act: {...act},
     name: __a2n(act) + "_pass_rough",
@@ -80,18 +82,20 @@ const getCases = act => [ {
     suffix: 'pass',
     pass: true,
     oog: false
-  }, {
+  }].concat((oogActs.indexOf(__a2n(act)) > -1) ?
+      [{
     act: {...act},
     name: __a2n(act) + "_pass_oog",
     suffix: 'pass_oog',
     pass: true,
     oog: true
-  }].concat("iff" in act ? [{
+      }] : []
+    ).concat("iff" in act ? [{
     act: {...act},
     pass: false,
     oog: false,
-    name: __a2n(act) + "_fail",
-    suffix: 'fail'
+    name: __a2n(act) + "_fail" + ((oogActs.indexOf(__a2n(act)) == -1) ? "_rough" : ""),
+    suffix: 'fail' + ((oogActs.indexOf(__a2n(act)) == -1) ? "_rough" : "")
   }] : [] )
 
 
