@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+if [ -z "$KLAB_OUT" ]; then
+  KLAB_OUT=out
+fi
+
+export running_dir="$KLAB_OUT/meta/running"
+export time_dir="$KLAB_OUT/meta/time"
+mkdir -p $running_dir
+mkdir -p $time_dir
+
+if [ -z "$1" ]; then
+  hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
+  if [ -z $hash ]; then
+    echo "ERROR: $1 no spec or active HEAD found"
+    exit 1;
+  fi
+else
+  if [ -f "$KLAB_OUT/meta/name/$1" ]; then
+    hash=$(cat "$KLAB_OUT/meta/name/$1")
+  else
+    if [ -f "$KLAB_OUT/meta/data/$1" ]; then
+      hash="$1"
+    else
+      echo "ERROR: $1 is unknown"
+      exit 1;
+    fi;
+  fi;
+fi
+
+name=$(jq -r ".name" < "$KLAB_OUT/meta/data/$hash")
+
+
+timeout () {
+  echo "TIMEOUT"
+  # touch "$KLAB_OUT/timeout/$hash";
+  # klab zip "$hash" > /dev/null
+  # cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+}
+trap timeout SIGTERM
+
+TIMER="/usr/bin/env time --quiet"
+# report run
+touch "$running_dir/$hash"
+if [[ $name =~ .*_pass$ ]] || [[ $name =~ .*_pass_oog$ ]] ; then
+  # do not dump _pass.k or pass_oog.k
+  PROVE_FLAGS=""
+else
+  PROVE_FLAGS="--dump"
+fi;
+set +e
+# run proof
+$TIMER -o "$time_dir/$hash" klab prove $PROVE_FLAGS "$hash"
+result=$?
+if [ ! -z "$QUIET" ] && [ $result -ne "0" ]; then
+  cat "$KLAB_OUT/log/${hash}.log" 2> /dev/null
+  cat "$KLAB_OUT/log/${hash}.err.log" 2> /dev/null
+fi;
+set -e
+# report finish
+rm "$running_dir/$hash"
+if [[ $name =~ .*_pass_rough$ ]]; then
+  # gas analysis from the rough pass
+  klab get-gas && klab solve-gas || exit 1;
+fi;

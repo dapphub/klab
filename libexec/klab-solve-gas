@@ -1,15 +1,33 @@
 #!/usr/bin/env bash
-GAS_SOLVER="${GAS_SOLVER:-${0%/*/*}/libexec/klab-gas-analyser}"
-KLAB_OUT="${KLAB_OUT:-out}"
 
-GAS_DIR=$KLAB_OUT/gas
-cd "$GAS_DIR" || exit
+if [ -z "$KLAB_OUT" ]; then
+  KLAB_OUT=out
+fi
+export GAS_DIR=$KLAB_OUT/gas
 
-shopt -s nullglob #disable null globbing
-for rawgasfile in *.raw.kast.json; do
-    echo "Consuming ending gas expression from $GAS_DIR/$rawgasfile..."
-    OUTNAME=$(basename "$rawgasfile" .raw.kast.json).kast
-    $GAS_SOLVER --input "$rawgasfile" > "$OUTNAME"
-    echo "Saved exact gas expression to $GAS_DIR/$OUTNAME"
-done
-shopt -u nullglob #revert nullglob
+if [ -z "$1" ]; then
+  spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
+  if [ -z $spec_hash ]; then
+    echo "ERROR: $1 no spec or active HEAD found"
+    exit 1;
+  fi
+else
+  if [ -f "$KLAB_OUT/meta/name/$1" ]; then
+    spec_hash=$(cat "$KLAB_OUT/meta/name/$1")
+  else
+    if [ -f "$KLAB_OUT/meta/data/$1" ]; then
+      spec_hash="$1"
+    else
+      echo "ERROR: $1 is unknown"
+      exit 1;
+    fi;
+  fi;
+fi
+
+klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
+result=$?
+
+if [ $result -ne "0" ]; then
+  rm "$GAS_DIR/${spec_hash}.raw.kast.json"
+  exit 1;
+fi

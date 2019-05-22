@@ -1,31 +1,16 @@
-#!/usr/bin/env node
-const fs            = require("fs");
-const {docopt}      = require("docopt");
-const path          = require('path');
-const {
-  testPath,
-  read,
-  warn
-} = require("../lib/util.js");
+#!/usr/bin/env bash
 
-const KLAB_OUT     = process.env.KLAB_OUT || "out";
+name=$1
 
-const usage = `
-Usage:
-  klab hash [options] <spec>
-`
+if [ -z "$KLAB_OUT" ]; then
+  KLAB_OUT=out
+fi
 
-const cmd = docopt(usage, {
-  argv: ["hash"].concat(process.argv.slice(2))
-});
+if [ -f "$KLAB_OUT/meta/name/$name" ]; then
+  hash=$(cat "$KLAB_OUT/meta/name/$name")
+else
+  echo "ERROR: $name is unknown"
+  exit 1;
+fi;
 
-const spec = cmd["<spec>"];
-const name = path.basename(spec, '.k');
-
-const hash_path = path.join(KLAB_OUT, 'meta', 'name', name);
-
-if(!testPath(hash_path)) {
-  fs.writeFileSync(hash_path, name);
-  warn(`No hash found, writing debug output under ${name}`);
-}
-process.stdout.write(read(hash_path))
+echo "$hash";

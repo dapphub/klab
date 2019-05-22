@@ -1,29 +1,44 @@
 #!/usr/bin/env bash
 
 if [ -z "$KLAB_OUT" ]; then
-  echo "KLAB_OUT not set, defaulting to ./out/"
   KLAB_OUT=out
 fi
 
-if [ -f "$KLAB_OUT/meta/data/$1" ] ; then
-    spec_name=$(jq -r '.name' < "$KLAB_OUT/meta/data/$1")
+
+if [ -z "$1" ]; then
+  spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
+  if [ -z $spec_hash ]; then
+    echo "ERROR: $1 no spec or active HEAD found"
+    exit 1;
+  fi
 else
-    spec_name="$1";
+  if [ -f "$KLAB_OUT/meta/name/$1" ]; then
+    spec_hash=$(cat "$KLAB_OUT/meta/name/$1")
+  else
+    if [ -f "$KLAB_OUT/meta/data/$1" ]; then
+      spec_hash="$1"
+    else
+      echo "ERROR: $1 is unknown"
+      exit 1;
+    fi;
+  fi;
 fi
+
+spec_name=$(jq -r ".name" < "$KLAB_OUT/meta/data/$spec_hash")
+
 
 if [ ! -d "$KLAB_OUT/log" ]; then
     mkdir -p "$KLAB_OUT/log"
 fi
 
-zip -r "$KLAB_OUT/log/$1.zip" \
-  config.json
+zip -r "$KLAB_OUT/log/$spec_hash.zip" config.json
 
 cd $KLAB_OUT
 find . \
-     \( -wholename "*$1*" -or -wholename "*$spec_name*" \) \
+     \( -wholename "*$spec_hash*" -or -wholename "*$spec_name*" \) \
      -and ! -wholename "*/log/*.zip" \
-     -exec zip "./log/$1.zip" {} +
+     -exec zip "./log/$spec_hash.zip" {} +
 
-zip -r "log/$1.zip" \
+zip -r "log/$spec_hash.zip" \
     "prelude.smt2" \
     "rules.k" \

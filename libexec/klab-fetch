@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 if [ -z "$KLAB_OUT" ]; then
-  echo "KLAB_OUT not set, defaulting to ./out/"
   KLAB_OUT=out
 fi
 

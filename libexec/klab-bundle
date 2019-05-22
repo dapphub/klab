@@ -19,12 +19,11 @@ const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const usage = `
 Usage:
-  klab bundle [options] <hash>
+  klab bundle [options] [<hash>]
 
 Options:
   --prune
   --evm
-  --rules
 `
 
 const cmd = docopt(usage, {
@@ -32,9 +31,8 @@ const cmd = docopt(usage, {
 });
 const PRUNE         = cmd["--prune"] || false;
 const EVM           = cmd['--evm']   || false;
-const RULES         = cmd['--rules'] || false;
 
-const proofid = cmd['<hash>'];
+const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KLAB_OUT, "HEAD")) && read(path.join(KLAB_OUT, "HEAD"))).trim();
 
 const {
   prune_edges,
@@ -44,7 +42,7 @@ const {
   buildDisplayInfo
 } = require('../lib/clean-evm-node.js');
 
-const {pruned_edges, initt, finished, steps} = prune_edges(proofid, {prune: PRUNE, rules: RULES});
+const {pruned_edges, initt, finished, steps} = prune_edges(proofid, {prune: PRUNE});
 
 const blobs = Object.keys(Object.keys(pruned_edges)
   .map(ekey => pruned_edges[ekey]

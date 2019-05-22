@@ -1,107 +1,43 @@
-#!/usr/bin/env node
-// TODO - compile needs to carry on the act
+#!/usr/bin/env bash
 
-const fs = require("fs");
-const path = require("path");
-const {docopt}      = require("docopt");
-const {
-  testPath,
-  read,
-  ensureDir
-} = require("../lib/util.js");
-const { genBehaviour } = require("../lib/behavior.js");
-const format = require("../lib/format.js")
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+yellow=$(tput setaf 3)
+bold=$(tput bold)
+reset=$(tput sgr0)
 
-const KLAB_OUT = process.env.KLAB_OUT || "out";
-const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
+if [ -z "$KLAB_OUT" ]; then
+    export KLAB_OUT=out
+fi
 
-const {
-  prune_edges,
-} = require("../lib/compile.js");
+if [ -z "$1" ]; then
+  spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
+  if [ -z $spec_hash ]; then
+    echo "ERROR: $1 no spec or active HEAD found"
+    exit 1;
+  fi
+else
+  if [ -f "$KLAB_OUT/meta/name/$1" ]; then
+    spec_hash=$(cat "$KLAB_OUT/meta/name/$1")
+  else
+    if [ -f "$KLAB_OUT/meta/data/$1" ]; then
+      spec_hash="$1"
+    else
+      echo "ERROR: $1 is unknown"
+      exit 1;
+    fi;
+  fi;
+fi
 
-const usage = `
-Usage:
-  klab status [options] <hash>
+name=$(jq -r ".name" < "$KLAB_OUT/meta/data/$spec_hash")
 
-Options:
-  --raw
-`
-const cmd = docopt(usage, {
-  argv: ["status"].concat(process.argv.slice(2))
-});
-
-const proofid = cmd['<hash>'];
-const RAW     = cmd['--raw'] || false;
-
-const {pruned_edges, initt, finished, steps} = prune_edges(proofid);
-const finished_ = finished
-  .reduce((a, node) => ({...a, [node]: true}), {});
-const steps_ = steps
-  .reduce((a, step) => { a[step] = true; return a; }, {});
-// generate coedges
-const coedges = Object.keys(pruned_edges)
-  .reduce((coedges, from) =>
-    pruned_edges[from]
-      .reduce((a, toO) => ({...a, [toO.to]: (a[toO.to]||[]).concat(toO)}), coedges)
-  , {})
-
-const meta_path = path.join(KLAB_OUT, 'meta', 'data', proofid);
-var meta = {};
-if(testPath(meta_path)) meta = JSON.parse(read(meta_path))
-
-const blobs = Object.keys(Object.keys(pruned_edges)
-  .map(ekey => pruned_edges[ekey]
-    .map(e => [e.from.split("_")[1], e.to.split("_")[1]])
-    .reduce((a, es) => a.concat(es), [])
-  )
-  .reduce((a, es) => a.concat(es), [])
-  .reduce((a, blob) => {a[blob] = true; return a;}, {}))
-
-const blobs_data = blobs
-  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
-  .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
-
-const state = {
-  edges: pruned_edges,      // done: klab compile-fsm
-  config: meta,
-  initt,                    // done: klab compile-fsm
-  finished: finished_,      // done: klab compile-fsm
-  steps: steps_,
-  nodes: blobs_data,
-  path: [{
-    "type": "step",
-    "count": 0,
-    "step": {
-      "from": "",
-      "to": initt,
-      "rule": ""
-    }
-  }]
-};
-
-const { behaviour } = genBehaviour(state);
-if(RAW) {
-  console.log(JSON.stringify(behaviour, false, 2));
-  process.exit();
-}
-
-state.status = behaviour.success
-  ? "ACCEPT"
-  : "REJECT"
-
-const styles = node => !node && 22
-  || node.branching && 215
-  || node.in_history && 255 // 77
-  || node.active && 244
-  || 234
-const table = format.foldPreorder({
-  tree: JSON.parse(JSON.stringify(behaviour)),
-  loc: "head",
-  styles
-})
-console.log("  " + format
-  .formatDb(table, ["head", "deltaC"], styles)
-  .split("\n")
-  .join("\n  ")
-  + "\n"
-)
+echo "$name"
+echo "$spec_hash "
+status="unknown"
+if [ -f "$KLAB_OUT/accept/$spec_hash" ]; then
+  status="${green}${bold}ACCEPT${reset}"
+fi;
+if [ -f "$KLAB_OUT/reject/$spec_hash" ]; then
+  status="${red}${bold}REJECT${reset}"
+fi;
+echo "status: $status"

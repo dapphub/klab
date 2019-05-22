@@ -1,0 +1,66 @@
+#compdef klab
+# look how pass does it
+# https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/pass/_pass
+_klab() {
+  local cmd
+
+  if (( CURRENT > 2)); then
+    cmd=${words[2]}
+    # Set the context for the subcommand.
+      curcontext="${curcontext%:*:*}:pass-$cmd"
+      # Narrow the range of words we are looking at to exclude `pass'
+      (( CURRENT-- ))
+      shift words
+      # Run the completion for the subcommand
+        case "${cmd}" in
+          bundle)
+            _arguments : \
+              "--prune[squash non-branching and non marked steps]"
+              "--evm[reduce a k term to only include evm relevant information]"
+            _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
+            ;;
+          focus|do-prove|get-gas|solve-gas|status|zip)
+            _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
+            ;;
+          debug)
+            _arguments : \
+              "--filter_oog[filter branches which result in a successful oog exception]"
+            _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
+            ;;
+          prove)
+            _arguments : \
+              "-d[dump the states]"
+            _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
+            ;;
+          bundle)
+            _arguments : \
+              "-p[gpg-id will only be applied to this subfolder]" \
+              "--path[gpg-id will only be applied to this subfolder]"
+            ;;
+          build|fetch|prove-all|report|*)
+            ;;
+        esac
+
+  else
+    local -a subcommands
+    subcommands=(
+      "build:build k reachability proofs from acts"
+      "bundle:create a json object for the web"
+      "focus:focus on a proof <name>"
+      "do-prove:execute a proof and analyze the metadata"
+      "fetch:fetch a proof from an uri"
+      "get-gas:query and save the raw gas expression from a proof"
+      "hash:show a proofhash based given a name"
+      "prove:execute a kprove of a k spec"
+      "prove-all:execute all proofs in a proof loop"
+      "report:generate a report"
+      "solve-gas:generate a simple gas kast expression based on the raw gas"
+      "status:display the proofstatus"
+      "zip:bundle a proof to a zip file"
+      )
+      _describe -t commands 'klab' subcommands
+    fi
+
+}
+
+_klab "$@"
