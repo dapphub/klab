@@ -82,17 +82,17 @@ let act_collection = acts_str_arr
 const act_proofs = buildActs({...config, OOGActs, splitActs}, act_collection);
 
 // write names
-Object.keys(act_proofs)
-.filter(proof_name => act_proofs[proof_name].status && act_proofs[proof_name].status != '????')
-.forEach(proof_name => {
-  const rule = act_proofs[proof_name];
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
-})
+// Object.keys(act_proofs)
+// .filter(proof_name => act_proofs[proof_name].status && act_proofs[proof_name].status != '????')
+// .forEach(proof_name => {
+//   const rule = act_proofs[proof_name];
+//   fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
+// })
 
 
 // write module
 Object.keys(act_proofs)
-.filter(proof_name => act_proofs[proof_name].status == '????')
+.filter(proof_name => act_proofs[proof_name].hash)
 .forEach(proof_name => {
   const rule = act_proofs[proof_name];
   // let _rules      = [rule.spec].concat(rule.ctx.spec)
