@@ -4,7 +4,6 @@
     "exit-code": "1",
     "mode": "NORMAL",
     "schedule": "PETERSBURG",
-    "analysis": ".Map",
     "ethereum": {
       "evm": {
         "output": "_ => VOutput",
@@ -24,7 +23,7 @@
           "pc": "VPC",
           "gas": "VGas",
           "memoryUsed": "0 => _",
-          "previousGas": "_ => _",
+          "callGas": "_ => _",
           "static": "false",
           "callDepth": "VCallDepth"
         },
