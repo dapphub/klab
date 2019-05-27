@@ -326,24 +326,24 @@ rule ACCTCODE in SetItem( 1 )
 
 
     // for gas calculation
-    rule A -Int (#if C #then B1 #else B2 #fi) => #if C #then (A -Int B1) #else (A -Int B2) #fi
+    rule A -Int (iF C tHen B1 eLse B2 fI) => iF C tHen (A -Int B1) eLse (A -Int B2) fI
          requires #isConcrete(A)
 
-    rule (#if C #then B1 #else B2 #fi) -Int A => #if C #then (B1 -Int A) #else (B2 -Int A) #fi
+    rule (iF C tHen B1 eLse B2 fI) -Int A => iF C tHen (B1 -Int A) eLse (B2 -Int A) fI
          requires #isConcrete(A)
-    rule (#if C #then B1 #else B2 #fi) +Int A => #if C #then (B1 +Int A) #else (B2 +Int A) #fi
+    rule (iF C tHen B1 eLse B2 fI) +Int A => iF C tHen (B1 +Int A) eLse (B2 +Int A) fI
          requires #isConcrete(A)
-    rule (#if C #then B1 #else B2 #fi) >Int A => true
+    rule (iF C tHen B1 eLse B2 fI) >Int A => true
        requires B1 >Int A andBool B2 >Int A
 
-    rule (A -Int A /Int 64) -Int B -Int (#if C #then B1 #else B2 #fi) =>
-    #if C #then (A -Int A /Int 64) -Int B1 #else (A -Int A /Int 64) -Int B2 #fi -Int B
+    rule (A -Int A /Int 64) -Int B -Int (iF C tHen B1 eLse B2 fI) =>
+    iF C tHen (A -Int A /Int 64) -Int B1 eLse (A -Int A /Int 64) -Int B2 fI -Int B
 
-    rule (#if C #then B1 #else B2 #fi) >=Int A => true
+    rule (iF C tHen B1 eLse B2 fI) >=Int A => true
        requires B1 >=Int A andBool B2 >=Int A
 
-    rule #if C #then (#if C #then B1 #else B2 #fi) -Int D #else (#if C #then B3 #else B4 #fi) -Int E #fi =>
-         #if C #then B1 -Int D #else B4 -Int E #fi
+    rule iF C tHen (iF C tHen B1 eLse B2 fI) -Int D eLse (iF C tHen B3 eLse B4 fI) -Int E fI =>
+         iF C tHen B1 -Int D eLse B4 -Int E fI
     
 
     rule A -Int A => 0
@@ -449,17 +449,17 @@ rule keccakIntList(A) ==K keccakIntList(C) +Int B => false
 rule A ==K keccakIntList(C) => false
      requires 0 <=Int A andBool A <=Int 20
 
-rule Cgascap(SCHED, GCAP, GAVAIL, GEXTRA) => #if GAVAIL <Int GEXTRA orBool Gstaticcalldepth << SCHED >> #then GCAP #else minInt(#allBut64th(GAVAIL -Int GEXTRA), GCAP) #fi
+rule Cgascap(SCHED, GCAP, GAVAIL, GEXTRA) => iF GAVAIL <Int GEXTRA orBool Gstaticcalldepth << SCHED >> tHen GCAP eLse minInt(#allBut64th(GAVAIL -Int GEXTRA), GCAP) fI
 
 rule Csstore(SCHED, NEW, CURR, ORIG)
-  => #if CURR ==Int NEW orBool ORIG =/=Int CURR #then Gsload < SCHED > #else #if ORIG ==Int 0 #then Gsstoreset < SCHED > #else Gsstorereset < SCHED > #fi #fi
+  => iF CURR ==Int NEW orBool ORIG =/=Int CURR tHen Gsload < SCHED > eLse iF ORIG ==Int 0 tHen Gsstoreset < SCHED > eLse Gsstorereset < SCHED > fI fI
   requires Ghasdirtysstore << SCHED >>
 
 rule Csstore(SCHED, NEW, CURR, ORIG)
-  => #if CURR ==Int 0 andBool NEW =/=Int 0 #then Gsstoreset < SCHED > #else Gsstorereset < SCHED > #fi
+  => iF CURR ==Int 0 andBool NEW =/=Int 0 tHen Gsstoreset < SCHED > eLse Gsstorereset < SCHED > fI
   requires notBool Ghasdirtysstore << SCHED >>
 
-rule Rsstore(SCHED, NEW, CURR, ORIG) => #if CURR =/=Int 0 andBool NEW ==Int 0 #then Rsstoreclear < SCHED > #else 0 #fi
+rule Rsstore(SCHED, NEW, CURR, ORIG) => iF CURR =/=Int 0 andBool NEW ==Int 0 tHen Rsstoreclear < SCHED > eLse 0 fI
       requires notBool Ghasdirtysstore << SCHED >>
 
 rule Cextra(SCHED, ISEMPTY, VALUE) => Gcall < SCHED > +Int Cnew(SCHED, ISEMPTY, VALUE) +Int Cxfer(SCHED, VALUE)

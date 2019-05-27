@@ -59,44 +59,44 @@ manyTillEnd p q = do
 
 -- this is an arbitrary Bool-valued K term
 -- the contents of which we don't care about
--- so we cheat and just count the #ifs
+-- so we cheat and just count the iFs
 parseCond :: Parser Cond
 parseCond = parseCondCounting 0
--- simple naive way which breaks if there are #ifs in the condition:
+-- simple naive way which breaks if there are iFs in the condition:
 -- parseCond = do
---   s <- manyTillEnd anyChar (string "#then ")
+--   s <- manyTillEnd anyChar (string "tHen ")
 --   return $ Cond s
 
 -- TODO: find a better way to do this?
 parseCondCounting :: Int -> Parser Cond
 parseCondCounting depth = do
-   s <- manyTillEnd anyChar (try (string "#if ")
-                          <|> try (string "#fi ")
-                          <|> try (string "#then "))
-   try (do t <- string "#if"
+   s <- manyTillEnd anyChar (try (string "iF ")
+                          <|> try (string "fI ")
+                          <|> try (string "tHen "))
+   try (do t <- string "iF"
            Cond u <- parseCondCounting (depth+1)
            return $ Cond $ s++t++u)
-     <|> try (do t <- string "#fi"
+     <|> try (do t <- string "fI"
                  Cond u <- parseCondCounting (depth-1)
                  return $ Cond $ s++t++u)
      <|> try (if depth == 0
               then return $ Cond s
-              else do t <- string "#then"
+              else do t <- string "tHen"
                       Cond u <- parseCondCounting depth
                       return $ Cond $ s++t++u)
 
 parseITE :: Parser GasExpr
 parseITE = do
-  string "#if "
+  string "iF "
   spaces
   c <- parseCond
-  string "#then "
+  string "tHen "
   spaces
   x <- parseGasExpr
-  string "#else "
+  string "eLse "
   spaces
   y <- parseGasExpr
-  string "#fi "
+  string "fI "
   return $ ITE c x y
 
 parseBracketed :: Parser GasExpr
