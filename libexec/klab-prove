@@ -59,6 +59,7 @@ else
     else
       if [[ $1 =~ .k$ ]]; then
         target_spec=$1
+        spec_hash=$(basename -s .k $1)
       else
         echo "ERROR: $1 is unknown"
         exit 1;
@@ -67,9 +68,8 @@ else
   fi;
 fi
 
+echo $spec_hash
 target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
-
-echo $target_spec
 
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"
