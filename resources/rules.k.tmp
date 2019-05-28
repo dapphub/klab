@@ -408,11 +408,12 @@ rule #notPrecompileAddress ( X ) => 9 <=Int X andBool #rangeAddress(X)
 
 // ABSTRACT SEMANTICS.k
 
+/*
   rule <k> LT W0 W1 => bool2Word(W0  <Int W1) ~> #push ... </k> [trusted]
   rule <k> GT W0 W1 => bool2Word(W0  >Int W1) ~> #push ... </k> [trusted]
   rule <k> EQ W0 W1 => bool2Word(W0 ==Int W1) ~> #push ... </k> [trusted]
   rule <k> ISZERO W => bool2Word(W  ==Int 0 ) ~> #push ... </k> [trusted]
-
+*/
 
 //RULES MUST USE ==K and not ==Int
 //Warning: assumes injective hashing
@@ -473,4 +474,3 @@ rule <k> ECREC => #end EVMC_SUCCESS ... </k>
        <callData> DATA </callData>
        <output> _ => #ecrec(#symEcrec(DATA)) </output>
     requires notBool #isConcrete(DATA) andBool #sizeWordStack(DATA) ==Int 128
-    [trusted]
