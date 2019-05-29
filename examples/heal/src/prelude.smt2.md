@@ -3,6 +3,10 @@
 (set-option :smt.mbqi false)
 ;(set-option :smt.mbqi.max_iterations 15)
 
+(define-fun int_max ((x Int) (y Int)) Int (ite (< x y) y x))
+(define-fun int_min ((x Int) (y Int)) Int (ite (< x y) x y))
+(define-fun int_abs ((x Int)) Int (ite (< x 0) (- 0 x) x))
+
 ;; pow256 and pow255
 (define-fun pow256 () Int
   115792089237316195423570985008687907853269984665640564039457584007913129639936)
