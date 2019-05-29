@@ -173,7 +173,7 @@ trap clean_running_dir EXIT
 
 make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
-    cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_PROJECT_DIR"
+    cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
   # timeout after 3 hrs
   TIMEOUT=7200

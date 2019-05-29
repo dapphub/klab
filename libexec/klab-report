@@ -162,7 +162,7 @@ const getBadges = act => {
     })
     .map(([c, s]) => {
       var proof_info = [
-        td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="${s.spec + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
+        td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="/${s.proofid + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
       ]
 
       var zip = '';
