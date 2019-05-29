@@ -24,7 +24,7 @@ else
   fi;
 fi
 
-klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
+klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
 result=$?
 
 if [ $result -ne "0" ]; then
