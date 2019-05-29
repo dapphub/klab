@@ -85,7 +85,7 @@ formatKast kast = case node kast of
     Just "K" -> let Just n = token kast in Right n
     Just somesort -> Left $ "Unknown sort: " ++ somesort
 
-  "KApply" -> let Just func         = label kast
+  "KApply" -> let Just func         = stripModuleTag <$> label kast
                   Just apply_args   = args kast
                   lr_fargs = map formatKast apply_args
                   fargs    = rights lr_fargs
