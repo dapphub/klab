@@ -84,3 +84,7 @@ findCallSubexprs (Unary op a) = findCallSubexprs a
 findCallSubexprs (Binary op a b) = findCallSubexprs a
                                    ++ findCallSubexprs b
 
+maxLeaf :: GasExpr -> Int
+maxLeaf (Nullary (Literal n)) = n
+maxLeaf (ITE c e f) = max (maxLeaf e) (maxLeaf f)
+
