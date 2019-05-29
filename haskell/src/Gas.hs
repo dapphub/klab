@@ -15,7 +15,7 @@ data GasExpr = Nullary NullOp
   deriving (Eq, Ord, Show)
 
 data NullOp = StartGas | Literal Int
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 data UnOp = SixtyFourth
   deriving (Eq, Ord, Show)
 data BinOp = Add | Sub | Mul
