@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 
 // TODO - include returns in output
-//
 const path          = require("path")
 const marked        = require("marked");
 const { execSync }  = require('child_process');
-const Config        = require("../lib/config.js");
 const moment        = require('moment');
-const {
-  parseAct
-}    = require("../lib/build.js");
 const {
   getId,
   testPath,
@@ -25,7 +20,6 @@ const {
 }                   = require("../lib/util.js")
 const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
-const {getStorageDef} = require("../lib/storage.js");
 const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH || path.join(__dirname, '..', 'evm-semantics');
 const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
   cwd: KLAB_EVMS_PATH,
@@ -33,7 +27,6 @@ const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
 });
 const klab_HEAD     = getKlabHEAD()
 const project_HEAD  = getProjectHEAD();
-const config_json   = JSON.parse(read("./config.json"));
 
 const h = n => s => `<${Array.isArray(n) ? n.join(' ') : n}>${Array.isArray(s) && s.join('') || s}</${Array.isArray(n) ? n[0] : n}>`
 const table = h("table")
@@ -43,60 +36,24 @@ const span = h("span")
 const bspan = h(["span", 'class="boldtitle"'])
 const sspan = h(["span", 'class="sspan"'])
 const codespan = h(["span", 'class="codespan"'])
-// const textinput = h(["input", 'type="text"'])
 
 
 const build_hash = getBuildId();
 
-
-
-const config        = Config(config_json);
+const config        = JSON.parse(read(path.join(KLAB_OUT, "config.tmp.json")))
+const parsed_tokens = JSON.parse(read(path.join(KLAB_OUT, "report.tmp.json")))
 const prelude_path  = config.src.smt_prelude;
 const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
 const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
-const raw_md_config = read(config_path)
 const title         = path.basename(config_path, ".md");
 const raw_rules     = rule_paths.map(p => read(p))
 const rule_hashes   = raw_rules.map(str => sha3(str).slice(0, 40))
-const tokens        = marked.lexer(raw_md_config)
-// const act2specs     = Object.keys(out)
-//   .reduce((a, key) => ({...a, [out[key].act]: [...(a[out[key].act] || []), key]}), {})
 const badge = (name, status) => `<div class="double-val-label">
   <span class="${status}">
     ${status}
   </span>
 </div>`
-
-let oogActs = config.oog || [];
-
-const getCases = act => [ {
-    act: {...act},
-    name: __a2n(act) + "_pass_rough",
-    suffix: 'pass_rough',
-    pass: true,
-    oog: false
-  }, {
-    act: {...act},
-    name: __a2n(act) + "_pass",
-    suffix: 'pass',
-    pass: true,
-    oog: false
-  }].concat((oogActs.indexOf(__a2n(act)) > -1) ?
-      [{
-    act: {...act},
-    name: __a2n(act) + "_pass_oog",
-    suffix: 'pass_oog',
-    pass: true,
-    oog: true
-      }] : []
-    ).concat("iff" in act ? [{
-    act: {...act},
-    pass: false,
-    oog: false,
-    name: __a2n(act) + "_fail" + ((oogActs.indexOf(__a2n(act)) == -1) ? "_rough" : ""),
-    suffix: 'fail' + ((oogActs.indexOf(__a2n(act)) == -1) ? "_rough" : "")
-  }] : [] )
 
 
 const mapCaseStatus = cases => cases
@@ -137,23 +94,10 @@ const mapCaseStatus = cases => cases
   })
 
 const __a2n = act => act.subject + "_" + act.name;
-const getBadges = act => {
-
-  const cases = getCases(act)
+const getBadges = (cases, act) => {
 
   const status = mapCaseStatus(cases)
 
-    // .map(proofid => [proofid, path.join(KLAB_OUT, "log", `boot_${proofid}.json`)])
-    // .map(([pid, log_path]) => testPath(log_path)
-    //   && {proofid: pid, status: JSON.parse(read(log_path)).status}
-    //   || {status: "???"}
-    // )
-  // let links = cases
-  //   .map((c, i) => c.suffix === 'pass_oog'
-  //     ? badge(c.suffix, status[i].status)
-  //     : `<a href="https://proof.dapp.ci/#${status[i].proofid}">${badge(c.suffix, status[i].status)}</a>`
-  //   )
-  //   .join("\n")
   const links = cases
     .map((c, i) => [c, status[i]])
     .sort((a, b) => {
@@ -202,96 +146,7 @@ const getBadges = act => {
   }
 };
 
-const newCleanup = (act, text) => {
 
-  let storages_blocks = Object
-    .keys(act.storage || {})
-    .map(subjectName => {
-      // TODO - export this one level higher - all storages
-      let max_key_length = Object
-        .keys(act.storage[subjectName])
-        .map(key => key.length)
-        .reduce((a, l) => Math.max(a, l), 0);
-      let max_lhs_length = Object
-        .keys(act.storage[subjectName])
-        .map(key => act.storage[subjectName][key][0].length)
-        .reduce((a, l) => Math.max(a, l), 0);
-      let storage = Object
-        .keys(act.storage[subjectName])
-        .map(key => {
-          let rewrites = act.storage[subjectName][key];
-          const key_ = /^(\d|\#)/.test(key) ? key : `#${subjectName == "ACCT_ID" ? act.subject : subjectName}.${key}`
-          const def = getStorageDef(key_);
-          if(!def && false) {
-            warn(`Storage key ${key_} in ${act.subject}.${act.name} not declared!`)
-          }
-          rewrites[0] = rewrites[0] + " ".repeat(max_lhs_length - rewrites[0].length)
-          let storage_str = "  "
-            + key
-            + " ".repeat(max_key_length - key.length)
-            + " |-> "
-            + rewrites.join(" => ")
-          let comment_str = def && ("  // " + def.doc(key_) + "\n") || ""
-          return comment_str + storage_str;
-        })
-        .join("\n")
-      return "storage" + (subjectName !== "ACCT_ID" ? " " + subjectName : "") + "\n" + storage + "\n";
-    })
-    .join("\n\n")
-
-  const code_ = text
-    .split(/\n/)
-    .reduce(({isStorage, display}, line) => {
-      const isStorageBlock = (/^storage$/).test(line);
-      const isOtherStorageBlock = (/^storage\s+\w/).test(line);
-      const isBlock = (/^\w/).test(line);
-      const isStorage_ = isStorageBlock || isOtherStorageBlock || (isStorage && !isBlock);
-
-      return {
-        isStorage: isStorage_,
-        display: display
-          .concat(
-            isStorage_ && !isStorageBlock
-            ? []
-            : isStorageBlock && storages_blocks || line
-          )
-      };
-    }, {
-      isStorage: false,
-      display: []
-    })
-    .display
-    .join("\n")
-    .replace(/\/\/ doc:/g, "//")
-    .replace(/\/\/ act:/g, "//")
-    .replace(/\/\/(.*)\n/gm, (_1, _2, l) => `<span class="comment">//${_2}</span>\n`)
-    .replace(/\s*\`[^\?\`]*\?([^\:\`]*)\:[^\`]*\`\s*/g, (_1, s) => s.trim() == "" ? " " : ` ${s.trim()} `)
-    .replace(/\`([^\`]*)\`/g, (_, s) => `<span class="var">${s}</span>`)
-
-
-  const id = act.subject + "_" + act.sig;
-
-  const header = `<div class="codeheader">
-      ${h(['a', `class="anchor" href="#${id}"`])('anchor')}
-      ${h(['a', `class="jumptop" href="#top"`])('top')}
-    </div>`;
-
-  return `<div id="${id}">${header}<pre><code>${code_}</code></pre></div>`;
-}
-
-const parsed_tokens = tokens
-  .map(t => {
-    if(t.type == 'code' && t.lang === "act") {
-      return {
-        type: 'code',
-        lang: "act",
-        obj: parseAct({})(t.text, true),
-        text: t.text
-      };
-    } else {
-      return t;
-    }
-  });
 
 const genCoverageReport = (proofs) => {
 
@@ -411,9 +266,8 @@ const stats = table(
 const proofs = parsed_tokens
   .filter(o => o.type == 'code' && o.lang === "act")
   .map(o => {
-    const cases = getCases(o.obj);
     const contract_name = config.implementations[o.obj.subject];
-    const cstatus = mapCaseStatus(cases)
+    const cstatus = mapCaseStatus(o.cases)
     return {
       contract: contract_name.name,
       sig: o.obj.signature || "lemma." + o.obj.name,
@@ -445,9 +299,9 @@ const enriched_tokens = [{
   text: `<div id="stats">${stats}</div><div id="coverage">${genCoverageReport(proofs)}</div>`
 }].concat(parsed_tokens
   .reduce((a, t) => {
-    return a.concat(t.type == "code" && t.lang === "act" ? [{...t, type: "html", text: newCleanup(t.obj, t.text)}, getBadges(t.obj)] : t)
+    return a.concat(t.type == "code" && t.lang === "act" ? [{...t, type: "html", text: t.text}, getBadges(t.cases, t.obj)] : t)
   }, []))
-enriched_tokens.links = tokens.links;
+enriched_tokens.links = {};
 
 const body = marked.parser(enriched_tokens);
 const htmlTemplate = read(path.join(__dirname, "../resources/report.tmp.html"));
