@@ -1,13 +1,16 @@
-{
-  nixpkgs ? (import <nixpkgs> {}).fetchFromGitHub {
-    owner = "NixOS";
-    repo = "nixpkgs";
-    rev = "8c2c14ac392e5b96a1b3d12e16ba0439689024c7";
-    sha256 = "0x3b0ml7gxc9y28y4l64mx6w5582ncks0rca00ikn1pqffffvbxi";
-  },
-  compiler ? "ghc822"
+{ mkDerivation, aeson, base, optparse-applicative, parsec, safe
+, stdenv, utf8-string
 }:
-let
-  pkgs = import nixpkgs { config = {}; };
-in
-  pkgs.haskell.packages.${compiler}.callPackage ./klab.nix { }
+mkDerivation {
+  pname = "k-gas-analyser";
+  version = "0.1.2";
+  src = ./.;
+  isLibrary = false;
+  isExecutable = true;
+  executableHaskellDepends = [
+    aeson base optparse-applicative parsec safe utf8-string
+  ];
+  homepage = "https://github.com/dapphub/klab";
+  description = "a gas analysis tool for use with K specifications written in the act language";
+  license = stdenv.lib.licenses.agpl3;
+}

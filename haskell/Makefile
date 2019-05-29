@@ -1,13 +1,19 @@
-NIX_TARGET=result/bin/k-gas-analyser
-
 all: build
 
-build: $(NIX_TARGET)
+default.nix: k-gas-analyser.cabal
+	nix-shell --command 'cabal2nix . > default.nix'
+.configured: default.nix shell.nix
+	nix-shell --command 'cabal new-configure'
+	touch .configured
+build: .configured
+	nix-shell --command 'cabal new-build'
+repl: .configured
+	nix-shell --command 'cabal new-repl'
+tests: .configured
+	nix-shell --command 'cabal new-test'
 
-$(NIX_TARGET): default.nix
-	nix-build
+PORT ?= 8001
+BROWSER ?= chromium
+hoogle-server:; nix-shell --run 'hoogle server --local -p $(PORT)'
 
-test: test-help
-
-test-help: $(NIX_TARGET)
-	./$(NIX_TARGET) --help
+.PHONY: all build repl
