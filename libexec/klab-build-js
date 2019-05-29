@@ -116,7 +116,7 @@ const build_proofs = buildActs(config, act_proofs);
 
 
 // write module
-Object.keys(act_proofs)
+Object.keys(build_proofs)
 .filter(proof_name => act_proofs[proof_name].hash)
 .forEach(proof_name => {
   const rule = act_proofs[proof_name];
