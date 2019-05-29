@@ -9,15 +9,18 @@ import Gas
 -- percolates ITEs to the top
 normaliseStep :: GasExpr -> GasExpr
 normaliseStep (Nullary n) = Nullary n
-normaliseStep (Unary op (ITE c e f)) = normaliseStep (ITE c ope opf)
+normaliseStep (Unary op (ITE c e f)) =
+  normaliseStep (ITE c ope opf)
   where ope = Unary op e
         opf = Unary op f
 normaliseStep (Unary op e) = Unary op e'
   where e' = normaliseStep e
-normaliseStep (Binary op (ITE c e f) g) = normaliseStep (ITE c eg fg)
+normaliseStep (Binary op (ITE c e f) g) =
+  normaliseStep (ITE c eg fg)
   where eg = Binary op e g
         fg = Binary op f g
-normaliseStep (Binary op f (ITE c e g)) = normaliseStep (ITE c fe fg)        
+normaliseStep (Binary op f (ITE c e g)) =
+  normaliseStep (ITE c fe fg)
   where fe = Binary op f e
         fg = Binary op f g
 normaliseStep (Binary op e f) = Binary op e' f'
