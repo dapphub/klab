@@ -10,8 +10,11 @@ import System.IO                 (stderr, hPutStrLn)
 import Data.Semigroup            ((<>))
 import Options.Applicative
 
-import Solver    (maxLeaf, solve)
-import Gas       (unparse)
+import Solver    (solve,
+                  maxLeaf)
+import Gas       (unparse,
+                  stratify,
+                  formatStratifiedSyntax)
 import Parser    (readGasExpr)
 import KastParse (Kast, kastToGasExpr)
 
@@ -45,6 +48,7 @@ inputToString StdInput = getContents
 data AnalyserArgs = AnalyserArgs {
   gasInput :: Input,
   sufficientGas :: Int,
+  stratificationLabel :: String,
   laxMode :: Bool
   }
 
@@ -52,7 +56,7 @@ analyserParser :: Parser AnalyserArgs
 analyserParser = AnalyserArgs
                  <$> input
                  <*> option auto
-                 ( long "sufficient-gas"
+                 (long "sufficient-gas"
                  <> help "Amount of gas known to be sufficient for all executions"
                  <> showDefault
                  <> value 300000
@@ -60,6 +64,12 @@ analyserParser = AnalyserArgs
                  <*> switch
                  ( long "lax"
                  <> help "Returns maximum leaf in the gas tree")
+                 <*> strOption
+                 (long "stratification-label"
+                 <> help "Label to use for stratified gas terms in output."
+                 <> showDefault
+                 <> value "#G"
+                 <> metavar "LABEL")
 
 main :: IO ()
 main = do
@@ -70,15 +80,20 @@ main = do
          <> header "K gas analyser")
   args <- execParser opts
   s    <- inputToString $ gasInput args
-  let lax = laxMode args
-      maxG = sufficientGas args
+  let maxG       = sufficientGas args
+      stratLabel = stratificationLabel args
+      lax        = laxMode args
   -- parse JSON as GasExpr
   case (eitherDecode (fromString s)) :: Either String Kast of
     Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
     Right gaskast -> case kastToGasExpr gaskast of
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
       -- solve GasExpr, unparse, and print
-      Right g -> let solution = if lax
-                       then show $ maxLeaf $ solve maxG $ g
-                       else unparse $ (solve maxG) $ g in
-                 (putStrLn solution) >> exit
+      Right g -> let solved = solve maxG g
+                     sm = stratify stratLabel solved
+                     syntax = formatStratifiedSyntax sm
+                     result = if not lax
+                              then syntax
+                              else maxLeaf solved
+        in (putStrLn result)
+           >> exit
