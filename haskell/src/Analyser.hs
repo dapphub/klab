@@ -11,6 +11,7 @@ import Data.Semigroup            ((<>))
 import Options.Applicative
 
 import Solver    (solve,
+                  cosolve,
                   maxLeaf)
 import Gas       (unparse,
                   stratify,
@@ -46,10 +47,12 @@ inputToString (FileInput path) = readFile path
 inputToString StdInput = getContents
 
 data AnalyserArgs = AnalyserArgs {
-  gasInput :: Input,
-  sufficientGas :: Int,
+  gasInput            :: Input,
+  sufficientGas       :: Int,
   stratificationLabel :: String,
-  laxMode :: Bool
+  laxMode             :: Bool,
+  cosolveMode         :: Bool,
+  noStratifyMode      :: Bool
   }
 
 analyserParser :: Parser AnalyserArgs
@@ -60,7 +63,7 @@ analyserParser = AnalyserArgs
                  <> help "Amount of gas known to be sufficient for all executions"
                  <> showDefault
                  <> value 300000
-                 <> metavar "GAS" )
+                 <> metavar "GAS")
                  <*> strOption
                  (long "stratification-label"
                  <> help "Label to use for stratified gas terms in output."
@@ -68,8 +71,14 @@ analyserParser = AnalyserArgs
                  <> value "#G"
                  <> metavar "LABEL")
                  <*> switch
-                 ( long "lax"
-                 <> help "Returns maximum leaf in the gas tree" )
+                 (long "lax"
+                 <> help "Returns maximum leaf in the gas tree")
+                 <*> switch
+                 (long "cosolve"
+                 <> help "Enable cosolving to reduce maximum nesting depth of expression.")
+                 <*> switch
+                 (long "no-stratify"
+                 <> help "Disable stratification, output a K expression instead of K syntax declarations.")
 
 main :: IO ()
 main = do
@@ -82,17 +91,20 @@ main = do
   s    <- inputToString $ gasInput args
   let maxG       = sufficientGas args
       stratLabel = stratificationLabel args
-      lax        = laxMode args
+      laxOn      = laxMode args
+      cosolveOn  = cosolveMode args
+      stratifyOn = not $ noStratifyMode args
   -- parse JSON as GasExpr
   case (eitherDecode (fromString s)) :: Either String Kast of
     Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
     Right gaskast -> case kastToGasExpr gaskast of
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
       -- solve GasExpr, stratify, and print the K syntax declarations
-      Right g -> let solved = if not lax
-                              then solve maxG g
-                              else maxLeaf $ solve maxG g
+      Right g -> let solved = case (laxOn, cosolveOn) of
+                       (True, _)      -> maxLeaf $ solve maxG g
+                       (False, False) -> solve maxG g
+                       (False, True)  -> cosolve $ solve maxG g
                      sm = stratify stratLabel solved
                      syntax = formatStratifiedSyntax sm
-        in (putStrLn syntax)
-           >> exit
+                     result = if stratifyOn then syntax else unparse Nothing solved
+        in (putStrLn result) >> exit
