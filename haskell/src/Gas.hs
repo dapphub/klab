@@ -76,10 +76,14 @@ stratifier expr = do
               $ smap
   put smap'
   case expr of
-    -- should only stratify stuff with ITEs and Nullaries
+    -- should only stratify unconditional exprs
+    (Binary op e f) -> do
+      stratifier e
+      stratifier f
+      return ()
     (ITE c e f) -> do
-      se <- stratifier e
-      sf <- stratifier f
+      stratifier e
+      stratifier f
       return ()
     (Nullary (Literal x)) ->
       return ()

@@ -30,12 +30,83 @@ normaliseStep (ITE c e f) = ITE c e' f'
   where e' = normaliseStep e
         f' = normaliseStep f
 
-iteratedFix :: (Eq a) => a -> (a -> a) -> a
-iteratedFix x f = let x' = f x in
-                    if x' == x then x else iteratedFix x' f
+unnormaliseStep :: GasExpr -> GasExpr
+unnormaliseStep (Nullary n) = Nullary n
+unnormaliseStep (Unary op e) = Unary op e'
+  where e' = unnormaliseStep e
+unnormaliseStep (Binary op e f) = Binary op e' f'
+  where e' = unnormaliseStep e
+        f' = unnormaliseStep f
+unnormaliseStep (ITE c (Binary op e f) (Binary op' g h))
+  | op == op' && f == h
+    = Binary op (ITE c e' g') f'
+  | op == op' && e == g
+    = Binary op g' (ITE c f' h')
+  | otherwise
+    = (ITE c (Binary op e' f') (Binary op' g' h'))
+  where e' = unnormaliseStep e
+        f' = unnormaliseStep f
+        g' = unnormaliseStep g
+        h' = unnormaliseStep h
+unnormaliseStep (ITE c e f) = ITE c e' f'
+  where e' = unnormaliseStep e
+        f' = unnormaliseStep f
+
+cosolveStep :: GasExpr -> GasExpr
+cosolveStep (Nullary n) = Nullary n
+cosolveStep (Unary op e) = Unary op e'
+  where e' = cosolveStep e
+cosolveStep (Binary op e f) = Binary op e' f'
+  where e' = cosolveStep e
+        f' = cosolveStep f
+cosolveStep (ITE p
+             (ITE p'
+              (Nullary (Literal a))
+              (Nullary (Literal b)))
+             (ITE p''
+              (Nullary (Literal c))
+              (Nullary (Literal d))))
+  | p' == p'' && a - b == c - d  && a > b =
+    let e = a - b in
+      (Binary Add
+       (ITE p'
+        (Nullary $ Literal e)
+        (Nullary $ Literal 0))
+       (ITE p
+        (Nullary $ Literal b)
+        (Nullary $ Literal d)))
+  | p' == p'' && b - a == d - c && a < b =
+    let e = b - a in
+      (Binary Add
+       (ITE p'
+        (Nullary $ Literal 0)
+        (Nullary $ Literal e))
+       (ITE p
+        (Nullary $ Literal a)
+        (Nullary $ Literal c)))
+  | otherwise = (ITE p
+                 (ITE p'
+                  (Nullary (Literal a))
+                  (Nullary (Literal b)))
+                 (ITE p''
+                  (Nullary (Literal c))
+                  (Nullary (Literal d))))
+cosolveStep (ITE p e f) = ITE p e' f'
+  where e' = cosolveStep e
+        f' = cosolveStep f
+
+iteratedFix :: (Eq a) => (a -> a) -> a -> a
+iteratedFix f x = let x' = f x in
+                    if x' == x then x else iteratedFix f x'
 
 normalise :: GasExpr -> GasExpr
-normalise e = iteratedFix e normaliseStep
+normalise = iteratedFix normaliseStep
+
+unnormalise :: GasExpr -> GasExpr
+unnormalise = iteratedFix unnormaliseStep
+
+cosolve :: GasExpr -> GasExpr
+cosolve = iteratedFix (unnormaliseStep . cosolveStep)
 
 solve :: Int -> GasExpr -> GasExpr
 solve maxGas = (solveLeaves maxGas) . normalise
@@ -91,3 +162,10 @@ maxLeaf :: GasExpr -> GasExpr
 maxLeaf (Nullary (Literal n)) = (Nullary (Literal n))
 maxLeaf (ITE c e f) = max (maxLeaf e) (maxLeaf f)
 
+exampleTree = (ITE (Cond "foo")
+               (ITE (Cond "bar")
+                (Nullary $ Literal 5)
+                (Nullary $ Literal 3))
+               (ITE (Cond "bar")
+                (Nullary $ Literal 10)
+                (Nullary $ Literal 8)))
