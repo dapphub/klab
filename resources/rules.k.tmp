@@ -473,4 +473,5 @@ rule <k> ECREC => #end EVMC_SUCCESS ... </k>
        <callData> DATA </callData>
        <output> _ => #ecrec(#symEcrec(DATA)) </output>
     requires notBool #isConcrete(DATA) andBool #sizeWordStack(DATA) ==Int 128
-    [trusted]
+
+rule #memoryUsageUpdate(MU, START, WIDTH) => maxInt(MU, (START +Int WIDTH) up/Int 32) requires WIDTH  >Int 0
