@@ -1,17 +1,26 @@
-{ nixpkgs ? (import <nixpkgs> {}).fetchFromGitHub {
-  owner = "NixOS";
-  repo = "nixpkgs";
-  rev = "8c2c14ac392e5b96a1b3d12e16ba0439689024c7";
-  sha256 = "0x3b0ml7gxc9y28y4l64mx6w5582ncks0rca00ikn1pqffffvbxi";
-}, compiler ? "ghc822" }:
 let
-  pkgs = import nixpkgs { config = {}; };
-  ghc = pkgs.haskell.packages.${compiler}.ghcWithPackages (ps: with ps; [
-          cabal-install hoogle
-        ]);
+  version = "release-18.09";
+  # Import a specific Nixpkgs revision to use as the base for our overlay.
+  nixpkgs = builtins.fetchTarball {
+    name = "nixpkgs-${version}";
+    # pin the current release-18.09 commit
+    url = "https://github.com/nixos/nixpkgs/archive/185ab27b8a2ff2c7188bc29d056e46b25dd56218.tar.gz";
+    sha256 = "0bflmi7w3gas9q8wwwwbnz79nkdmiv2c1bpfc3xyplwy8npayxh2";
+  };
+  pkgs = import nixpkgs {};
+
+  haskellPackages = pkgs.haskellPackages.extend (
+    self: super: {
+      ghc =
+        super.ghc // { withPackages = super.ghc.withHoogle; };
+      ghcWithPackages =
+        self.ghc.withPackages;
+    }
+  );
+
+  drv = pkgs.haskell.lib.addBuildTool (
+    haskellPackages.callPackage (import ./default.nix) {}
+  ) [pkgs.cabal-install pkgs.cabal2nix];
+
 in
-pkgs.stdenv.mkDerivation {
-  name = "k-gas-analyser";
-  buildInputs = [ ghc ];
-  shellHook = "eval $(egrep ^export ${ghc}/bin/ghc)";
-}
+  drv
