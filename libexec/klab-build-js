@@ -71,23 +71,20 @@ config.get_proof_hash = spec => sha3(JSON.stringify({
   smt_prelude: prelude_str
 }));
 
+// 1. get acts
+//    return a [behaviour]
+// 2. parse acts
+//    parses every behaviour into a structured object
+// 3. build acts
+
 const acts_str_arr = getActs(raw_md_config);
 
 
-// searches and adds abi variables with "ABI_" prefix
 
 let act_collection = acts_str_arr
   .map(parseAct(config))
 
 const act_proofs = buildActs({...config, OOGActs, splitActs}, act_collection);
-
-// write names
-// Object.keys(act_proofs)
-// .filter(proof_name => act_proofs[proof_name].status && act_proofs[proof_name].status != '????')
-// .forEach(proof_name => {
-//   const rule = act_proofs[proof_name];
-//   fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", rule.name), rule.hash);
-// })
 
 
 // write module
