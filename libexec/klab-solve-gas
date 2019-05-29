@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 if [ -z "$KLAB_OUT" ]; then
   KLAB_OUT=out
 fi
@@ -24,8 +24,16 @@ else
   fi;
 fi
 
-klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
-result=$?
+
+if [ "$KLAB_LAX" ]; then
+    klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
+    result=$?
+else
+klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
+    result=$?
+    
+fi
+
 
 if [ $result -ne "0" ]; then
   rm "$GAS_DIR/${spec_hash}.raw.kast.json"
