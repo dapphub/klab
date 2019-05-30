@@ -15,13 +15,17 @@ data GasExpr = Nullary NullOp
   deriving (Eq, Ord, Show)
 
 data NullOp = StartGas | Literal Int
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Show)
 data UnOp = SixtyFourth
   deriving (Eq, Ord, Show)
 data BinOp = Add | Sub | Mul
   deriving (Eq, Ord, Show)
 data Cond = Cond String
   deriving (Eq, Ord, Show)
+
+instance Ord NullOp where
+  (Literal m) `compare` (Literal n)
+    = m `compare` n
 
 data StratificationMap = StratificationMap
  { _stratMap   :: Map GasExpr Int,
