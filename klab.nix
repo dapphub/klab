@@ -8,19 +8,7 @@ let
     sha256 = "0c1inf0pc2jizkrfl3629s154r55ya5asmwnwn6g64ppz2wwzizi";
   };
   pkgs = import nixpkgs {};
-
-  haskellPackages = pkgs.haskellPackages.extend (
-    self: super: {
-      ghc =
-        super.ghc // { withPackages = super.ghc.withHoogle; };
-      ghcWithPackages =
-        self.ghc.withPackages;
-    }
-  );
-
-  drv = pkgs.haskell.lib.addBuildTool (
-    haskellPackages.callPackage (import ./default.nix) {}
-  ) [pkgs.cabal-install pkgs.cabal2nix];
-
+  compiler = "ghc864";
 in
-  drv
+with pkgs.haskellPackages;
+pkgs.haskell.packages.${compiler}.callPackage (import ./haskell) {}
