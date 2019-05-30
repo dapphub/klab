@@ -28,9 +28,8 @@ if [ "$KLAB_LAX" ]; then
     klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
     result=$?
 else
-klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
-    result=$?
-
+  klab gas-analyser  --stratification-label $name --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
+  result=$?
 fi
 
 
