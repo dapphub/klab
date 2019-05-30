@@ -88,7 +88,7 @@ main = do
     Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
     Right gaskast -> case kastToGasExpr gaskast of
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
-      -- solve GasExpr, unparse, and print
+      -- solve GasExpr, stratify, and print the K syntax declarations
       Right g -> let solved = if not lax
                               then solve maxG g
                               else maxLeaf $ solve maxG g

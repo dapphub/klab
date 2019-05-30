@@ -65,10 +65,10 @@ unparse msm expr =
         where s = unparse msm e
               t = unparse msm f
 
--- Only stratify stuff with ITEs and Nullaries
 stratifier :: GasExpr -> Stratification ()
 stratifier expr = do
   smap <- get
+  -- insertSoft means we deduplicate the labels
   let insertSoft = Map.insertWith (flip const)
       i = smap ^. nextIndex
       smap' = stratMap %~ (insertSoft expr i)
@@ -76,6 +76,7 @@ stratifier expr = do
               $ smap
   put smap'
   case expr of
+    -- should only stratify stuff with ITEs and Nullaries
     (ITE c e f) -> do
       se <- stratifier e
       sf <- stratifier f
@@ -92,12 +93,14 @@ stratify s e = execState (stratifier e)
     })
 
 formatStratifiedSyntax :: StratificationMap -> String
-formatStratifiedSyntax sm = Map.foldlWithKey (formatStratifiedLeaf sm) "" (view stratMap sm)
+formatStratifiedSyntax sm =
+  Map.foldlWithKey (formatStratifiedLeaf sm) "" (view stratMap sm)
 
 formatStratifiedLeaf :: StratificationMap -> String -> GasExpr -> Int -> String
-formatStratifiedLeaf sm acc expr i =
-  acc
-  ++ "syntax Int ::= \"" ++ tag ++ show i ++ "\" [function]" ++ "\n"
-  ++ "rule " ++ tag ++ show i ++ " => " ++ (unparse (Just sm') expr) ++ "\n" ++ "\n"
+formatStratifiedLeaf sm acc expr i = acc
+  ++ "syntax Int ::= \"" ++ tag ++ show i
+  ++ "\" [function]" ++ "\n"
+  ++ "rule " ++ tag ++ show i ++ " => " ++ (unparse (Just sm') expr)
+  ++ "\n" ++ "\n"
   where tag = sm ^. stratLabel
         sm' = stratMap %~ (Map.delete expr) $ sm
