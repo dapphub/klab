@@ -63,18 +63,21 @@ unparse msm expr =
 
 -- Only stratify stuff with ITEs and Nullaries
 stratifier :: GasExpr -> Stratification ()
-stratifier (ITE c e f) = do
+stratifier expr = do
   smap <- get
   let insertSoft = Map.insertWith (flip const)
       i = smap ^. nextIndex
-      smap' = stratMap %~ (insertSoft (ITE c e f) i)
+      smap' = stratMap %~ (insertSoft expr i)
               $ nextIndex %~ (+1)
               $ smap
   put smap'
-  se <- stratifier e
-  sf <- stratifier f
-  return ()
-stratifier _ = return ()
+  case expr of
+    (ITE c e f) -> do
+      se <- stratifier e
+      sf <- stratifier f
+      return ()
+    (Nullary (Literal x)) ->
+      return ()
 
 stratify :: String -> GasExpr -> StratificationMap
 stratify s e = execState (stratifier e)
