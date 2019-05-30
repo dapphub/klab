@@ -61,15 +61,15 @@ analyserParser = AnalyserArgs
                  <> showDefault
                  <> value 300000
                  <> metavar "GAS" )
-                 <*> switch
-                 ( long "lax"
-                 <> help "Returns maximum leaf in the gas tree")
                  <*> strOption
                  (long "stratification-label"
                  <> help "Label to use for stratified gas terms in output."
                  <> showDefault
                  <> value "#G"
                  <> metavar "LABEL")
+                 <*> switch
+                 ( long "lax"
+                 <> help "Returns maximum leaf in the gas tree" )
 
 main :: IO ()
 main = do
@@ -89,11 +89,10 @@ main = do
     Right gaskast -> case kastToGasExpr gaskast of
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
       -- solve GasExpr, unparse, and print
-      Right g -> let solved = solve maxG g
+      Right g -> let solved = if not lax
+                              then solve maxG g
+                              else maxLeaf $ solve maxG g
                      sm = stratify stratLabel solved
                      syntax = formatStratifiedSyntax sm
-                     result = if not lax
-                              then syntax
-                              else maxLeaf solved
-        in (putStrLn result)
+        in (putStrLn syntax)
            >> exit
