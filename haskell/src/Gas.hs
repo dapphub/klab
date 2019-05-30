@@ -98,9 +98,8 @@ formatStratifiedSyntax sm =
 
 formatStratifiedLeaf :: StratificationMap -> String -> GasExpr -> Int -> String
 formatStratifiedLeaf sm acc expr i = acc
-  ++ "syntax Int ::= \"" ++ tag ++ show i
-  ++ "\" [function]" ++ "\n"
+  ++ "syntax Int ::= \"" ++ tag ++ show i ++ "\"" ++ "\n"
   ++ "rule " ++ tag ++ show i ++ " => " ++ (unparse (Just sm') expr)
-  ++ "\n" ++ "\n"
+  ++ " [macro]" ++ "\n" ++ "\n"
   where tag = sm ^. stratLabel
         sm' = stratMap %~ (Map.delete expr) $ sm
