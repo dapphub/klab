@@ -34,7 +34,7 @@ deps-npm:
 
 deps-haskell:
 	nix-build klab.nix
-	ln -sf $(GAS_SOLVER) $(LIBEXEC_DIR)/klab-gas-analyser
+	ln -sf $(GAS_ANALYSER) $(LIBEXEC_DIR)/klab-gas-analyser
 
 media: media/introduction.pdf
 
