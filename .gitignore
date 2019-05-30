@@ -3,8 +3,9 @@
 /media/*.pdf
 /examples/*/behaviour.json
 /examples/*/out/
-/haskell/result
-/result
-haskell/result
 /examples/*/out/*package-lock.json
 package-lock.json
+/result
+/haskell/
+/haskell/cabal.*
+/haskell/dist*
