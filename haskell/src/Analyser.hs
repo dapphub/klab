@@ -51,7 +51,7 @@ data AnalyserArgs = AnalyserArgs {
   sufficientGas       :: Int,
   stratificationLabel :: String,
   laxMode             :: Bool,
-  cosolveMode         :: Bool,
+  noCosolveMode       :: Bool,
   noStratifyMode      :: Bool
   }
 
@@ -74,8 +74,8 @@ analyserParser = AnalyserArgs
                  (long "lax"
                  <> help "Returns maximum leaf in the gas tree")
                  <*> switch
-                 (long "cosolve"
-                 <> help "Enable cosolving to reduce maximum nesting depth of expression.")
+                 (long "no-cosolve"
+                 <> help "Disable cosolving (cosolving decreases the maximum nesting depth of the expression).")
                  <*> switch
                  (long "no-stratify"
                  <> help "Disable stratification, output a K expression instead of K syntax declarations.")
@@ -92,7 +92,7 @@ main = do
   let maxG       = sufficientGas args
       stratLabel = stratificationLabel args
       laxOn      = laxMode args
-      cosolveOn  = cosolveMode args
+      cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
   -- parse JSON as GasExpr
   case (eitherDecode (fromString s)) :: Either String Kast of
