@@ -94,9 +94,9 @@ stratifier expr = do
       stratifier f
       return ()
     (ITE (Cond c) e f) -> do
-      let smap'' = stratTypes %~ (Map.union (c ^. types))
-                   $ smap'
-      put smap''
+      put $
+        stratTypes %~ (Map.union (c ^. types)) $
+        smap'
       stratifier e
       stratifier f
       return ()
@@ -121,7 +121,9 @@ formatStratifiedLeaf sm acc expr i =
   let args = Map.toList $ sm ^. stratTypes in acc
   ++ "syntax Int ::= \"" ++ tag ++ show i
   ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
-  ++ "rule " ++ tag ++ show i ++ (formatKArgs args) ++ " => " ++ (unparse (Just sm') expr) ++ " [macro]"
+  ++ "rule " ++ tag ++ show i ++ (formatKArgs args)
+  ++ " => "
+  ++ (unparse (Just sm') expr) ++ " [macro]"
   ++ "\n" ++ "\n"
   where tag = sm ^. stratLabel
         sm' = stratMap %~ (Map.delete expr) $ sm
