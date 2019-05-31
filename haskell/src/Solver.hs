@@ -161,11 +161,3 @@ findCallSubexprs (Binary op a b) = findCallSubexprs a
 maxLeaf :: GasExpr -> GasExpr
 maxLeaf (Nullary (Literal n)) = (Nullary (Literal n))
 maxLeaf (ITE c e f) = max (maxLeaf e) (maxLeaf f)
-
-exampleTree = (ITE (Cond "foo")
-               (ITE (Cond "bar")
-                (Nullary $ Literal 5)
-                (Nullary $ Literal 3))
-               (ITE (Cond "bar")
-                (Nullary $ Literal 10)
-                (Nullary $ Literal 8)))

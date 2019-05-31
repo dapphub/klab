@@ -2,10 +2,13 @@
 module KastParse where
 
 import GHC.Generics
+import Control.Lens
 import Data.ByteString.Lazy.UTF8 (fromString)
 import Data.Aeson                (FromJSON, decode)
 import Data.Either               (lefts, rights)
 import Data.List                 (intercalate, isPrefixOf, isSuffixOf)
+
+import qualified Data.Map.Strict as Map
 
 import Gas
 
@@ -75,25 +78,26 @@ kastToGasExpr kast = case node kast of
             Right c -> Right $ ITE (Cond c) e f
     Just somelabel -> Left $ "Unknown KApply in gas expression: " ++ somelabel
 
-formatKast :: Kast -> Either String String
+formatKast :: Kast -> Either String FormulaicString
 formatKast kast = case node kast of
-  "KVariable" -> let Just var = originalName kast in Right var
+  "KVariable" -> let Just var_name = originalName kast
+                     -- K is the only supported type
+                     Just var_type = Just "K"
+                 in Right $ FormulaicString var_name (at var_name ?~ var_type $ Map.empty)
 
-  "KToken" -> case sort kast of
-    Just "Int"  -> let Just n = token kast in Right n
-    Just "Bool" -> let Just n = token kast in Right n
-    Just "K" -> let Just n = token kast in Right n
-    Just somesort -> Left $ "Unknown sort: " ++ somesort
+  "KToken" -> let Just n = token kast
+      in Right $ FormulaicString n Map.empty
 
-  "KApply" -> let Just func         = stripModuleTag <$> label kast
-                  Just apply_args   = args kast
-                  lr_fargs = map formatKast apply_args
-                  fargs    = rights lr_fargs
+  "KApply" -> let Just func       = stripModuleTag <$> label kast
+                  Just apply_args = args kast
+                  lr_fargs    = map formatKast apply_args
+                  fargs       = (^. formula) <$> rights lr_fargs
+                  fargs_types = Map.unions $ (^. types) <$> rights lr_fargs
               in case lefts lr_fargs of
                    error:_ -> Left error
                    [] -> case formatKApply func fargs of
                      Left error -> Left error
-                     Right x    -> Right x
+                     Right x    -> Right $ FormulaicString x fargs_types
 
 formatKApply :: String -> [String] -> Either String String
 formatKApply func fargs = let bracket s = "( " ++ s ++ " )" in

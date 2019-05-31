@@ -1,14 +1,21 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Main where
 
-import Data.ByteString.Lazy.UTF8 (fromString)
-import Data.Aeson                (eitherDecode)
-import System.Environment        (getArgs)
-import System.Exit               (exitWith,
-                                  ExitCode(ExitSuccess),
-                                  ExitCode(ExitFailure))
-import System.IO                 (stderr, hPutStrLn)
-import Data.Semigroup            ((<>))
+import GHC.Generics
+import Data.ByteString.Lazy.UTF8  (fromString)
+import Data.Aeson                 (ToJSON,
+                                   encode,
+                                   eitherDecode)
+import System.Environment         (getArgs)
+import System.Exit                (exitWith,
+                                   ExitCode(ExitSuccess),
+                                   ExitCode(ExitFailure))
+import System.IO                  (stderr, hPutStrLn)
+import Data.Semigroup             ((<>))
 import Options.Applicative
+
+import qualified Data.ByteString.Lazy as BS
+import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Solver    (solve,
                   cosolve,
@@ -16,7 +23,6 @@ import Solver    (solve,
 import Gas       (unparse,
                   stratify,
                   formatStratifiedSyntax)
-import Parser    (readGasExpr)
 import KastParse (Kast, kastToGasExpr)
 
 exit    = exitWith ExitSuccess
@@ -80,6 +86,13 @@ analyserParser = AnalyserArgs
                  (long "no-stratify"
                  <> help "Disable stratification, output a K expression instead of K syntax declarations.")
 
+data StratifiedResult = StratifiedResult
+  { constructor    :: String
+  , stratification :: String
+  } deriving (Generic, Show)
+
+instance ToJSON StratifiedResult where
+
 main :: IO ()
 main = do
   -- parse flags and load input
@@ -105,6 +118,10 @@ main = do
                        (False, False) -> solve maxG g
                        (False, True)  -> cosolve $ solve maxG g
                      sm = stratify stratLabel solved
-                     syntax = formatStratifiedSyntax sm
-                     result = if stratifyOn then syntax else unparse Nothing solved
-        in (putStrLn result) >> exit
+                     sm_result = encode $ StratifiedResult
+                       (unparse (Just sm) solved)
+                       (formatStratifiedSyntax sm)
+                     result = if stratifyOn
+                              then sm_result
+                              else C8.pack $ unparse Nothing solved
+        in (C8.putStrLn result) >> exit
