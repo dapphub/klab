@@ -62,18 +62,18 @@ unparse msm expr =
     Nothing -> case expr of
       (Nullary StartGas) -> "VGas"
       (Nullary (Literal x)) -> show x
-      (Unary SixtyFourth e) -> (bracket $ unparse msm e) ++ " / 64"
+      (Unary SixtyFourth e) -> (bracket $ unparse msm e) ++ " /Int 64"
       (Binary op e f) -> bracket (s ++ opstr ++ t)
         where s = unparse msm e
               t = unparse msm f
               opstr = case op of
-                        Add -> " + "
-                        Sub -> " - "
+                        Add -> " +Int "
+                        Sub -> " -Int "
       (ITE (Cond c) e f) ->
-        "#if " ++ (c ^. formula) ++
-        " #then " ++ s ++
-        " #else " ++ t ++
-        " #fi"
+        "(" ++ "#if " ++ (c ^. formula) ++
+               " #then " ++ s ++
+               " #else " ++ t ++
+               " #fi" ++ ")"
         where s = unparse msm e
               t = unparse msm f
 
