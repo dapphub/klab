@@ -5,6 +5,7 @@ module Gas where
 
 import Control.Lens
 import Control.Monad.State.Strict
+import Data.List (intercalate)
 import Data.Map.Strict as Map
 
 -- grammar for K gas expressions
@@ -20,7 +21,14 @@ data UnOp = SixtyFourth
   deriving (Eq, Ord, Show)
 data BinOp = Add | Sub | Mul
   deriving (Eq, Ord, Show)
-data Cond = Cond String
+data Cond = Cond FormulaicString
+  deriving (Eq, Ord, Show)
+
+-- a formatted K formula with typed variables
+data FormulaicString = FormulaicString
+  { _formula :: String,
+    _types   :: Map String String
+  }
   deriving (Eq, Ord, Show)
 
 instance Ord NullOp where
@@ -30,10 +38,12 @@ instance Ord NullOp where
 data StratificationMap = StratificationMap
  { _stratMap   :: Map GasExpr Int,
    _nextIndex  :: Int,
-   _stratLabel :: String
+   _stratLabel :: String,
+   _stratTypes :: Map String String
  }
 
 makeLenses ''StratificationMap
+makeLenses ''FormulaicString
 
 type Stratification a = State StratificationMap a
 
@@ -42,12 +52,13 @@ bracket s = "( " ++ s ++ " )"
 
 unparse :: (Maybe StratificationMap) -> GasExpr -> String
 unparse msm expr =
-  let (sm, tag) = case msm of
+  let (sm, tag, ts) = case msm of
         Just x  -> (x ^. stratMap,
-                    x ^. stratLabel)
-        Nothing -> (mempty, "")
+                    x ^. stratLabel,
+                    x ^. stratTypes)
+        Nothing -> (mempty, "", mempty)
   in case Map.lookup expr sm of
-    Just i -> tag ++ show i
+    Just i -> tag ++ show i ++ formatKArgs (Map.toList ts)
     Nothing -> case expr of
       (Nullary StartGas) -> "VGas"
       (Nullary (Literal x)) -> show x
@@ -58,10 +69,11 @@ unparse msm expr =
               opstr = case op of
                         Add -> " + "
                         Sub -> " - "
-      (ITE (Cond c) e f) -> "#if "
-                ++ c ++ " #then "
-                ++ s ++ " #else " ++ t
-                ++ " #fi"
+      (ITE (Cond c) e f) ->
+        "#if " ++ (c ^. formula) ++
+        " #then " ++ s ++
+        " #else " ++ t ++
+        " #fi"
         where s = unparse msm e
               t = unparse msm f
 
@@ -81,7 +93,10 @@ stratifier expr = do
       stratifier e
       stratifier f
       return ()
-    (ITE c e f) -> do
+    (ITE (Cond c) e f) -> do
+      let smap'' = stratTypes %~ (Map.union (c ^. types))
+                   $ smap'
+      put smap''
       stratifier e
       stratifier f
       return ()
@@ -93,7 +108,8 @@ stratify s e = execState (stratifier e)
   (StratificationMap
     { _stratMap   = mempty,
       _nextIndex  = 0,
-      _stratLabel = s
+      _stratLabel = s,
+      _stratTypes = mempty
     })
 
 formatStratifiedSyntax :: StratificationMap -> String
@@ -101,9 +117,17 @@ formatStratifiedSyntax sm =
   Map.foldlWithKey (formatStratifiedLeaf sm) "" (view stratMap sm)
 
 formatStratifiedLeaf :: StratificationMap -> String -> GasExpr -> Int -> String
-formatStratifiedLeaf sm acc expr i = acc
-  ++ "syntax Int ::= \"" ++ tag ++ show i ++ "\"" ++ "\n"
-  ++ "rule " ++ tag ++ show i ++ " => " ++ (unparse (Just sm') expr)
-  ++ " [macro]" ++ "\n" ++ "\n"
+formatStratifiedLeaf sm acc expr i =
+  let args = Map.toList $ sm ^. stratTypes in acc
+  ++ "syntax Int ::= \"" ++ tag ++ show i
+  ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
+  ++ "rule " ++ tag ++ show i ++ (formatKArgs args) ++ " => " ++ (unparse (Just sm') expr) ++ " [macro]"
+  ++ "\n" ++ "\n"
   where tag = sm ^. stratLabel
         sm' = stratMap %~ (Map.delete expr) $ sm
+
+formatAbstractKArgs :: [(String, String)] -> String
+formatAbstractKArgs ts = "\"(\" " ++ (intercalate " \",\" " (snd <$> ts)) ++ " \")\""
+
+formatKArgs :: [(String, String)] -> String
+formatKArgs ts = "(" ++ (intercalate ", " (fst <$> ts)) ++ ")"
