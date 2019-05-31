@@ -24,6 +24,9 @@ else
   fi;
 fi
 
+name=$(cat "$KLAB_OUT/meta/data/$spec_hash"| jq -r ".name")
+
+
 if [ "$KLAB_LAX" ]; then
     klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
     result=$?
