@@ -129,7 +129,15 @@ formatStratifiedLeaf sm acc expr i =
         sm' = stratMap %~ (Map.delete expr) $ sm
 
 formatAbstractKArgs :: [(String, String)] -> String
-formatAbstractKArgs ts = "\"(\" " ++ (intercalate " \",\" " (snd <$> ts)) ++ " \")\""
+formatAbstractKargs [] = ""
+formatAbstractKArgs ts =
+  "\"(\" "
+  ++ (intercalate " \",\" " (snd <$> ts))
+  ++ " \")\""
 
 formatKArgs :: [(String, String)] -> String
-formatKArgs ts = "(" ++ (intercalate ", " (fst <$> ts)) ++ ")"
+formatKArgs [] = ""
+formatKArgs ts =
+  "("
+  ++ (intercalate ", " (fst <$> ts))
+  ++ ")"
