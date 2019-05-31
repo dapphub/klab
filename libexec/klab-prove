@@ -70,13 +70,14 @@ fi
 
 echo $spec_hash
 target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
+spec_name="$(<$KLAB_OUT/meta/data/$spec_hash jq '.name' -r)"
 
 if $dump; then
     dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,RULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT,CLOSE"
     dump_notice="(with ${yellow}state logging${reset})"
 fi
 
-echo "Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "$dump_notice"
+echo "Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
 
 logging=''
 {
@@ -127,13 +128,13 @@ fi
 } || echo "weird error"
 
 if [ "$result" == "0" ]; then
-  echo "${green}Proof ${bold}ACCEPT${reset}:" "$(basename "$target_spec")" "$dump_notice"
+  echo "${green}Proof ${bold}ACCEPT${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
   mkdir -p "$KLAB_OUT/accept" && touch "$KLAB_OUT/accept/$spec_hash"
 else
   if [ "$result" == "130" ]; then
     echo 'Caught SIGINT'
   else
-    echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "$dump_notice"
+    echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
     mkdir -p "$KLAB_OUT/reject" && touch "$KLAB_OUT/reject/$spec_hash"
   fi;
 fi
