@@ -141,7 +141,7 @@ do_proof () {
   # report finish
   rm "$RUNNING_DIR/$hash"
   report
-  if [[ $name =~ .*_pass_rough$ ]]; then
+  if [[ $name =~ .*_pass_rough$ ]] && [ $result -eq "0" ]; then
     # gas analysis from the rough pass
     klab get-gas "$hash"
     klab solve-gas "$hash"
