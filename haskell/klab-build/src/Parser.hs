@@ -14,7 +14,7 @@ data Act = Act
   { contract  :: String
   , behaviour :: String
   , interface :: String
-  , inputs    :: [TypedVar]
+  , abiVals   :: [TypedVar]
   , forall    :: [TypedVar]
   , storage   :: [Mapping]
   , iffconds  :: [KExp]
@@ -28,6 +28,7 @@ type TypedVar = (String, Type)
 data Type = Address
           | Int256
           | UInt256
+          | Bytes32
   deriving (Show, Enum, Bounded)
 
 type KExp = String
@@ -36,7 +37,9 @@ data Mapping = Const StorageKey KExp
              | Rewrite StorageKey KExp KExp
   deriving Show
 
-type StorageKey = String
+data StorageKey = StorageNum Int
+                | StorageExp String [String] [String]
+  deriving Show
 
 withSpaces = between spaceOrTab spaceOrTab
 
@@ -53,10 +56,11 @@ indented p = do
 unindented = notFollowedBy (string "    ")
 block b = manyTill (indented b) unindented
 
+
 pAct :: Parser Act
 pAct = do
     string "behaviour"
-    behaviour <- withSpaces $ many1 alphaNum
+    behaviour <- withSpaces $ many1 (alphaNum <|> (oneOf "-"))
     string "of"
     contract <- withSpaces $ many1 alphaNum
     many1 endOfLine
@@ -64,12 +68,12 @@ pAct = do
     string "interface"
     spaces
     interface <- many alphaNum
-    inputs <- bracketed $ sepBy input (char ',')
+    abiVals <- bracketed $ sepBy abiVal (char ',')
     many1 endOfLine
 
     string "for all" <|> string "types"
     many1 endOfLine
-    forall <- block decl
+    forall <- block declaration
 
     string "storage"
     many1 endOfLine
@@ -80,10 +84,10 @@ pAct = do
     iffcond <- block kexp
 
     return $ Act
-      { contract = contract
+      { contract  = contract
       , behaviour = behaviour
       , interface = interface
-      , inputs    = inputs
+      , abiVals   = abiVals
       , forall    = forall
       , storage   = storage
       , iffconds  = iffcond
@@ -97,20 +101,35 @@ kexp = do
     x <- sracketed (many1 (noneOf "]"))
     return x
 
+identifier = many1 (alphaNum <|> oneOf "_-")
+
+accessor = do
+  char '.'
+  id <- identifier
+  return id
+
+storageKey :: Parser StorageKey
+storageKey =
+  StorageNum <$> read <$> many1 digit <|> do
+    name <- identifier
+    keys <- many $ sracketed identifier
+    dots <- many accessor
+    return $ StorageExp name keys dots
+
 
 mapping :: Parser Mapping
 mapping = do
-    storageKey <- many1 alphaNum
+    key <- storageKey
     withSpaces $ string "|->"
     datum <- kexp
     choice [ do withSpaces $ string "=>"
                 datum' <- kexp
-                return $ Rewrite storageKey datum datum'
-           , return $ Const storageKey datum ]
+                return $ Rewrite key datum datum'
+           , return $ Const key datum ]
 
 
-input :: Parser TypedVar
-input = do
+abiVal :: Parser TypedVar
+abiVal = do
     type' <- withSpaces acttype
     name <- withSpaces $ many1 alphaNum -- should also allow underscores etc
     return (name, type')
@@ -120,9 +139,9 @@ acttype = choice
     [ (string . map toLower . show) t *> pure t | t <- [minBound .. maxBound] ]
 
 
-decl :: Parser TypedVar
-decl = do
-    name <- withSpaces $ many1 alphaNum
+declaration :: Parser TypedVar
+declaration = do
+    name <- withSpaces $ many1 (alphaNum <|> (oneOf "_"))
     char ':'
     type' <- withSpaces $ acttype
     return (name, type')
