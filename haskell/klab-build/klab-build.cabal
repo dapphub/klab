@@ -54,7 +54,7 @@ extra-source-files:  CHANGELOG.md
 
 executable klab-build
   -- .hs or .lhs file containing the Main module.
-  main-is:             Main.hs
+  main-is:            Parser.hs
 
   -- Modules included in this executable, other than Main.
   -- other-modules:
@@ -63,7 +63,9 @@ executable klab-build
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.12 && <4.13
+  build-depends:       base >=4.12 && <4.13,
+                       parsec,
+                       optparse-applicative
 
   -- Directories containing source files.
   hs-source-dirs:      src
