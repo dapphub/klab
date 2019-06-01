@@ -32,9 +32,11 @@ data Type = Address
 
 type KExp = String
 
-data Mapping = Const KExp KExp
-             | Rewrite KExp KExp KExp
+data Mapping = Const StorageKey KExp
+             | Rewrite StorageKey KExp KExp
   deriving Show
+
+type StorageKey = String
 
 withSpaces = between spaceOrTab spaceOrTab
 
@@ -94,17 +96,17 @@ kexp :: Parser KExp
 kexp = do
     x <- sracketed (many1 (noneOf "]"))
     return x
-  
+
 
 mapping :: Parser Mapping
 mapping = do
-    address <- kexp
+    storageKey <- many1 alphaNum
     withSpaces $ string "|->"
     datum <- kexp
     choice [ do withSpaces $ string "=>"
                 datum' <- kexp
-                return $ Rewrite address datum datum'
-           , return $ Const address datum ]
+                return $ Rewrite storageKey datum datum'
+           , return $ Const storageKey datum ]
 
 
 input :: Parser TypedVar
