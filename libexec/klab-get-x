@@ -83,4 +83,9 @@ const traverse = (firstNode) => {
   }
 }
 
-console.log(JSON.stringify(traverse(initt)));
+try {
+  console.log(JSON.stringify(traverse(initt)));
+} catch(e) {
+  console.error(e);
+  exit(1);
+}
