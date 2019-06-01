@@ -65,7 +65,8 @@ executable klab-build
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.12 && <4.13,
                        parsec,
-                       optparse-applicative
+                       optparse-applicative,
+                       pretty-show
 
   -- Directories containing source files.
   hs-source-dirs:      src

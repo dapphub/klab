@@ -3,6 +3,7 @@ module Main where
 import Data.Char
 import Text.Parsec
 import Text.ParserCombinators.Parsec
+import qualified Text.Show.Pretty as Pr
 import qualified Options.Applicative as Options
 import System.Exit               (exitWith,
                                   ExitCode(ExitSuccess),
@@ -40,6 +41,15 @@ withSpaces = between spaceOrTab spaceOrTab
 spaceOrTab = many (oneOf " \t")
 
 bracketed = between (char '(') (char ')')
+sracketed = between (char '[') (char ']')
+indented :: Parser x -> Parser x
+indented p = do
+    count 4 (char ' ')
+    e <- p
+    many newline
+    return e
+unindented = notFollowedBy (string "    ")
+block b = manyTill (indented b) unindented
 
 pAct :: Parser Act
 pAct = do
@@ -55,17 +65,17 @@ pAct = do
     inputs <- bracketed $ sepBy input (char ',')
     many1 endOfLine
 
-    string "forall" <|> string "types"
+    string "for all" <|> string "types"
     many1 endOfLine
-    forall <- withSpaces $ sepBy decl spaces
+    forall <- block decl
 
     string "storage"
     many1 endOfLine
-    storage <- withSpaces $ sepBy mapping spaces
+    storage <- block mapping
 
     string "iff"
     many1 endOfLine
-    iffcond <- withSpaces $ sepBy kexp spaces
+    iffcond <- block kexp
 
     return $ Act
       { contract = contract
@@ -74,13 +84,17 @@ pAct = do
       , inputs    = inputs
       , forall    = forall
       , storage   = storage
-      , iffconds  = undefined
-      , ifconds   = undefined
-      , ranges    = undefined
+      , iffconds  = iffcond
+      , ifconds   = []
+      , ranges    = []
       }
 
 
-kexp = undefined
+kexp :: Parser KExp
+kexp = do
+    x <- sracketed (many1 (noneOf "]"))
+    return x
+  
 
 mapping :: Parser Mapping
 mapping = do
@@ -154,4 +168,4 @@ main = do
   s    <- inputToString $ act args
   case parse pAct "" s of
     Left e -> putStrLn $ show e
-    Right ast -> putStrLn $ show ast
+    Right ast -> putStrLn $ Pr.ppShow ast
