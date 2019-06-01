@@ -56,32 +56,35 @@ indented p = do
 unindented = notFollowedBy (string "    ")
 block b = manyTill (indented b) unindented
 
+blockM s f = do
+    string s
+    many1 endOfLine
+    r <- block f
+    return r
 
-pAct :: Parser Act
-pAct = do
+blockBehaviour = do
     string "behaviour"
     behaviour <- withSpaces $ many1 (alphaNum <|> (oneOf "-"))
     string "of"
     contract <- withSpaces $ many1 alphaNum
     many1 endOfLine
+    return (behaviour, contract)
 
+blockInterface = do
     string "interface"
     spaces
     interface <- many alphaNum
     abiVals <- bracketed $ sepBy abiVal (char ',')
     many1 endOfLine
+    return (interface, abiVals)
 
-    string "for all" <|> string "types"
-    many1 endOfLine
-    forall <- block declaration
-
-    string "storage"
-    many1 endOfLine
-    storage <- block mapping
-
-    string "iff"
-    many1 endOfLine
-    iffcond <- block kexp
+pAct :: Parser Act
+pAct = do
+    (behaviour, contract) <- blockBehaviour
+    (interface, abiVals)  <- blockInterface
+    forall  <- blockM "for all" declaration
+    storage <- blockM "storage" mapping
+    iffcond <- blockM "iff"     kexp
 
     return $ Act
       { contract  = contract
