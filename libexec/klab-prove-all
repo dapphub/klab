@@ -81,15 +81,18 @@ do_proof () {
     fi;
     # check if SIGTERM is due to timeout
     if [ -n "$PROOF_START" ] && (( ($(date +%s) - PROOF_START) < TIMEOUT )); then
+      echo "Cause of death wasn't timeout, exiting without further action."
       exit 1
     fi;
     echo "Cause of death was timeout."
     if [ -n "$hash" ]; then
       touch "$KLAB_OUT/timeout/$hash";
       klab zip "$hash" > /dev/null
+      echo "Zipped timed-out proof log for $hash."
       if [ -n "$KLAB_REPORT_NAME_DIR" ]; then
         cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
       fi;
+      echo "Saved time-out proof log for $hash."
     fi;
   }
   trap timeout TERM
@@ -183,7 +186,11 @@ make_batch () {
   # timeout after 3 hrs
   TIMEOUT=7200
   export TIMEOUT
-  parallel -u --timeout $TIMEOUT -P "$THREADS" do_proof {} < "$OBLIGATIONS"
+  # timeout timeout after 10 minutes
+  # (enough time to zip and bookkeeping)
+  TIMEOUTTIMEOUT=600000
+  export TIMEOUTTIMEOUT
+  parallel -u --timeout $TIMEOUT --termseq TERM,$TIMEOUTTIMEOUT,KILL,25 -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   # previously used:
   # xargs -P "$THREADS" -I % sh -xc 'do_proof %' < "$OBLIGATIONS"
   result=$?
