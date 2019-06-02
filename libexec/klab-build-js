@@ -29,6 +29,7 @@ const {
   warn,
   sha3
 }                   = require("../lib/util.js");
+const __a2n = act => act.subject + "_" + act.name;
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
 
@@ -99,20 +100,39 @@ const parsed_tokens = tokens
     }
   });
 
-fs.writeFileSync(path.join(KLAB_OUT, "report.tmp.json"), JSON.stringify(parsed_tokens));
-fs.writeFileSync(path.join(KLAB_OUT, "config.tmp.json"), JSON.stringify(config));
-
 
 const act_collection = parsed_tokens
   .filter(e => e.type === "code" && e.lang == "act")
   .map(e => e.cases)
   .reduce((a, cs) => a.concat(cs), [])
 
+// for each case - buildAct
 const act_proofs = proofCollection(config)(act_collection)
 
-
-
+// recursively enrich cases based on dependencies and completion
 const build_proofs = buildActs(config, act_proofs);
+
+const final_tokens = parsed_tokens
+  .map(t => {
+    if(t.type == "code" && t.lang == "act") {
+      const cases = Object.keys(act_proofs)
+        .map(name => act_proofs[name])
+        .filter(c => __a2n(c.act) == __a2n(t.obj))
+        // .forEach(c => {
+        //   console.log(c.act.name);
+        //   console.log(__a);
+        // })
+
+      return {...t, cases};
+    } else {
+      return t;
+    }
+  })
+
+// TODO - enriched cases should be exported here.
+fs.writeFileSync(path.join(KLAB_OUT, "report.tmp.json"), JSON.stringify(final_tokens));
+fs.writeFileSync(path.join(KLAB_OUT, "config.tmp.json"), JSON.stringify(config));
+
 
 
 // write module
