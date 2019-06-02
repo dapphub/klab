@@ -74,7 +74,10 @@ loadJSON(json => {
         grouped_proofs
       } = process_proofs(o.proofs)
 
-      return i == 0 || !grouped_proofs.running;
+      const accepted_num = (grouped_proofs.accept || []).length;
+      const rejected_num = (grouped_proofs.reject || []).length;
+
+      return i == 0 || (!grouped_proofs.running) && (accepted_num > 0 || rejected_num > 0)
     })
 
   const html = map
