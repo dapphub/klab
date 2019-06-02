@@ -14,13 +14,16 @@ data Act = Act
   { contract  :: String
   , behaviour :: String
   , interface :: String
-  , abiVals   :: [TypedVar]
-  , forall    :: [TypedVar]
-  , storage   :: [Mapping]
-  , iffconds  :: [KExp]
-  , ifconds   :: [KExp]
-  , ranges    :: [(Type, [KExp])]
+  , blocks    :: [Block]
   }
+  deriving Show
+
+data Block = AbiVals  [TypedVar]
+           | Forall   [TypedVar]
+           | Storage  [Mapping]
+           | Iffconds [KExp]
+           | Ifconds  [KExp]
+           | Ranges   [(Type, [KExp])]
   deriving Show
 
 type TypedVar = (String, Type)
@@ -55,6 +58,15 @@ indented p = do
     return e
 unindented = notFollowedBy (string "    ")
 
+block :: Parser Block
+block = do
+  choice [ do b <- blockM "for all" declaration
+              return $ Forall b
+         , do b <- blockM "storage" mapping
+              return $ Storage b
+         , do b <- blockM "iff" kexp
+              return $ Iffconds b ]
+
 blockM s f = do
     string s
     many1 endOfLine
@@ -81,20 +93,14 @@ pAct :: Parser Act
 pAct = do
     (behaviour, contract) <- blockBehaviour
     (interface, abiVals)  <- blockInterface
-    forall  <- blockM "for all" declaration
-    storage <- blockM "storage" mapping
-    iffcond <- blockM "iff"     kexp
+
+    blocks <- many1 block
 
     return $ Act
       { contract  = contract
       , behaviour = behaviour
       , interface = interface
-      , abiVals   = abiVals
-      , forall    = forall
-      , storage   = storage
-      , iffconds  = iffcond
-      , ifconds   = []
-      , ranges    = []
+      , blocks    = blocks
       }
 
 
