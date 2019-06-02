@@ -54,19 +54,18 @@ indented p = do
     many newline
     return e
 unindented = notFollowedBy (string "    ")
-block b = manyTill (indented b) unindented
 
 blockM s f = do
     string s
     many1 endOfLine
-    r <- block f
+    r <- manyTill (indented f) unindented
     return r
 
 blockBehaviour = do
     string "behaviour"
-    behaviour <- withSpaces $ many1 (alphaNum <|> (oneOf "-"))
+    behaviour <- withSpaces identifier
     string "of"
-    contract <- withSpaces $ many1 alphaNum
+    contract <- withSpaces identifier
     many1 endOfLine
     return (behaviour, contract)
 
@@ -100,11 +99,10 @@ pAct = do
 
 
 kexp :: Parser KExp
-kexp = do
-    x <- sracketed (many1 (noneOf "]"))
-    return x
+kexp = expression
 
 identifier = many1 (alphaNum <|> oneOf "_-")
+expression = many1 (alphaNum <|> oneOf "_-+/*=() ")
 
 accessor = do
   char '.'
@@ -124,7 +122,7 @@ mapping :: Parser Mapping
 mapping = do
     key <- storageKey
     withSpaces $ string "|->"
-    datum <- kexp
+    datum <- identifier
     choice [ do withSpaces $ string "=>"
                 datum' <- kexp
                 return $ Rewrite key datum datum'
@@ -134,7 +132,7 @@ mapping = do
 abiVal :: Parser TypedVar
 abiVal = do
     type' <- withSpaces acttype
-    name <- withSpaces $ many1 alphaNum -- should also allow underscores etc
+    name <- withSpaces identifier
     return (name, type')
 
 acttype :: Parser Type
@@ -144,9 +142,9 @@ acttype = choice
 
 declaration :: Parser TypedVar
 declaration = do
-    name <- withSpaces $ many1 (alphaNum <|> (oneOf "_"))
+    name <- withSpaces identifier
     char ':'
-    type' <- withSpaces $ acttype
+    type' <- withSpaces acttype
     return (name, type')
 
 exit    = exitWith ExitSuccess
@@ -191,5 +189,12 @@ main = do
   args <- Options.execParser opts
   s    <- inputToString $ act args
   case parse pAct "" s of
+    Left e -> putStrLn $ show e
+    Right ast -> putStrLn $ Pr.ppShow ast
+
+test :: IO ()
+test = do
+  p <- parseFromFile pAct "./Vat_debt.act"
+  case p of
     Left e -> putStrLn $ show e
     Right ast -> putStrLn $ Pr.ppShow ast
