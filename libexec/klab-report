@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-// TODO - include returns in output
 const path          = require("path")
 const marked        = require("marked");
 const { execSync }  = require('child_process');
@@ -106,18 +105,27 @@ const getBadges = (cases, act) => {
     })
     .map(([c, s]) => {
       var proof_info = [
-        td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="/${s.proofid + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
+        td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="/${config.name}/${s.proofid + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
       ]
 
       var zip = '';
 
       const rejected = s.status == 'reject' || s.status == 'timeout';
       const accepted = s.status == 'accept';
+      const blocked  = s.status == 'blocked';
       const finished = accepted || rejected;
 
       proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
       // proof_info.push(td(finished ?  : ""))
 
+      let blocked_links = "";
+      if(blocked && c.imports) {
+        blocked_links = c.imports
+          .filter(name => !case_map[name] || case_map[name].status != "accept")
+          .map(name => case_map[name] ? name : name + "_rough")
+          .map(name => h(['a', `href="#${case_map[name].act.subject}_${case_map[name].act.sig}"`])(name))
+          .join(", ")
+      }
 
       proof_info.push(td(
            rejected && [
@@ -126,6 +134,9 @@ const getBadges = (cases, act) => {
           ]
         || accepted && [
           sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect-proof'))
+        ]
+        || blocked && [
+          sspan(`blocked on: ${blocked_links}`)
         ]
         || ''
       ))
@@ -262,6 +273,12 @@ const stats = table(
       .map(([k, v]) => tr(td(k) + td(v)))
       .join("\n")
 )
+
+const case_map = parsed_tokens
+  .filter(o => o.type == 'code' && o.lang === "act")
+  .map(e => e.cases)
+  .reduce((a, cs) => a.concat(cs), [])
+  .reduce((a, rule) => ({...a, [rule.name]: rule}), {});
 
 const proofs = parsed_tokens
   .filter(o => o.type == 'code' && o.lang === "act")
