@@ -123,6 +123,7 @@ const getBadges = (cases, act) => {
         blocked_links = c.imports
           .filter(name => !case_map[name] || case_map[name].status != "accept")
           .map(name => case_map[name] ? name : name + "_rough")
+          .filter(name => case_map[name])
           .map(name => h(['a', `href="#${case_map[name].act.subject}_${case_map[name].act.sig}"`])(name))
           .join(", ")
       }
