@@ -80,10 +80,10 @@ do_proof () {
       kill -s TERM "$proof_child"
     fi;
     # check if SIGTERM is due to timeout
-    if [ -n "$PROOF_START" ] && (( ($(date +%s) - PROOF_START) < TIMEOUT )); then
-      echo "Cause of death wasn't timeout, exiting without further action."
-      exit 1
-    fi;
+    # if [ -n "$PROOF_START" ] && (( ($(date +%s) - PROOF_START) < TIMEOUT )); then
+    #   echo "Cause of death wasn't timeout, exiting without further action."
+    #   exit 1
+    # fi;
     echo "Cause of death was timeout."
     if [ -n "$hash" ]; then
       touch "$KLAB_OUT/timeout/$hash";
