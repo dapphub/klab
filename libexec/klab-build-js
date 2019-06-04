@@ -180,3 +180,14 @@ if(write_rules) {
   console.log('write rules.k')
   fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
 }
+// Implementations
+const bin_runtime_defs = Object.keys(config.contracts)
+  .map(name => {
+    const c = config.contracts[name];
+    const bin_runtime = c.bin_runtime;
+    const syntaxDef = `syntax WordStack ::= "${name}_bin_runtime"`;
+    const ruleDef = `rule ${name}_bin_runtime => #parseByteStack("0x${bin_runtime}") [macro]`;
+    return [syntaxDef, ruleDef].join("\n")
+  }).join('\n\n')
+const wrapModule = (name, str) => `requires "data.k"\n\nmodule ${name}\n    imports EVM-DATA\n\n${str}\n\nendmodule`
+fs.writeFileSync(path.join(KLAB_OUT, "bin_runtime.k"), wrapModule("BIN_RUNTIME", bin_runtime_defs))
