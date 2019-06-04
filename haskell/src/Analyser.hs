@@ -53,7 +53,8 @@ data AnalyserArgs = AnalyserArgs {
   stratificationLabel :: String,
   laxMode             :: Bool,
   noCosolveMode       :: Bool,
-  noStratifyMode      :: Bool
+  noStratifyMode      :: Bool,
+  noSolveMode         :: Bool
   }
 
 analyserParser :: Parser AnalyserArgs
@@ -80,6 +81,9 @@ analyserParser = AnalyserArgs
                  <*> switch
                  (long "no-stratify"
                  <> help "Disable stratification, output a K expression instead of K syntax declarations.")
+                 <*> switch
+                 (long "no-solve"
+                 <> help "Disable solving and cosolving.")
 
 data StratifiedResult = StratifiedResult
   { constructor    :: String
@@ -108,16 +112,19 @@ main = do
       laxOn      = laxMode args
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
+      solveOn    = not $ noSolveMode args
   -- parse JSON as GasExpr
   case (eitherDecode (fromString s)) :: Either String Kast of
     Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
     Right gaskast -> case kastToGasExpr gaskast of
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
       -- solve GasExpr, stratify, and print the K syntax declarations
-      Right g -> let solved = case (laxOn, cosolveOn) of
-                       (True, _)      -> maxLeaf $ solve maxG g
-                       (False, False) -> solve maxG g
-                       (False, True)  -> cosolve $ solve maxG g
+      Right g -> let solved = case (solveOn, laxOn, cosolveOn)  of
+                       (False, False, _)    -> g
+                       (True,  True, _)     -> maxLeaf $ solve maxG g
+                       (False, True, _)     -> maxLeaf $ g
+                       (True, False, False) -> solve maxG g
+                       (True, False, True)  -> cosolve $ solve maxG g
                      sm = stratify stratLabel solved
                      sm_result = encode $ StratifiedResult
                        (unparse (Just sm) solved)
@@ -125,4 +132,4 @@ main = do
                      result = if stratifyOn
                               then sm_result
                               else C8.pack $ unparse Nothing solved
-        in (C8.putStrLn result) >> exit
+                 in (C8.putStrLn result) >> exit
