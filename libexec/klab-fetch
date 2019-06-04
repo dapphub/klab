@@ -12,4 +12,4 @@ unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
 # log the proof hash
 hash=$(basename "$url" '.zip')
 echo $hash > $KLAB_OUT/HEAD
-echo $hash
+echo "Focusing on: $hash"
