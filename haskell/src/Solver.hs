@@ -1,6 +1,5 @@
 module Solver where
 
-import Data.List  (nub, findIndex)
 import Data.Maybe (catMaybes)
 import Safe       (maximumMay)
 
@@ -135,13 +134,14 @@ eval (Nullary StartGas) vg = vg
 eval (Nullary (Literal n)) _ = n
 eval (Unary op e) vg = (evalUnOp op) (eval e vg)
 eval (Binary op e f) vg = (evalBinOp op) (eval e vg) (eval f vg)
+eval (ITE _ _ _ ) _ = error "only works for unconditional GasExpr"
 
 -- only works for unconditional GasExpr
 minimiseG :: Int -> GasExpr -> Maybe Int
 minimiseG maxGas e = findInput (eval e) (>=0) [1..maxGas]
 
 findInput :: (a -> b) -> (b -> Bool) -> [a] -> Maybe a
-findInput f p [] = Nothing
+findInput _ _ [] = Nothing
 findInput f p (x:xs) = if p (f x) then Just x else findInput f p xs
 
 -- only works for unconditional GasExpr
@@ -154,10 +154,11 @@ findCallSubexprs (Binary Sub (Binary Sub a (Unary SixtyFourth b)) c)
            ++ findCallSubexprs b
            ++ findCallSubexprs c)
 findCallSubexprs (Nullary _) = []
-findCallSubexprs (Unary op a) = findCallSubexprs a
-findCallSubexprs (Binary op a b) = findCallSubexprs a
+findCallSubexprs (Unary _ a) = findCallSubexprs a
+findCallSubexprs (Binary _ a b) = findCallSubexprs a
                                    ++ findCallSubexprs b
+findCallSubexprs (ITE _ _ _) = error "only works for unconditional GasExpr"
 
 maxLeaf :: GasExpr -> GasExpr
 maxLeaf (Nullary (Literal n)) = (Nullary (Literal n))
-maxLeaf (ITE c e f) = max (maxLeaf e) (maxLeaf f)
+maxLeaf (ITE _ e f) = max (maxLeaf e) (maxLeaf f)

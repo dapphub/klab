@@ -3,7 +3,7 @@
 
 module Gas where
 
-import Control.Lens
+import Control.Lens hiding (op)
 import Control.Monad.State.Strict
 import Data.List (intercalate)
 import Data.Map.Strict as Map
@@ -32,8 +32,9 @@ data FormulaicString = FormulaicString
   deriving (Eq, Ord, Show)
 
 instance Ord NullOp where
-  (Literal m) `compare` (Literal n)
-    = m `compare` n
+  StartGas <= _ = True
+  (Literal _) <= StartGas = False
+  (Literal m) <= (Literal n) = m <= n
 
 data StratificationMap = StratificationMap
  { _stratMap   :: Map GasExpr Int,
@@ -69,6 +70,7 @@ unparse msm expr =
               opstr = case op of
                         Add -> " +Int "
                         Sub -> " -Int "
+                        Mul -> " *Int "
       (ITE (Cond c) e f) ->
         "(" ++ "#if " ++ (c ^. formula) ++
                " #then " ++ s ++
@@ -89,7 +91,10 @@ stratifier expr = do
   put smap'
   case expr of
     -- should only stratify unconditional exprs
-    (Binary op e f) -> do
+    (Unary _ e) -> do
+      stratifier e
+      return ()
+    (Binary _ e f) -> do
       stratifier e
       stratifier f
       return ()
@@ -100,7 +105,9 @@ stratifier expr = do
       stratifier e
       stratifier f
       return ()
-    (Nullary (Literal x)) ->
+    (Nullary (Literal _)) ->
+      return ()
+    (Nullary (StartGas)) ->
       return ()
 
 stratify :: String -> GasExpr -> StratificationMap

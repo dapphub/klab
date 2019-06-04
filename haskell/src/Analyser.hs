@@ -6,7 +6,6 @@ import Data.ByteString.Lazy.UTF8  (fromString)
 import Data.Aeson                 (ToJSON,
                                    encode,
                                    eitherDecode)
-import System.Environment         (getArgs)
 import System.Exit                (exitWith,
                                    ExitCode(ExitSuccess),
                                    ExitCode(ExitFailure))
@@ -14,7 +13,6 @@ import System.IO                  (stderr, hPutStrLn)
 import Data.Semigroup             ((<>))
 import Options.Applicative
 
-import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Solver    (solve,
@@ -24,9 +22,6 @@ import Gas       (unparse,
                   stratify,
                   formatStratifiedSyntax)
 import KastParse (Kast, kastToGasExpr)
-
-exit    = exitWith ExitSuccess
-die     = exitWith (ExitFailure 1)
 
 -- input argument is either a path or stdin flag
 data Input
@@ -90,6 +85,12 @@ data StratifiedResult = StratifiedResult
   { constructor    :: String
   , stratification :: String
   } deriving (Generic, Show)
+
+exit :: IO()
+exit = exitWith ExitSuccess
+
+die :: IO()
+die = exitWith (ExitFailure 1)
 
 instance ToJSON StratifiedResult where
 
