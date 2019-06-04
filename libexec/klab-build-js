@@ -54,7 +54,7 @@ const OOGActs     = config.oog || [];
 const splitActs     = config.split_fail  || [];
 const DEBUG         = cmd["--debug"] || false;
 config.DEBUG        = DEBUG;
-const raw_md_config = read(config_path)
+const raw_md_config = Array.isArray(config_path) && config_path.map(p => read(p)).join("\n\n") || read(config_path)
 
 // RULES
 const {rules_str, write_rules} = makeRules(config);

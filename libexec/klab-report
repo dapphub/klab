@@ -43,9 +43,8 @@ const config        = JSON.parse(read(path.join(KLAB_OUT, "config.tmp.json")))
 const parsed_tokens = JSON.parse(read(path.join(KLAB_OUT, "report.tmp.json")))
 const prelude_path  = config.src.smt_prelude;
 const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
-const config_path   = config.src.specification;
 const rule_paths    = config.src.rules;
-const title         = path.basename(config_path, ".md");
+const title         = "act";
 const raw_rules     = rule_paths.map(p => read(p))
 const rule_hashes   = raw_rules.map(str => sha3(str).slice(0, 40))
 const badge = (name, status) => `<div class="double-val-label">
