@@ -16,6 +16,7 @@ import Options.Applicative
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Solver    (solve,
+                  normalise,
                   cosolve,
                   maxLeaf)
 import Gas       (unparse,
@@ -120,7 +121,7 @@ main = do
       Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
       -- solve GasExpr, stratify, and print the K syntax declarations
       Right g -> let solved = case (solveOn, laxOn, cosolveOn)  of
-                       (False, False, _)    -> g
+                       (False, False, _)    -> normalise g
                        (True,  True, _)     -> maxLeaf $ solve maxG g
                        (False, True, _)     -> maxLeaf $ g
                        (True, False, False) -> solve maxG g
