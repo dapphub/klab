@@ -10,4 +10,6 @@ mkdir -p "$KLAB_OUT"/log
 wget -q "$url" -P "$KLAB_OUT"/log/
 unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
 # log the proof hash
-basename "$url" '.zip'
+hash=$(basename "$url" '.zip')
+echo $hash > $KLAB_OUT/HEAD
+echo $hash
