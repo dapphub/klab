@@ -16,6 +16,7 @@ const exec = require("../lib/exec.js");
 const view = require("../lib/view.js");
 const link = require("../lib/link.js");
 const pull = require("../lib/pull.js");
+const format = require("../lib/format.js")
 const { genBehaviour } = require("../lib/behavior.js");
 const {
   prune_edges,
@@ -45,27 +46,13 @@ const cmd = docopt(usage, {
 const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KLAB_OUT, "HEAD")) && read(path.join(KLAB_OUT, "HEAD"))).trim();
 const FILTER_OOG = cmd['--filter-oog'];
 
-console.log("pruning edges...");
-const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid, {verbose: true});
-console.log("objectify finished...");
+const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);
 const finished_ = finished
   .reduce((a, node) => ({...a, [node]: true}), {});
-console.log("objectify steps...");
 const steps_ = steps
   .reduce((a, step) => { a[step] = true; return a; }, {});
-// generate coedges
-console.log("construct coedges...");
-const coedges = Object.keys(pruned_edges)
-  .reduce((coedges, from) =>
-    pruned_edges[from]
-      .reduce((a, toO) => {
-        a[toO.to] = (a[toO.to] || []).concat(toO)
-        return a;
-      }, coedges)
-  , {})
 
 
-console.log("gather debug info...");
 const debug_constraints = {};
 const debug_rules = {};
 
@@ -90,8 +77,7 @@ const status = testPath(path.join(KLAB_OUT, 'pass', proofid)) && 'pass'
     || (testPath(path.join(KLAB_OUT, 'meta', 'running', proofid)) && 'running')
     || 'unknown'
 
-// preload constraints and rules
-console.log("gathering rule and constraint ids...");
+
 const rule_blobs_O = debug_rules
 const constraint_blobs_O = debug_constraints;
 
@@ -106,8 +92,7 @@ Object.keys(pruned_edges)
   });
 const rule_blobs = Object.keys(rule_blobs_O)
 const constraint_blobs = Object.keys(constraint_blobs_O);
-
-
+// preload constraints and rules
 
 const E = pruned_edges;
 const traverse = (firstNode) => {
@@ -123,21 +108,16 @@ const traverse = (firstNode) => {
       .reduce((a, e) => a.concat(e), [])
 }
 
-console.log("collecting key terms");
-const key_terms = traverse(initt);
-console.log("reading constraints: " + constraint_blobs.length + " and key terms: " + key_terms.length);
-const blobs_data = constraint_blobs.concat(key_terms)
+const blobs_data = constraint_blobs.concat(traverse(initt))
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
   .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
-console.log("reading rules: " + rule_blobs.length);
 const rules_data = rule_blobs
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
   .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
 const state = {
   edges: pruned_edges,      // done: klab compile-fsm
-  coedges,
   initt,                    // done: klab compile-fsm
   rule_debug,
   finished: finished_,      // done: klab compile-fsm
@@ -156,105 +136,21 @@ const state = {
   }]
 };
 
-const meta_path = path.join(KLAB_OUT, 'meta', 'data', proofid);
-var meta = {};
-if(testPath(meta_path)) meta = JSON.parse(read(meta_path))
-const config = {
-  ...meta,
-  control: {
-    "0"      : "branch 0",
-    "1"      : "branch 1",
-    "2"      : "branch 2",
-    "3"      : "branch 3",
-    "4"      : "branch 4",
-    "5"      : "branch 5",
-    "6"      : "branch 6",
-    "S-n"    : "next_k",
-    "S-p"    : "prev_k",
-    "n"      : "next_step",
-    "p"      : "prev_step",
-    "C-n"    : "next_branch",
-    "C-p"    : "prev_branch",
-    "e"      : "toggle_module evm",
-    "g"      : "toggle_module gas",
-    "m"      : "toggle_module memory",
-    "b"      : "toggle_module behaviour",
-    "c"      : "toggle_module constraint",
-    "s"      : "toggle_module sourcemap",
-    "r"      : "toggle_module rule",
-    "k"      : "toggle_module kcell",
-    "z"      : "toggle_module z3feedback",
-    "d"      : "toggle_module debug",
-    "t"      : "toggle_module term",
-    "up"     : "scroll_up",
-    "down"   : "scroll_down"
-  },
-  proofid,
-  FILTER_OOG
-};
-
-const CLIDriver = makeCliDriver({
-    // type: "console",
-    // in: false
-  })
+const styles = node => !node && 22
+  || node.branching && 215
+  || node.in_history && 255 // 77
+  || node.active && 244
+  || 234
 
 const { behaviour } = genBehaviour(state);
 
-const drivers = {
-  K: dbDriver,
-  CLI: CLIDriver,
-  Settings: () => xs.of({...state, config, behaviour, show: {}})
-};
+const table = format.foldPreorder({
+  tree: JSON.parse(JSON.stringify(behaviour)),
+  loc: "head",
+  styles
+})
+console.log(format
+  .formatDb(table, ["head", "deltaC"], styles)
+  .split("\n")
+  .join("\n  "))
 
-const main = ({ CLI, Settings, onion, K }) => {
-
-  const boot$ = Settings
-    .map(state => () => state)
-
-  CLI
-    .filter(key => key.full == "C-c")
-    .addListener({
-      next: i => process.exit(),
-      error: err => console.error(err),
-      complete: () => console.log('completed'),
-    })
-
-  const cmd$ = CLI
-    .compose(sampleCombine(onion.state$))
-  // only if not in cmd_mode
-    .filter(([_, state]) => !state.cmd_mode)
-  // .map(([key, _]) => key)
-  // find the command
-    .map(([key, state]) => [key.full, state.config.control[key.full]])
-    .filter(([key, cmd]) => !!cmd)
-    .map(([key, cmd]) => cmd && ({ key, cmd }))
-  // costom command
-  const {ccmd$, crun$} = exec({CLI, onion});
-
-  // update state based on user input
-  const move$ = xs.merge(cmd$, crun$)
-    .compose(move)
-
-  let link$ = K
-    .compose(link);
-  const {
-    pull$
-  } = pull({K, onion})
-
-  let view$ = view({onion});
-
-  return {
-    CLI: view$,
-    K: pull$,
-    onion: xs.merge(
-      link$,
-      move$,
-      boot$,
-      ccmd$
-    )
-  };
-};
-
-const wrappedMain = onionify(main);
-
-run(wrappedMain, drivers)

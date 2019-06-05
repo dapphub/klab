@@ -213,7 +213,9 @@ mkdir -p "$KLAB_OUT/timeout"
 rm -fdr "$KLAB_OUT/meta/name"
 rm -fdr "$KLAB_OUT/specs"
 klab build
-cp "$KLAB_OUT/bin_runtime.k" $KLAB_REPORT_PROJECT_DIR
+if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+  cp "$KLAB_OUT/bin_runtime.k" "$KLAB_REPORT_PROJECT_DIR"
+fi
 count=1
 failures=0
 while [ -s "$OBLIGATIONS" ]; do
