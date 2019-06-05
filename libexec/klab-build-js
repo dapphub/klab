@@ -57,7 +57,7 @@ config.DEBUG        = DEBUG;
 const raw_md_config = Array.isArray(config_path) && config_path.map(p => read(p)).join("\n\n") || read(config_path)
 
 // RULES
-const {rules_str, write_rules} = makeRules(config);
+var {rules_str} = makeRules(config);
 // prelude
 const {prelude_str, write_prelude} = makePrelude(config);
 // TODO error when not set
@@ -176,6 +176,8 @@ if(write_prelude) {
   console.log('write prelude')
   fs.writeFileSync(path.join(KLAB_OUT, "prelude.smt2"), prelude_str)
 }
+
+var {rules_str, write_rules} = makeRules(config, true);
 if(write_rules) {
   console.log('write rules.k')
   fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
