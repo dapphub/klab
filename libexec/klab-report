@@ -43,6 +43,8 @@ const config        = JSON.parse(read(path.join(KLAB_OUT, "config.tmp.json")))
 const parsed_tokens = JSON.parse(read(path.join(KLAB_OUT, "report.tmp.json")))
 const prelude_path  = config.src.smt_prelude;
 const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
+const bin_runtime_k = read(path.join(KLAB_OUT, "bin_runtime.k"));
+const bin_runtime_hash = sha3(bin_runtime_k).slice(0, 40);
 const rule_paths    = config.src.rules;
 const title         = "act";
 const raw_rules     = rule_paths.map(p => read(p))
@@ -259,7 +261,8 @@ const genCoverageReport = (proofs) => {
 
 const stats_object = [
   ["Klab version", `<a href="https://github.com/dapphub/klab/tree/${klab_HEAD}">${klab_HEAD}</a>`],
-  ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`]
+  ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`],
+  ["bin_runtime", `<a href="bin_runtime.k">${bin_runtime_hash}</a>`]
 ].concat(
   project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
 ).concat(
