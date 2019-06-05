@@ -170,7 +170,11 @@ Object.keys(build_proofs)
   }));
 })
 
-fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), Object.keys(act_proofs).filter(n => act_proofs[n].status === '????').join("\n"))
+const obligations = Object.keys(act_proofs)
+  .filter(n => act_proofs[n].status === '????')
+  .sort((a, b) => Math.random() - 0.5)
+
+fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), obligations.join("\n"))
 
 if(write_prelude) {
   console.log('write prelude')
