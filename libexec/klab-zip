@@ -42,3 +42,4 @@ find . \
 zip -r "log/$spec_hash.zip" \
     "prelude.smt2" \
     "rules.k" \
+    "bin_runtime.k"
