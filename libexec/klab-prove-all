@@ -214,7 +214,7 @@ rm -fdr "$KLAB_OUT/meta/name"
 rm -fdr "$KLAB_OUT/specs"
 rm -f $KLAB_REPORT_NAME_DIR/latest
 ln -s $KLAB_REPORT_PROJECT_DIR $KLAB_REPORT_NAME_DIR/latest
-if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -f "$KLAB_OUT/bin_runtime.k" ]; then
   cp "$KLAB_OUT/bin_runtime.k" "$KLAB_REPORT_PROJECT_DIR"
 fi
 count=1
