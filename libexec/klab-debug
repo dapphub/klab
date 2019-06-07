@@ -164,6 +164,7 @@ const config = {
     "e"      : "toggle_module evm",
     "g"      : "toggle_module gas",
     "m"      : "toggle_module memory",
+    "w"      : "toggle_module wasm",
     "b"      : "toggle_module behaviour",
     "c"      : "toggle_module constraint",
     "s"      : "toggle_module sourcemap",
