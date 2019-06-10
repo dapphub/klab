@@ -1,13 +1,14 @@
 module Solver where
 
+import Data.List  (drop, take)
 import Data.Maybe (catMaybes)
 import Safe       (maximumMay)
 
 import Gas
 
 -- percolates ITEs to the top
-normaliseStep :: GasExpr -> GasExpr
-normaliseStep (Nullary n) = Nullary n
+normaliseStep :: GasExpr f -> GasExpr f
+normaliseStep (Value n) = Value n
 normaliseStep (Unary op (ITE c e f)) =
   normaliseStep (ITE c ope opf)
   where ope = Unary op e
@@ -29,8 +30,8 @@ normaliseStep (ITE c e f) = ITE c e' f'
   where e' = normaliseStep e
         f' = normaliseStep f
 
-unnormaliseStep :: GasExpr -> GasExpr
-unnormaliseStep (Nullary n) = Nullary n
+unnormaliseStep :: (Show f, Ord f) => GasExpr f -> GasExpr f
+unnormaliseStep (Value n) = Value n
 unnormaliseStep (Unary op e) = Unary op e'
   where e' = unnormaliseStep e
 unnormaliseStep (Binary op e f) = Binary op e' f'
@@ -51,8 +52,8 @@ unnormaliseStep (ITE c e f) = ITE c e' f'
   where e' = unnormaliseStep e
         f' = unnormaliseStep f
 
-cosolveStep :: GasExpr -> GasExpr
-cosolveStep (Nullary n) = Nullary n
+cosolveStep :: ConstantGasExpr -> ConstantGasExpr
+cosolveStep (Value n) = Value n
 cosolveStep (Unary op e) = Unary op e'
   where e' = cosolveStep e
 cosolveStep (Binary op e f) = Binary op e' f'
@@ -60,64 +61,119 @@ cosolveStep (Binary op e f) = Binary op e' f'
         f' = cosolveStep f
 cosolveStep (ITE p
              (ITE p'
-              (Nullary (Literal a))
-              (Nullary (Literal b)))
+              (Value a)
+              (Value b))
              (ITE p''
-              (Nullary (Literal c))
-              (Nullary (Literal d))))
+              (Value c)
+              (Value d)))
   | p' == p'' && a - b == c - d  && a > b =
     let e = a - b in
       (Binary Add
        (ITE p'
-        (Nullary $ Literal e)
-        (Nullary $ Literal 0))
+        (Value e)
+        (Value 0))
        (ITE p
-        (Nullary $ Literal b)
-        (Nullary $ Literal d)))
+        (Value b)
+        (Value d)))
   | p' == p'' && b - a == d - c && a < b =
     let e = b - a in
       (Binary Add
        (ITE p'
-        (Nullary $ Literal 0)
-        (Nullary $ Literal e))
+        (Value 0)
+        (Value e))
        (ITE p
-        (Nullary $ Literal a)
-        (Nullary $ Literal c)))
+        (Value a)
+        (Value c)))
   | otherwise = (ITE p
                  (ITE p'
-                  (Nullary (Literal a))
-                  (Nullary (Literal b)))
+                  (Value a)
+                  (Value b))
                  (ITE p''
-                  (Nullary (Literal c))
-                  (Nullary (Literal d))))
+                  (Value c)
+                  (Value d)))
 cosolveStep (ITE p e f) = ITE p e' f'
   where e' = cosolveStep e
         f' = cosolveStep f
 
+-- extirpation aims to transform the expression
+-- to have the form Sub a b where b is independent
+-- and maximal
+extirpateStep :: BasicGasExpr -> BasicGasExpr
+-- extirpateStep (Value n) = Value n
+-- extirpateStep (Unary op e) = error "blob extirpation doesn't support unaries!"
+-- push independents to the right
+extirpateStep (Binary Add e f)
+  | (isIndependent e) && (not $ isIndependent f) = Binary Add f e
+  | otherwise = Binary Add e' f'
+    where e' = extirpateStep e
+          f' = extirpateStep f
+-- reassociate to the left
+extirpateStep (Binary Add
+               e
+               (Binary Add f g))
+  | (not $ isIndependent g) = Binary Add (Binary Add e f) g
+  | otherwise = Binary Add (Binary Add e' f') g
+    where e' = extirpateStep e
+          f' = extirpateStep f
+-- peel off independent chunks to the right
+extirpateStep (Binary Add
+               (Binary Add e f)
+               g)
+  | (isIndependent f) && (isIndependent g)
+    && (not $ isIndependent e) = Binary Add e (Binary Add f g)
+  | (isIndependent f) && (not $ isIndependent g)
+    && (not $ isIndependent e) = Binary Add (Binary Add e g) f
+  | otherwise = Binary Add (Binary Add e' f') g'
+    where e' = extirpateStep e
+          f' = extirpateStep f
+          g' = extirpateStep g
+-- ignore everything else
+extirpateStep e = e
+
+extirpate :: BasicGasExpr -> BasicGasExpr
+extirpate = iteratedFix extirpateStep
+
 iteratedFix :: (Eq a) => (a -> a) -> a -> a
 iteratedFix f x = let x' = f x in
-                    if x' == x then x else iteratedFix f x'
+                    if x' == x
+                    then x
+                    else iteratedFix f x'
 
-normalise :: GasExpr -> GasExpr
+normalise :: BasicGasExpr -> BasicGasExpr
 normalise = iteratedFix normaliseStep
 
-unnormalise :: GasExpr -> GasExpr
+unnormalise :: BasicGasExpr -> BasicGasExpr
 unnormalise = iteratedFix unnormaliseStep
 
-cosolve :: GasExpr -> GasExpr
+cosolve :: ConstantGasExpr -> ConstantGasExpr
 cosolve = iteratedFix (unnormaliseStep . cosolveStep)
 
-solve :: Int -> GasExpr -> GasExpr
-solve maxGas = (solveLeaves maxGas) . normalise
+solveNumerically :: Int -> BasicGasExpr -> ConstantGasExpr
+solveNumerically maxGas = (solveLeaves maxGas) . normalise
+
+solve :: Int -> BasicGasExpr -> ConstantGasExpr
+solve maxGas (Binary Sub (Value StartGas) e)
+  | isIndependent e = coerce e
+  | otherwise = case extirpate e of
+      Binary Add f g | isIndependent g
+                       -> (Binary Add
+                           (solveNumerically maxGas (Binary Sub (Value StartGas) f))
+                           (coerce g))
+      _ -> solveNumerically maxGas (Binary Sub (Value StartGas) e)
+solve _ _ = error "Can only solve expressions in the form VGas - e(VGas)."
+
 
 -- only works for normalised GasExpr
-solveLeaves :: Int -> GasExpr -> GasExpr
+solveLeaves :: Int -> BasicGasExpr -> ConstantGasExpr
 solveLeaves maxGas (ITE c e f) = ITE c e' f'
   where e' = solveLeaves maxGas e
         f' = solveLeaves maxGas f
-solveLeaves maxGas e = Nullary (Literal maxOfMins)
+solveLeaves maxGas e =
+  Value maxOfMins
   where Just maxOfMins = maximumMay $ [minG]
-                         ++ catMaybes (map (minimiseG maxGas) (findCallSubexprs e))
+                         ++ (catMaybes
+                         $ (minimiseG maxGas)
+                              <$> (findCallSubexprs e))
         Just minG = minimiseG maxGas e
 
 evalUnOp :: UnOp -> Int -> Int
@@ -129,36 +185,61 @@ evalBinOp Sub x y = x - y
 evalBinOp Mul x y = x * y
 
 -- only works for unconditional GasExpr
-eval :: GasExpr -> Int -> Int
-eval (Nullary StartGas) vg = vg
-eval (Nullary (Literal n)) _ = n
+eval :: BasicGasExpr -> Int -> Int
+eval (Value StartGas ) vg = vg
+eval (Value (Literal n)) _ = n
 eval (Unary op e) vg = (evalUnOp op) (eval e vg)
 eval (Binary op e f) vg = (evalBinOp op) (eval e vg) (eval f vg)
 eval (ITE _ _ _ ) _ = error "only works for unconditional GasExpr"
 
 -- only works for unconditional GasExpr
-minimiseG :: Int -> GasExpr -> Maybe Int
-minimiseG maxGas e = findInput (eval e) (>=0) [1..maxGas]
+minimiseG :: Int -> BasicGasExpr -> Maybe Int
+-- findFirst is more efficient than find
+minimiseG maxGas e = findFirst ((>=0) . eval e) [1..maxGas]
 
-findInput :: (a -> b) -> (b -> Bool) -> [a] -> Maybe a
-findInput _ _ [] = Nothing
-findInput f p (x:xs) = if p (f x) then Just x else findInput f p xs
+-- assuming p monotone, finds
+-- the first x such that p x
+-- in logarithmic time
+findFirst :: (a -> Bool) -> [a] -> Maybe a
+findFirst _ [] = Nothing
+findFirst p (x:[]) = if p x
+                     then Just x
+                     else Nothing
+findFirst p xs =
+  let mid = div (length xs) 2
+      top = take mid xs
+      bot = drop mid xs
+  in case top of
+    [] -> findFirst p bot
+    _  -> if p (last top)
+          then findFirst p top
+          else findFirst p bot
 
 -- only works for unconditional GasExpr
-findCallSubexprs :: GasExpr -> [GasExpr]
-findCallSubexprs (Binary Sub (Binary Sub a (Unary SixtyFourth b)) c)
-  = if a == b then [Binary Sub (Binary Sub a (Unary SixtyFourth b)) c]
-                   ++ findCallSubexprs a
-                   ++ findCallSubexprs c
-    else (findCallSubexprs a
-           ++ findCallSubexprs b
-           ++ findCallSubexprs c)
-findCallSubexprs (Nullary _) = []
-findCallSubexprs (Unary _ a) = findCallSubexprs a
-findCallSubexprs (Binary _ a b) = findCallSubexprs a
-                                   ++ findCallSubexprs b
-findCallSubexprs (ITE _ _ _) = error "only works for unconditional GasExpr"
+findCallSubexprs :: BasicGasExpr -> [BasicGasExpr]
+findCallSubexprs (Binary Sub
+                  (Binary Sub
+                   a (Unary SixtyFourth b))
+                  c) =
+  if a == b then [Binary Sub
+                  (Binary Sub
+                   a (Unary SixtyFourth b))
+                  c]
+  ++ findCallSubexprs a
+  ++ findCallSubexprs c
+  else findCallSubexprs a
+  ++ findCallSubexprs b
+  ++ findCallSubexprs c
+findCallSubexprs (Value _) = []
+findCallSubexprs (Unary _ a) =
+  findCallSubexprs a
+findCallSubexprs (Binary _ a b) =
+  findCallSubexprs a
+  ++ findCallSubexprs b
+findCallSubexprs (ITE _ _ _) =
+  error "only works for unconditional GasExpr"
 
-maxLeaf :: GasExpr -> GasExpr
-maxLeaf (Nullary (Literal n)) = (Nullary (Literal n))
+maxLeaf :: ConstantGasExpr -> ConstantGasExpr
+maxLeaf (Value n) = (Value n)
 maxLeaf (ITE _ e f) = max (maxLeaf e) (maxLeaf f)
+maxLeaf _ = error "maxLeaf applied to nontrivial algebraic expression."
