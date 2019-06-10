@@ -1,23 +1,30 @@
-{-# LANGUAGE DeriveGeneric #-}
 module Test where
 
-import GHC.Generics
-import Data.ByteString.Lazy.UTF8 (fromString)
-import Data.Aeson                (FromJSON, decode)
-import Data.Either               (lefts, rights)
-import Data.List                 (intercalate)
+import Data.Map.Strict as Map
 
-import Gas
+-- grammar for K gas expressions
+-- a is the "base field"
+data (Ord a) => GasExpr a =
+  Nullary (NullOp a)
+  | Unary UnOp (GasExpr a)
+  | Binary BinOp (GasExpr a) (GasExpr a)
+  | ITE Cond (GasExpr a) (GasExpr a)
+  deriving (Eq, Ord, Show)
 
-data Kast = Kast {
-  node         :: String,
-  sort         :: Maybe String,
-  originalName :: Maybe String,
-  token        :: Maybe String,
-  label        :: Maybe String,
-  variable     :: Maybe Bool,
-  arity        :: Maybe Int,
-  args         :: Maybe [Kast]
-  } deriving (Generic, Show)
+type ConstantGasExpr = GasExpr Int
 
-instance FromJSON Kast
+data (Ord a) => NullOp a = Value a
+  deriving (Eq, Ord, Show)
+data UnOp = SixtyFourth
+  deriving (Eq, Ord, Show)
+data BinOp = Add | Sub | Mul
+  deriving (Eq, Ord, Show)
+data Cond = Cond FormulaicString
+  deriving (Eq, Ord, Show)
+
+-- a formatted K formula with typed variables
+data FormulaicString = FormulaicString
+  { _formula :: String,
+    _types   :: Map String String
+  }
+  deriving (Eq, Ord, Show)

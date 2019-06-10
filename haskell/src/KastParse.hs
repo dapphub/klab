@@ -1,44 +1,41 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# Language TemplateHaskell #-}
 module KastParse where
 
-import GHC.Generics
 import Control.Lens
-import Data.Aeson                (FromJSON)
 import Data.Either               (lefts, rights)
 import Data.List                 (intercalate, isPrefixOf, isSuffixOf)
-
 import qualified Data.Map.Strict as Map
 
 import Gas
+import Kast
 
-data Kast = Kast {
-  node         :: String,
-  sort         :: Maybe String,
-  originalName :: Maybe String,
-  token        :: Maybe String,
-  label        :: Maybe String,
-  variable     :: Maybe Bool,
-  arity        :: Maybe Int,
-  args         :: Maybe [Kast]
-  } deriving (Generic, Show)
+-- instance has to live here because we need formatKast
+instance Show IntOrStartGasOrBlob where
+  show (Basic n) = show n
+  show (Blob kast) = case formatKast kast of
+    Left e -> error e
+    Right fs -> view formula fs
 
-instance FromJSON Kast
 
-kastToGasExpr :: Kast -> Either String GasExpr
+
+
+kastToGasExpr :: Kast -> Either String (BasicGasExpr)
 kastToGasExpr kast = case node kast of
   "KVariable" -> case originalName kast of
-    Just somevar ->
-      if "VGas" `isPrefixOf` somevar
-      then Right $ Nullary StartGas
-      else Left $ "Can't have variables in gas expressions, found: " ++ somevar
+    Nothing -> Left $ "KVariable missing originalName."
+    Just somevar ->  if "VGas" `isPrefixOf` somevar
+                     then Right $ Value StartGas
+                     else Left $ "Can't have variables in gas expressions, found: " ++ somevar
 
   "KToken" -> case sort kast of
-    Just "Int" -> Right $ Nullary $ Literal n
+    Nothing -> Left $ "KToken missing sort."
+    Just "Int" -> Right $ Value $ Literal n
       where n = read t
             Just t = token kast
     Just somesort -> Left $ "Can't have sorts other than Int, found: " ++ somesort
 
   "KApply" -> case stripModuleTag <$> (label kast) of
+    Nothing -> Left "KApply missing label."
     Just "_+Int_" -> let Just [arg1, arg2] = args kast in
       case kastToGasExpr arg1 of
         Left err -> Left err
@@ -65,7 +62,7 @@ kastToGasExpr kast = case node kast of
         Left err -> Left err
         Right e -> case kastToGasExpr arg2 of
           Left err -> Left err
-          Right (Nullary (Literal 64)) -> Right $ Unary SixtyFourth e
+          Right (Value (Literal 64)) -> Right $ Unary SixtyFourth e
           Right n -> Left $ "Gas expressions should have /64 only, found: /" ++ (show n)
 
     Just "#if_#then_#else_#fi" -> let Just [arg_c, arg1, arg2] = args kast in
@@ -77,6 +74,7 @@ kastToGasExpr kast = case node kast of
             Left err -> Left err
             Right c -> Right $ ITE (Cond c) e f
     Just somelabel -> Left $ "Unknown KApply in gas expression: " ++ somelabel
+  _ -> Left $ "Unrecognised \"node\" in KAST."
 
 formatKast :: Kast -> Either String FormulaicString
 formatKast kast = case node kast of
@@ -98,6 +96,7 @@ formatKast kast = case node kast of
                    [] -> case formatKApply func fargs of
                      Left err -> Left err
                      Right x    -> Right $ FormulaicString x fargs_types
+  _ -> Left $ "Unrecognised \"node\" in KAST."
 
 formatKApply :: String -> [String] -> Either String String
 formatKApply func fargs = let bracketed s = "( " ++ s ++ " )" in

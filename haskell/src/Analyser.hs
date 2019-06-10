@@ -15,14 +15,16 @@ import Options.Applicative
 
 import qualified Data.ByteString.Lazy.Char8 as C8
 
+import Gas       (coerce,
+                  unparse,
+                  stratify,
+                  formatStratifiedSyntax)
+import Kast      (Kast)
+import KastParse (kastToGasExpr)
 import Solver    (solve,
                   normalise,
                   cosolve,
                   maxLeaf)
-import Gas       (unparse,
-                  stratify,
-                  formatStratifiedSyntax)
-import KastParse (Kast, kastToGasExpr)
 
 -- input argument is either a path or stdin flag
 data Input
@@ -122,10 +124,10 @@ main = do
       -- solve GasExpr, stratify, and print the K syntax declarations
       Right g -> let solved = case (solveOn, laxOn, cosolveOn)  of
                        (False, False, _)    -> normalise g
-                       (True,  True, _)     -> maxLeaf $ solve maxG g
-                       (False, True, _)     -> maxLeaf $ g
-                       (True, False, False) -> solve maxG g
-                       (True, False, True)  -> cosolve $ solve maxG g
+                       (True,  True, _)     -> coerce $ maxLeaf $ solve maxG g
+                       (True, False, False) -> coerce $ solve maxG g
+                       (True, False, True)  -> coerce $ cosolve $ solve maxG g
+                       _ -> error "error: illegal combination of flags."
                      sm = stratify stratLabel solved
                      sm_result = encode $ StratifiedResult
                        (unparse (Just sm) solved)

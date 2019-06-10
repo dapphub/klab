@@ -22,6 +22,7 @@ executable k-gas-analyser
   -- other-modules:
   other-extensions:    DeriveGeneric
   other-modules:       Gas,
+                       Kast,
                        KastParse,
                        Solver
   build-depends:       aeson                >= 1.0,
