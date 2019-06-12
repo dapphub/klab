@@ -91,13 +91,15 @@ const removeMin = (gasExpr, min) => {
 
 const minimize = (g) => {
   if (isLeaf(g)) {return g}
-  else if (isMinus(g)) {return minus([minimize(g.args[0]), minimize(g.args[1])])}
   else if (isIf(g)) {
     if (isVGasMinus(g.args[1]) && isVGasMinus(g.args[2])) {
       return simplify(g);
     } else {
       return if_else_fi([g.args[0], minimize(g.args[1]), minimize(g.args[2])]);
     }
+  } else {
+    g.args = g.args.map(minimize);
+    return g;
   }
 }
 
@@ -106,7 +108,7 @@ const simplify = (gasExpr) => {
     minus([
       {
         "node": "KVariable",
-        "name": "_1630",
+        "name": "_", //whatever mannn
         "originalName": "VGas"
       },
       {
