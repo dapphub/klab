@@ -27,7 +27,7 @@ export GAS_DIR=$KLAB_OUT/gas
 export BEHAVIOUR_DIR=$KLAB_OUT/behaviour
 export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
-export BATCH_LIMIT=6
+export BATCH_LIMIT=8
 export THREADS=${THREADS:-2}
 export QUIET=1
 PNAME=$(jq -r '.name' < config.json)
@@ -184,7 +184,7 @@ make_batch () {
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
   # timeout after 3 hrs
-  TIMEOUT=8000
+  TIMEOUT=10600
   export TIMEOUT
   # timeout timeout after 10 minutes
   # (enough time to zip and bookkeeping)
