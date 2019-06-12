@@ -52,7 +52,72 @@ const and = args => ({
   args: args
 })
 
+const minus = args => ({
+  node: "KApply",
+  label: "_-Int__INT-COMMON",
+  variable: false,
+  arity: 2,
+  args: args
+})
+
+
 const blob = blobid => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", blobid + ".json")));
+
+
+const isMinus = (gasExpr) => gasExpr.label && gasExpr.label == '_-Int__INT-COMMON'
+const isIf = (gasExpr) => gasExpr.label && gasExpr.label == '#if_#then_#else_#fi_K-EQUAL'
+const isVGasMinus = (gasExpr) => gasExpr.label && gasExpr.label == '_-Int__INT-COMMON' && gasExpr.args[0].originalName == 'VGas'
+const isLeaf = (gasExpr) => gasExpr.node && (gasExpr.node == 'KVariable' || gasExpr.node == 'KToken')
+
+const getMin = g1 => {
+  if (isVGasMinus(g1)) {return g1.args[1].token};
+  if (isIf(g1)) {return Math.min(getMin(g1.args[1]), getMin(g1.args[2]))};
+}
+
+const removeMin = (gasExpr, min) => {
+  //Transforms a leaf of the form VGas - (min + A) to just A
+  if (isVGasMinus(gasExpr)) {
+    gasExpr.args[1].token = (gasExpr.args[1].token - min).toString();
+    return gasExpr.args[1];
+  }
+  if (isIf(gasExpr)) {
+    return if_else_fi([
+      gasExpr.args[0],
+      removeMin(gasExpr.args[1], min),
+      removeMin(gasExpr.args[2], min)]);
+  }
+}
+
+
+const minimize = (g) => {
+  if (isLeaf(g)) {return g}
+  else if (isMinus(g)) {return minus([minimize(g.args[0]), minimize(g.args[1])])}
+  else if (isIf(g)) {
+    if (isVGasMinus(g.args[1]) && isVGasMinus(g.args[2])) {
+      return simplify(g);
+    } else {
+      return if_else_fi([g.args[0], minimize(g.args[1]), minimize(g.args[2])]);
+    }
+  }
+}
+
+const simplify = (gasExpr) => {
+  return minus([
+    minus([
+      {
+        "node": "KVariable",
+        "name": "_1630",
+        "originalName": "VGas"
+      },
+      {
+        "node": "KToken",
+        "sort": "Int",
+        "token": getMin(gasExpr).toString()
+      },
+    ]),
+    removeMin(gasExpr, getMin(gasExpr))
+  ])
+}
 
 const E = pruned_edges;
 const traverse = (firstNode) => {
@@ -64,7 +129,9 @@ const traverse = (firstNode) => {
     return kast.get(blob(c.split('_')[0]).term, kpath)
   } else {
     const l = traverse(E[c][0].to);
+//    console.log('l: '+ l)
     const r = traverse(E[c][1].to);
+//    console.log('r: '+ r)
     if(l.label && l.label == "#if_#then_#else_#fi_K-EQUAL" && JSON.stringify(l.args[2]) == JSON.stringify(r)) {
       return if_else_fi([
         and([
@@ -84,7 +151,7 @@ const traverse = (firstNode) => {
 }
 
 try {
-  console.log(JSON.stringify(traverse(initt)));
+  console.log(JSON.stringify(minimize(traverse(initt))));
 } catch(e) {
   console.error(e);
   exit(1);
