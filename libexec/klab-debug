@@ -46,7 +46,7 @@ const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KL
 const FILTER_OOG = cmd['--filter-oog'];
 
 console.log("pruning edges...");
-const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid, {verbose: true});
+const {pruned_edges, initt, targett, finished, steps, rule_debug} = prune_edges(proofid, {verbose: true});
 console.log("objectify finished...");
 const finished_ = finished
   .reduce((a, node) => ({...a, [node]: true}), {});
@@ -126,7 +126,7 @@ const traverse = (firstNode) => {
 console.log("collecting key terms");
 const key_terms = traverse(initt);
 console.log("reading constraints: " + constraint_blobs.length + " and key terms: " + key_terms.length);
-const blobs_data = constraint_blobs.concat(key_terms)
+const blobs_data = constraint_blobs.concat(key_terms).concat(targett.split("_")[0])
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
   .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
@@ -139,6 +139,7 @@ const state = {
   edges: pruned_edges,      // done: klab compile-fsm
   coedges,
   initt,                    // done: klab compile-fsm
+  targett,
   rule_debug,
   finished: finished_,      // done: klab compile-fsm
   steps: steps_,
@@ -186,6 +187,7 @@ const config = {
     "z"      : "toggle_module z3feedback",
     "d"      : "toggle_module debug",
     "t"      : "toggle_module term",
+    "S-t"    : "toggle_module target_unification",
     "up"     : "scroll_up",
     "down"   : "scroll_down"
   },
