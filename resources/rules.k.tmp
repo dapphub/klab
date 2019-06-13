@@ -184,11 +184,19 @@ rule ACCTCODE in SetItem( 1 )
                  => false
      requires 9 <=Int ACCTCODE
 
+    syntax IntList ::= bytesToWords ( WordStack )       [function]
+
+ // --------------------------------------------------------------
+    rule bytesToWords ( WS )
+         => #asWord(#take(#sizeWordStack(WS) modInt 32, WS)) byteStack2IntList(#drop(#sizeWordStack(WS) modInt 32, WS))
+         requires #sizeWordStack(WS) modInt 32 >Int 0
+
+    rule bytesToWords ( WS ) => byteStack2IntList(WS)
+         requires #sizeWordStack(WS) modInt 32 ==Int 0
 
 // for terms came from bytecode not via #hashedLocation
-    rule keccak(WS) => keccakIntList(byteStack2IntList(WS))
+    rule keccak(WS) => keccakIntList(bytesToWords(WS))
       requires ( notBool #isConcrete(WS) )
-       andBool ( #sizeWordStack(WS) modInt 32 ==Int 0)
 
     rule 0 <=Int keccakIntList(N)     => true
     rule keccaktIntList(N) <Int pow256 => true
