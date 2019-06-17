@@ -24,7 +24,7 @@
           "gas": "VGas",
           "memoryUsed": "0 => _",
           "callGas": "_ => _",
-          "static": "false",
+          "static": "_",
           "callDepth": "VCallDepth"
         },
         "substate": {

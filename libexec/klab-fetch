@@ -7,7 +7,7 @@ fi
 url=$1
 
 mkdir -p "$KLAB_OUT"/log
-wget -q "$url" -P "$KLAB_OUT"/log/
+wget "$url" -P "$KLAB_OUT"/log/
 unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
 # log the proof hash
 hash=$(basename "$url" '.zip')

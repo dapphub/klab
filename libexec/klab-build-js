@@ -19,7 +19,8 @@ const {
   buildAct,
   buildActs,
   caseSplitAct,
-  newCleanup
+  newCleanup,
+  makeInterabiExhaustiveness
 }                   = require("../lib/build.js");
 const {
   read,
@@ -85,6 +86,41 @@ config.get_proof_hash = spec => sha3(JSON.stringify({
   bin_runtime_defs
 }));
 
+
+const exhaustiveness_obligations = [];
+const exhaustiveness = {};
+
+Object.keys(config.implementations)
+  .forEach(alias => {
+    const cname = config.implementations[alias].name
+    const name = cname + "__exhaustiveness";
+    const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
+
+    // TODO - write meta/data and name
+    console.log(id, name);
+
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), id);
+    // hash -> data
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", id), JSON.stringify({
+      name,
+      src: config.src,
+      srcs: config.srcs,
+      contracts: config.contracts,
+      implementations: config.implementations
+    }));
+
+    fs.writeFileSync(path.join(KLAB_OUT, "specs", `${id}.k`), module)
+
+    if(status == "????") exhaustiveness_obligations.push(name)
+    exhaustiveness[cname] = {
+      hash: id,
+      name,
+      spec: module,
+      status
+    }
+  })
+
+
 // 1. get acts
 //    return a [behaviour]
 // 2. parse acts
@@ -141,9 +177,9 @@ const final_tokens = parsed_tokens
   })
 
 // TODO - enriched cases should be exported here.
+fs.writeFileSync(path.join(KLAB_OUT, "exhaustiveness.tmp.json"), JSON.stringify(exhaustiveness));
 fs.writeFileSync(path.join(KLAB_OUT, "report.tmp.json"), JSON.stringify(final_tokens));
 fs.writeFileSync(path.join(KLAB_OUT, "config.tmp.json"), JSON.stringify(config));
-
 
 
 // write module
@@ -183,6 +219,7 @@ Object.keys(build_proofs)
 
 const obligations = Object.keys(act_proofs)
   .filter(n => act_proofs[n].status === '????')
+  .concat(exhaustiveness_obligations)
   .sort((a, b) => Math.random() - 0.5)
 
 fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), obligations.join("\n"))
@@ -197,6 +234,7 @@ if(write_rules) {
   console.log('write rules.k')
   fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
 }
+
 // Implementations
 const wrapModule = (name, str) => `requires "data.k"\n\nmodule ${name}\n    imports EVM-DATA\n\n${str}\n\nendmodule`
 fs.writeFileSync(path.join(KLAB_OUT, "bin_runtime.k"), wrapModule("BIN_RUNTIME", bin_runtime_defs))
