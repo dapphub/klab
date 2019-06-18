@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ -z "$KLAB_OUT" ]; then
   KLAB_OUT=out
