@@ -194,7 +194,10 @@ const config = {
     "t"      : "toggle_module term",
     "S-t"    : "toggle_module target_unification",
     "up"     : "scroll_up",
-    "down"   : "scroll_down"
+    "down"   : "scroll_down",
+    "pagedown" : "page_down",
+    "pageup"   : "page_up",
+    "home"     : "home"
   },
   proofid,
   FILTER_OOG
