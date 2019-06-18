@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+// TODO - compile needs to carry on the act
+
+const fs = require("fs");
+const path = require("path");
+const {docopt}      = require("docopt");
+const {
+  testPath,
+  read,
+  ensureDir
+} = require("../lib/util.js");
+const { deltaCC } = require("../lib/constraints.js")
+const kast = require("../lib/kast.js")
+
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
+
+const usage = `
+Usage:
+  klab get-refund [options] <hash>
+`
+
+const cmd = docopt(usage, {
+  argv: ["get-refund"].concat(process.argv.slice(2))
+});
+const proofid = cmd['<hash>']
+
+if(!testPath(path.join(KLAB_OUT, "data", proofid + ".log"))) {
+  console.error("ERROR: no logfile for " + proofid);
+  process.exit(1);
+}
+
+const logs = read(path.join(KLAB_WD_PATH, proofid + ".log"))
+  .split("\n")
+  .filter(l => !!l)
+
+// find the rule that is the refund application
+const refund_rule = Object.keys(logs
+  .filter(l => l.split(" ")[1] == "RULE")
+  .map(l => l.split(" ")[2].split("_")[0])
+  .reduce((a, r) => {
+    a[r] = true;
+    return a;
+  }, {}))
+  .find(r => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", r + ".json"))).term.att.split(" ").indexOf("label(EVM.refund)") > -1)
+
+const refund_nodes = logs
+  .filter(l => l.split(" ")[1] == "RULE" && l.split(" ")[2].split("_")[0] == refund_rule)
+  .map(l => l.split(" ")[2].split("_")[1])
+
+const refunds = refund_nodes
+  .map(id => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", id + ".json"))))
+  .map(node => {
+    const refund_gas = kast.get(node.term, "k").args[0].args[0]
+    return refund_gas;
+  })
+
+fs.writeFileSync(path.join(KLAB_OUT, "gas", proofid + "_refunds.json"), JSON.stringify(refunds))
