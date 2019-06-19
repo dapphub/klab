@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+// TODO - compile needs to carry on the act
+
+const fs = require("fs");
+const path = require("path");
+const {docopt}      = require("docopt");
+const {
+  testPath,
+  read,
+  ensureDir
+} = require("../lib/util.js");
+const { deltaCC } = require("../lib/constraints.js")
+const kast = require("../lib/kast.js")
+
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
+
+const usage = `
+Usage:
+  klab get-lemmas [options] <hash>
+`
+
+const cmd = docopt(usage, {
+  argv: ["get-lemmas"].concat(process.argv.slice(2))
+});
+const proofid = cmd['<hash>']
+
+if(!testPath(path.join(KLAB_OUT, "data", proofid + ".log"))) {
+  console.error("ERROR: no logfile for " + proofid);
+  process.exit(1);
+}
+
+const logs = read(path.join(KLAB_WD_PATH, proofid + ".log"))
+  .split("\n")
+  .filter(l => !!l)
+
+// find the rule that is the refund application
+const rule_stats = Object.keys(logs
+  .filter(l => l.split(" ")[1] == "SRULE")
+  .map(l => l.split(" ")[2].split("_")[0])
+  .reduce((a, r) => {
+    a[r] = true;
+    return a;
+  }, {}))
+  .map(r => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", r + ".json"))).term.att.split(" ").find(s => new RegExp(`^label\\(${proofid.toUpperCase()}`).test(s)))
+  .filter(s => !!s)
+  .map(s => s.slice(7 + proofid.length, -1).replace(/\./g, "_"))
+  .reduce((a, l) => {
+    a[l] = (a[l]||0) + 1;
+    return a;
+  }, {})
+
+if(Object.keys(rule_stats).length > 0) fs.writeFileSync(path.join(KLAB_OUT, "log", proofid + "_lemma_stats.json"), JSON.stringify(rule_stats))

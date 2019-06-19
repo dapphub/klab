@@ -97,7 +97,6 @@ Object.keys(config.implementations)
     const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
 
     // TODO - write meta/data and name
-    console.log(id, name);
 
     fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), id);
     // hash -> data
@@ -111,7 +110,10 @@ Object.keys(config.implementations)
 
     fs.writeFileSync(path.join(KLAB_OUT, "specs", `${id}.k`), module)
 
-    if(status == "????") exhaustiveness_obligations.push(name)
+    if(status == "????") {
+      console.log(id, name);
+      exhaustiveness_obligations.push(name)
+    }
     exhaustiveness[cname] = {
       hash: id,
       name,
