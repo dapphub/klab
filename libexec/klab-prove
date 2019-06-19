@@ -86,9 +86,9 @@ logging=''
 if [ ! -z "$QUIET" ]; then
   mkdir -p $KLAB_OUT/log/
   K_OPTS=-Xmx10G \
-    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
+    "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
     $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/java/" \
+    --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
     --def-module RULES \
     --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages>" \
     --output-flatten "_Map_ #And" \
@@ -107,9 +107,9 @@ if [ ! -z "$QUIET" ]; then
   unset kprove_child
 else
   K_OPTS=-Xmx10G \
-    "$KLAB_EVMS_PATH/.build/k/k-distribution/target/release/k/bin/kprove" \
+    "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
     $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/java/" \
+    --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
     --def-module RULES \
     --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages>" \
     --output-flatten "_Map_ #And" \
