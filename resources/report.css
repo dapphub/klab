@@ -26,6 +26,12 @@ a {
       padding-bottom: 1em; }
     .actstatus table td:last-child {
       text-align: right; }
+    .actstatus table ul {
+      list-style: none;
+      margin: 0;
+      text-align: left;
+      font-size: 0.8em;
+      padding-left: 1em; }
 
 .codeheader {
   font-size: 0.7em; }

@@ -163,6 +163,10 @@ do_proof () {
     fi;
   fi;
 
+  if [ -n "$PROVE_FLAGS" ]; then
+    klab get-lemmas "$hash"
+  fi
+
   # cleanup dumped data
   rm -fdr "$KLAB_OUT/data/${hash}_blobs"
   rm -fdr "$KLAB_OUT/data/${hash}.log"

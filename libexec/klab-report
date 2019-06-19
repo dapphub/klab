@@ -133,10 +133,18 @@ const getBadges = (cases, act) => {
           .join(", ")
       }
 
+      const outPath = path.join(KLAB_OUT, "log", s.proofid + ".log");
+      const errPath = path.join(KLAB_OUT, "log", s.proofid + ".err.log");
+      const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
+      const hasOut = testPath(outPath) && read(outPath).trim() !== "";
+      const hasErr = testPath(errPath) && read(errPath).trim() !== "";
+
+      const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
+
       proof_info.push(td(
            rejected && [
-            sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')),
-            sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')),
+            hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
+            hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
           ]
         || accepted && [
           sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect-proof'))
@@ -153,7 +161,16 @@ const getBadges = (cases, act) => {
         zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
       }
 
-      return h(["tr", `class="${s.status}"`])(proof_info) + zip
+      let lemmas = ""
+      if(Object.keys(lemma_stats).length > 0) {
+        lemmas = tr([
+        `<td colspan="4" class="lemma_stats"><ul>${Object.keys(lemma_stats).map(name => `<li><a href="#${name}">${name}</a>: ${lemma_stats[name]}</li>`)}</ul></td>`
+
+        ])
+      }
+
+
+      return h(["tr", `id="${s.spec}" class="${s.status}"`])(proof_info) + zip + lemmas
     })
     .join('\n')
   return {
