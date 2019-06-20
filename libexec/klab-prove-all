@@ -187,7 +187,7 @@ make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
-  TIMEOUT=10800
+  TIMEOUT=8400
   export TIMEOUT
   # timeout timeout after 10 minutes
   # (enough time to zip and bookkeeping)
