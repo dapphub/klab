@@ -93,7 +93,7 @@ const exhaustiveness = {};
 Object.keys(config.implementations)
   .forEach(alias => {
     const cname = config.implementations[alias].name
-    const name = cname + "__exhaustiveness";
+    const name = alias + "__exhaustiveness";
     const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
 
     // TODO - write meta/data and name
