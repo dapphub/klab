@@ -164,7 +164,7 @@ const getBadges = (cases, act) => {
       let lemmas = ""
       if(Object.keys(lemma_stats).length > 0) {
         lemmas = tr([
-        `<td colspan="4" class="lemma_stats"><ul>${Object.keys(lemma_stats).map(name => `<li><a href="#${name}">${name}</a>: ${lemma_stats[name]}</li>`)}</ul></td>`
+        `<td colspan="4" class="lemma_stats"><ul>${Object.keys(lemma_stats).map(name => `<li><a href="#${name}">${name}</a>: ${lemma_stats[name]}</li>`).join("\n")}</ul></td>`
 
         ])
       }
