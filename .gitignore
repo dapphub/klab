@@ -6,6 +6,5 @@
 /examples/*/out/*package-lock.json
 package-lock.json
 /result
-/haskell/
 /haskell/cabal.*
 /haskell/dist*
