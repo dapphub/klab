@@ -87,6 +87,7 @@ do_proof () {
     echo "Cause of death was timeout."
     if [ -n "$hash" ]; then
       touch "$KLAB_OUT/timeout/$hash";
+      klab get-lemmas "$hash"
       klab zip "$hash" > /dev/null
       echo "Zipped timed-out proof log for $hash."
       if [ -n "$KLAB_REPORT_NAME_DIR" ]; then
