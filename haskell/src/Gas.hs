@@ -59,9 +59,11 @@ instance Show IntOrStartGas where
 --   StartGas <= _ = True
 --   _ <= StartGas =
 
-
 class Convertible a b where
   convert :: a -> Maybe b
+
+class TypedVariables r where
+  getTypes :: r -> Map String String
 
 coerce :: (Show a, Convertible a b) => a -> b
 coerce x = case convert x of
@@ -88,6 +90,13 @@ instance Convertible Int IntOrStartGas where
 instance Convertible IntOrStartGas Int where
   convert (Literal n) = Just n
   convert _ = Nothing
+
+instance TypedVariables Int where
+  getTypes _ = mempty
+
+instance TypedVariables IntOrStartGas where
+  getTypes (Literal _) = mempty
+  getTypes StartGas = Map.fromList [("VGas", "K")]
 
 getLeafValues :: GasExpr r -> [r]
 getLeafValues = toList
@@ -147,7 +156,7 @@ unparse msm expr =
         where s = unparse msm e
               t = unparse msm f
 
-stratifier :: (Ord f)
+stratifier :: (Ord f, TypedVariables f)
   => (GasExpr f) -> Stratification f ()
 stratifier expr = do
   smap <- get
@@ -173,10 +182,13 @@ stratifier expr = do
       stratifier e
       stratifier f
       return ()
-    (Value _) ->
+    (Value x) -> do
+      put $
+       stratTypes %~ (Map.union (getTypes x)) $
+         smap'
       return ()
 
-stratify :: (Ord f)
+stratify :: (Ord f, TypedVariables f)
   => String -> (GasExpr f) -> (StratificationMap f)
 stratify s e = execState (stratifier e)
   (StratificationMap
