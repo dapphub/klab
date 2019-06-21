@@ -158,7 +158,7 @@ do_proof () {
       fi;
     else
       # generate and upload bundle to proof.dapp.ci
-      klab bundle --prune --evm "$hash"
+      # klab bundle --prune --evm "$hash"
       cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
     fi;
   fi;
