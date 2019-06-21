@@ -62,12 +62,12 @@ const filter = EVM
   : t => t;
 
 const compiled_states = blobs_data
-  .filter(([_, k]) => k.term.label == "<generatedTop>")
+  .filter(([_, k]) => k.term.label == "<kevm>")
   // filtering
   .map(([blobid, k]) => [blobid, filter(k.term)])
 
 const constraints = blobs_data
-  .filter(([_, k]) => k.term.label != "<generatedTop>")
+  .filter(([_, k]) => k.term.label != "<kevm>")
 
 const compiled_blobs = compiled_states.concat(constraints)
   .reduce((a, [blobid, k]) => ({...a, [blobid]: k}), {})
@@ -132,7 +132,7 @@ const boot = {
 // }
 
 // const nodes_ = blobs_data
-//   .filter(([_, k]) => k.term.label == "<generatedTop>")
+//   .filter(([_, k]) => k.term.label == "<kevm>")
 
 
 // const { behaviour } = genBehaviour({
