@@ -151,8 +151,10 @@ cosolve = iteratedFix (unnormaliseStep . cosolveStep)
 solveNumerically :: Int -> BasicGasExpr -> ConstantGasExpr
 solveNumerically maxGas = (solveLeaves maxGas) . normalise
 
-solve :: Int -> BasicGasExpr -> ConstantGasExpr
-solve maxGas (Binary Sub (Value StartGas) e)
+solve = solveNumerically
+
+newSolve :: Int -> BasicGasExpr -> ConstantGasExpr
+newSolve maxGas (Binary Sub (Value StartGas) e)
   | isIndependent e = coerce e
   | otherwise = case extirpate e of
       Binary Add f g | isIndependent g
@@ -160,7 +162,7 @@ solve maxGas (Binary Sub (Value StartGas) e)
                            (solveNumerically maxGas (Binary Sub (Value StartGas) f))
                            (coerce g))
       _ -> solveNumerically maxGas (Binary Sub (Value StartGas) e)
-solve _ _ = error "Can only solve expressions in the form VGas - e(VGas)."
+newSolve _ _ = error "Can only solve expressions in the form VGas - e(VGas)."
 
 
 -- only works for normalised GasExpr
