@@ -10,7 +10,10 @@ module Gas where
 
 import Control.Lens hiding (op)
 import Control.Monad.State.Strict
-import Data.List (intercalate)
+import Data.List (elemIndex,
+                  delete,
+                  intercalate,
+                  nub)
 import Data.Map.Strict (Map)
 import Data.Foldable (toList)
 import qualified Data.Map.Strict as Map
@@ -112,22 +115,27 @@ isIndependent = all $ \case
   StartGas -> False
   _ -> True
 
+type VariableName = String
+type KType = String
+
 data StratificationMap f = StratificationMap
- { _stratMap   :: Map (GasExpr f) Int,
-   _nextIndex  :: Int,
-   _stratTypes :: Map String String
+ { _stratList  :: [GasExpr f],
+   _stratTypes :: Map VariableName KType
  }
  deriving (Eq, Show)
+
+mkStratMap :: (Eq f)
+  => [GasExpr f]
+  -> Map VariableName KType -> StratificationMap f
+mkStratMap es ts = StratificationMap (nub es) ts
 
 makeLenses ''StratificationMap
 
 instance (Ord f) => Semigroup (StratificationMap f) where
-  sm1 <> sm2 = StratificationMap
-    (Map.union (_stratMap sm1) (_stratMap sm2))
-    (max (_nextIndex sm1) (_nextIndex sm2))
+  sm1 <> sm2 = mkStratMap (_stratList sm1 <> _stratList sm2)
     (Map.union (_stratTypes sm1) (_stratTypes sm2))
 instance (Ord f) => Monoid (StratificationMap f) where
-  mempty = StratificationMap mempty 0 mempty
+  mempty = mkStratMap mempty mempty
 
 type StratificationLabel = String
 type Stratification f a = State (StratificationMap f) a
@@ -138,43 +146,42 @@ bracket s = "( " ++ s ++ " )"
 unparse :: (Show f, Ord f)
   => (Maybe (StratificationMap f, StratificationLabel))
   -> (GasExpr f) -> String
-unparse msm expr =
-  let (sm, ts, tag) = case msm of
-        Just (x, tag') -> (x ^. stratMap,
+unparse msml expr =
+  let (sm, ts, tag) = case msml of
+        Just (x, tag') -> (x ^. stratList,
                            x ^. stratTypes,
                            tag')
         Nothing -> (mempty, mempty, "")
-  in case Map.lookup expr sm of
+  in case elemIndex expr sm of
     Just i -> tag ++ show i ++ formatKArgs (Map.toList ts)
     Nothing -> case expr of
       -- (Nullary (Value StartGas)) -> "VGas"
       (Value x) -> show x
-      (Unary SixtyFourth e) -> (bracket $ unparse msm e) ++ " /Int 64"
+      (Unary SixtyFourth e) -> (bracket $ unparse msml e) ++ " /Int 64"
       (Binary op e f) -> bracket (s ++ opstr ++ t)
-        where s = unparse msm e
-              t = unparse msm f
+        where s = unparse msml e
+              t = unparse msml f
               opstr = case op of
                         Add -> " +Int "
                         Sub -> " -Int "
                         Mul -> " *Int "
       (ITE (Cond c) e f) ->
-        "(" ++ "#if " ++ (c ^. formula) ++
-               " #then " ++ s ++
-               " #else " ++ t ++
-               " #fi" ++ ")"
-        where s = unparse msm e
-              t = unparse msm f
+        "(" ++ "#if " ++ (c ^. formula)
+           ++ " #then " ++ s
+           ++ " #else " ++ t
+           ++ " #fi" ++ ")"
+        where s = unparse msml e
+              t = unparse msml f
 
 stratifier :: (Ord f, TypedVariables f)
   => (GasExpr f) -> Stratification f ()
 stratifier expr = do
   smap <- get
-  -- insertSoft means we deduplicate the labels
-  let insertSoft = Map.insertWith (flip const)
-      i = smap ^. nextIndex
-      smap' = stratMap %~ (insertSoft expr i)
-              $ nextIndex %~ (+1)
-              $ smap
+  -- we deduplicate the labels
+  let addSoft = (\x -> if elem expr x
+                       then x
+                       else x ++ [expr])
+      smap' = stratList %~ addSoft $ smap
   put smap'
   case expr of
     (Unary _ e) -> do
@@ -204,20 +211,20 @@ stratify e = execState (stratifier e) mempty
 formatStratifiedSyntax :: (Show f, Ord f)
   => (StratificationMap f) -> StratificationLabel -> String
 formatStratifiedSyntax sm tag =
-  Map.foldlWithKey (formatStratifiedLeaf sm tag) "" (view stratMap sm)
+  fst $ foldl (formatStratifiedLeaf sm tag) ("", 0) (sm ^. stratList)
 
 formatStratifiedLeaf :: (Show f, Ord f)
   => (StratificationMap f) -> StratificationLabel
-  -> String -> (GasExpr f) -> Int -> String
-formatStratifiedLeaf sm tag acc expr i =
-  let args = Map.toList $ sm ^. stratTypes in acc
+  -> (String, Int) -> (GasExpr f) -> (String, Int)
+formatStratifiedLeaf sm tag (acc, i) expr =
+  let args = Map.toList $ sm ^. stratTypes in (acc
   ++ "syntax Int ::= \"" ++ tag ++ show i
   ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
   ++ "rule " ++ tag ++ show i ++ (formatKArgs args)
   ++ " => "
   ++ (unparse (Just (sm', tag)) expr) ++ " [macro]"
-  ++ "\n" ++ "\n"
-  where sm' = stratMap %~ (Map.delete expr) $ sm
+  ++ "\n" ++ "\n", i+1)
+  where sm' = stratList %~ (delete expr) $ sm
 
 formatAbstractKArgs :: [(String, String)] -> String
 formatAbstractKArgs [] = ""
