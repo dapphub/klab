@@ -109,25 +109,29 @@ main = do
          <> header "K gas analyser")
   args <- execParser opts
   s    <- inputToString $ gasInput args
+      -- extract flags
   let maxG       = sufficientGas args
       tag        = stratificationLabel args
       laxOn      = laxMode args
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
       solveOn    = not $ noSolveMode args
-      -- parse JSON as GasExpr
+      -- parse JSON input
       gaskast = either (\err -> (error $ "Failed in parsing JSON: " ++ err))
                 id
                 (eitherDecode (fromString s))
+      -- parse into BasicGasExpr
       g = kastToGasExpr gaskast
-      -- solve GasExpr, stratify, and print the K syntax declarations
+      -- solve (or not), etc.
       solved = case (solveOn, laxOn, cosolveOn) of
-        (False, False, _)    -> normalise g
-        (True,  True, _)     -> coerce $ maxLeaf $ solve maxG g
-        (True, False, False) -> coerce $ solve maxG g
-        (True, False, True)  -> coerce $ cosolve $ solve maxG g
+        (False, False, _)     -> normalise g
+        (True,  True,  _)     -> coerce $ maxLeaf $ solve maxG g
+        (True, False,  False) -> coerce $ solve maxG g
+        (True, False,  True)  -> coerce $ cosolve $ solve maxG g
         _ -> error "error: illegal combination of flags."
+      -- stratify
       sm = stratify solved
+      -- encode syntax with JSON
       smResult = encode $ StratifiedResult
                   (unparse (Just (sm, tag)) solved)
                   (formatStratifiedSyntax sm tag)
