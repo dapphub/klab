@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
-
 set -e
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 yellow=$(tput setaf 3)
+blue=$(tput setaf 4)
 bold=$(tput bold)
 reset=$(tput sgr0)
-
-_term() {
-  echo "Trapped SIGTERM in klab prove."
-  if [ -n "$kprove_child" ]; then
-    echo "Sending SIGTERM to $kprove_child in klab prove."
-    kill -s TERM "$kprove_child"
-  fi;
-}
-trap _term TERM
 
 # parse args
 usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
@@ -34,15 +25,23 @@ while true; do
     esac
 done
 
-# check env vars
-if [ -z "$KLAB_OUT" ]; then
-    export KLAB_OUT=out
-fi
+export KLAB_OUT=${KLAB_OUT:-out}
+export K_OPTS=${K_OPTS:--Xmx10G}
+
 if [ -z "$KLAB_EVMS_PATH" ]; then
     echo "KLAB_EVMS_PATH must be set and point to evm-semantics!"
     exit 1
 fi
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
+
+if [ ! -z "$QUIET" ]; then
+  mkdir -p $KLAB_OUT/log/
+  STDOUT="$KLAB_OUT/log/$spec_hash.log"
+  STDERR="$KLAB_OUT/log/$spec_hash.err.log"
+else
+  STDOUT=/dev/stdout
+  STDERR=/dev/stderr
+fi
 
 if [ -z "$1" ]; then
   spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
@@ -75,71 +74,58 @@ fi
 target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
 
 if $dump; then
-    z3=",RULEATTEMPT,SRULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT"
-    dump_flags="--state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,CLOSE"
-    dump_notice="(with ${yellow}state logging${reset})"
+  z3=",RULEATTEMPT,SRULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT"
+  K_FLAGS="$K_FLAGS --state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,CLOSE"
+  dump_notice="(with ${yellow}state logging${reset})"
 fi
 
-echo "Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
+kprove() {
+  K_OPTS="$K_OPTS" \
+  "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
+  $K_FLAGS \
+  --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
+  --def-module RULES \
+  --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
+  --output-flatten "_Map_ #And" \
+  --z3-impl-timeout 300 --no-exc-wrap \
+  --cache-func-optimized --format-failures \
+  --no-alpha-renaming \
+  --no-sort-collections \
+  --output json \
+  --boundary-cells k,pc \
+  --smt_prelude $KLAB_OUT/prelude.smt2 \
+  --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
+  "$1"
+  exit $?
+}
 
-logging=''
-{
-if [ ! -z "$QUIET" ]; then
-  mkdir -p $KLAB_OUT/log/
-  K_OPTS="-Xmx10G" \
-    "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
-    $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
-    --def-module RULES \
-    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
-    --output-flatten "_Map_ #And" \
-    --z3-impl-timeout 300 --no-exc-wrap \
-    --cache-func-optimized --format-failures \
-    --no-alpha-renaming \
-    --no-sort-collections \
-    --output json \
-    --boundary-cells k,pc \
-    --smt_prelude $KLAB_OUT/prelude.smt2 \
-    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec" >"$KLAB_OUT/log/$spec_hash.log" 2>"$KLAB_OUT/log/$spec_hash.err.log" &
-  kprove_child=$!
-  wait "$kprove_child"
-  result=$?
-  unset kprove_child
-else
-  K_OPTS="-Xmx10G" \
-    "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
-    $dump_flags \
-    --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
-    --def-module RULES \
-    --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
-    --output-flatten "_Map_ #And" \
-    --z3-impl-timeout 300 --no-exc-wrap \
-    --cache-func-optimized --format-failures \
-    --no-alpha-renaming \
-    --no-sort-collections \
-    --output json \
-    --boundary-cells k,pc \
-    --smt_prelude $KLAB_OUT/prelude.smt2 \
-    --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-    "$target_spec" &
-  kprove_child=$!
-  wait "$kprove_child"
-  result=$?
-  unset kprove_child
-fi
-} || echo "weird error"
+_term() {
+  echo "Trapped SIG$(kill -l $?) in klab prove."
+  if [ -n "$kprove_child" ]; then
+    echo "Sending SIGTERM to $kprove_child in klab prove."
+    kill -s TERM "$kprove_child"
+  fi;
+}
+trap _term TERM INT
+
+echo "${blue}Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
+set +e
+kprove "$target_spec" >"$STDOUT" 2>"$STDERR" &
+kprove_child=$!
+wait "$kprove_child"
+result=$?
+unset kprove_child
+set -e
 
 if [ "$result" == "0" ]; then
   echo "${green}Proof ${bold}ACCEPT${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
   mkdir -p "$KLAB_OUT/accept" && touch "$KLAB_OUT/accept/$spec_hash"
+elif [ "$result" -eq "130" ]; then
+  # results > 127 are 128 + signal number
+  echo "Abort: SIG$(kill -l $result)"
 else
-  if [ "$result" == "130" ]; then
-    echo 'Caught SIGINT'
-  else
-    echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
-    mkdir -p "$KLAB_OUT/reject" && touch "$KLAB_OUT/reject/$spec_hash"
-  fi;
+  echo "${red}Proof $result ${bold}REJECT${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
+  mkdir -p "$KLAB_OUT/reject" && touch "$KLAB_OUT/reject/$spec_hash"
 fi
 
 exit $result
