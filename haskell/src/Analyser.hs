@@ -9,7 +9,6 @@ import Data.Aeson                 (ToJSON,
 import System.Exit                (exitWith,
                                    ExitCode(ExitSuccess),
                                    ExitCode(ExitFailure))
-import System.IO                  (stderr, hPutStrLn)
 import Data.Semigroup             ((<>))
 import Options.Applicative
 
@@ -19,7 +18,7 @@ import Gas       (coerce,
                   unparse,
                   stratify,
                   formatStratifiedSyntax)
-import Kast      (Kast)
+-- import Kast      (Kast)
 import KastParse (kastToGasExpr)
 import Solver    (solve,
                   normalise,
@@ -116,23 +115,23 @@ main = do
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
       solveOn    = not $ noSolveMode args
-  -- parse JSON as GasExpr
-  case (eitherDecode (fromString s)) :: Either String Kast of
-    Left err -> (hPutStrLn stderr $ "Failed in parsing JSON: " ++ err) >> die
-    Right gaskast -> case kastToGasExpr gaskast of
-      Left err -> (hPutStrLn stderr $ "Failed in parsing AST: " ++ err) >> die
+      -- parse JSON as GasExpr
+      gaskast = either (\err -> (error $ "Failed in parsing JSON: " ++ err))
+                id
+                (eitherDecode (fromString s))
+      g = kastToGasExpr gaskast
       -- solve GasExpr, stratify, and print the K syntax declarations
-      Right g -> let solved = case (solveOn, laxOn, cosolveOn)  of
-                       (False, False, _)    -> normalise g
-                       (True,  True, _)     -> coerce $ maxLeaf $ solve maxG g
-                       (True, False, False) -> coerce $ solve maxG g
-                       (True, False, True)  -> coerce $ cosolve $ solve maxG g
-                       _ -> error "error: illegal combination of flags."
-                     sm = stratify solved
-                     sm_result = encode $ StratifiedResult
-                       (unparse (Just (sm, tag)) solved)
-                       (formatStratifiedSyntax sm tag)
-                     result = if stratifyOn
-                              then sm_result
-                              else C8.pack $ unparse Nothing solved
-                 in (C8.putStrLn result) >> exit
+      solved = case (solveOn, laxOn, cosolveOn) of
+        (False, False, _)    -> normalise g
+        (True,  True, _)     -> coerce $ maxLeaf $ solve maxG g
+        (True, False, False) -> coerce $ solve maxG g
+        (True, False, True)  -> coerce $ cosolve $ solve maxG g
+        _ -> error "error: illegal combination of flags."
+      sm = stratify solved
+      smResult = encode $ StratifiedResult
+                  (unparse (Just (sm, tag)) solved)
+                  (formatStratifiedSyntax sm tag)
+      result = if stratifyOn
+               then smResult
+               else C8.pack $ unparse Nothing solved
+    in (C8.putStrLn result) >> exit

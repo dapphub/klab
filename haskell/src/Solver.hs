@@ -170,8 +170,7 @@ solveLeaves :: Int -> BasicGasExpr -> ConstantGasExpr
 solveLeaves maxGas (ITE c e f) = ITE c e' f'
   where e' = solveLeaves maxGas e
         f' = solveLeaves maxGas f
-solveLeaves maxGas e =
-  Value maxOfMins
+solveLeaves maxGas e = Value maxOfMins
   where Just maxOfMins = maximumMay $ [minG]
                          ++ (catMaybes
                          $ (minimiseG maxGas)
