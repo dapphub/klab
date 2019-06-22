@@ -111,7 +111,7 @@ main = do
   args <- execParser opts
   s    <- inputToString $ gasInput args
   let maxG       = sufficientGas args
-      stratLabel = stratificationLabel args
+      tag        = stratificationLabel args
       laxOn      = laxMode args
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
@@ -128,10 +128,10 @@ main = do
                        (True, False, False) -> coerce $ solve maxG g
                        (True, False, True)  -> coerce $ cosolve $ solve maxG g
                        _ -> error "error: illegal combination of flags."
-                     sm = stratify stratLabel solved
+                     sm = stratify solved
                      sm_result = encode $ StratifiedResult
-                       (unparse (Just sm) solved)
-                       (formatStratifiedSyntax sm)
+                       (unparse (Just (sm, tag)) solved)
+                       (formatStratifiedSyntax sm tag)
                      result = if stratifyOn
                               then sm_result
                               else C8.pack $ unparse Nothing solved
