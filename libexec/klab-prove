@@ -10,7 +10,7 @@ reset=$(tput sgr0)
 
 # parse args
 usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
-OPTS=`getopt -o "d" -l "dump" -- "$@"`
+OPTS=`getopt -o "d" -l "dump" -o "l" -l "logs" -- "$@"`
 dump=false
 if [ $? != 0 ]
 then
@@ -18,11 +18,12 @@ then
 fi
 eval set -- "$OPTS"
 while true; do
-    case "$1" in
-	-d | --dump)  dump=true; shift;;
+  case "$1" in
+	-d | --dump) dump=true; shift;;
+  --logs)      logs=true; shift;;
 	--)           shift; break;;
 	*)            usage
-    esac
+  esac
 done
 
 export KLAB_OUT=${KLAB_OUT:-out}
@@ -34,7 +35,7 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
 fi
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
-if [ ! -z "$QUIET" ]; then
+if [ ! -z "$logs" ]; then
   mkdir -p $KLAB_OUT/log/
   STDOUT="$KLAB_OUT/log/$spec_hash.log"
   STDERR="$KLAB_OUT/log/$spec_hash.err.log"
@@ -99,19 +100,22 @@ kprove() {
   exit $?
 }
 
-_term() {
-  echo "Trapped SIG$(kill -l $?) in klab prove."
-  if [ -n "$kprove_child" ]; then
-    echo "Sending SIGTERM to $kprove_child in klab prove."
-    kill -s TERM "$kprove_child"
+try_kill() {
+  if [ -n "$1" ]; then
+    echo "[prove] Sending SIGTERM to $1."
+    pkill -x "$1" && echo "[prove] Sent SIGTERM to $1." || echo "[prove] unable to kill $1"
   fi;
 }
-trap _term TERM INT
+
+_term() {
+  echo "[prove] Trapped SIG$(kill -l $?)."
+  try_kill $kprove_child
+}
+trap _term SIGTERM SIGINT
 
 echo "${blue}Proof ${bold}STARTING${reset}:" "$(basename "$target_spec")" "[$spec_name]" "$dump_notice"
 set +e
-kprove "$target_spec" >"$STDOUT" 2>"$STDERR" &
-kprove_child=$!
+kprove "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
 wait "$kprove_child"
 result=$?
 unset kprove_child
