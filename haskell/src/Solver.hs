@@ -1,8 +1,6 @@
 module Solver where
 
 import Data.List  (drop, take)
-import Data.Maybe (catMaybes)
-import Safe       (maximumMay)
 
 import Gas
 
@@ -170,12 +168,8 @@ solveLeaves :: Int -> BasicGasExpr -> ConstantGasExpr
 solveLeaves maxGas (ITE c e f) = ITE c e' f'
   where e' = solveLeaves maxGas e
         f' = solveLeaves maxGas f
-solveLeaves maxGas e = Value maxOfMins
-  where Just maxOfMins = maximumMay $ [minG]
-                         ++ (catMaybes
-                         $ (minimiseG maxGas)
-                              <$> (findCallSubexprs e))
-        Just minG = minimiseG maxGas e
+solveLeaves maxGas e = Value minG
+  where Just minG = minimiseG maxGas e
 
 evalUnOp :: UnOp -> Int -> Int
 evalUnOp SixtyFourth x = quot x 64
