@@ -68,9 +68,9 @@
 
     rule #lookup( (KEY |-> VAL) M, KEY ) => VAL
     rule #lookup(               M, KEY ) => 0 requires notBool KEY in_keys(M)
-        
+
     rule #range(WM, START, WIDTH) => #range(WM, START +Int WIDTH -Int 1, WIDTH, .WordStack)
-    
+
     rule WM[ N := W : WS     ] => (WM[N <- W])[N +Int 1 := WS]
 
     //semantics of #buf
@@ -344,7 +344,7 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #if C #then (#if C #then B1 #else B2 #fi) -Int D #else (#if C #then B3 #else B4 #fi) -Int E #fi =>
          #if C #then B1 -Int D #else B4 -Int E #fi
-    
+
 
     rule A -Int A => 0
 
@@ -476,3 +476,9 @@ rule <k> ECREC => #end EVMC_SUCCESS ... </k>
 [trusted]
 
 rule #memoryUsageUpdate(MU, START, WIDTH) => maxInt(MU, (START +Int WIDTH) up/Int 32) requires WIDTH  >Int 0
+
+// GAS optimisation
+rule ((A -Int (X +Int C)) +Int (C -Int Y)) => (A -Int X) -Int Y
+
+rule #if C #then G -Int X #else G -Int Y #fi => G -Int (#if C #then X #else Y #fi)
+
