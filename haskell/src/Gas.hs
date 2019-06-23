@@ -11,7 +11,6 @@ module Gas where
 import Control.Lens hiding (op)
 import Control.Monad.State.Strict
 import Data.List (elemIndex,
-                  delete,
                   intercalate,
                   nub)
 import Data.Map.Strict (Map)
@@ -143,10 +142,10 @@ type Stratification f a = State (StratificationMap f) a
 bracket :: String -> String
 bracket s = "( " ++ s ++ " )"
 
-unparse :: (Show f, Ord f)
+showStratified :: (Show f, Ord f)
   => (Maybe (StratificationMap f, StratificationLabel))
   -> (GasExpr f) -> String
-unparse msml expr =
+showStratified msml expr =
   let (sm, ts, tag) = case msml of
         Just (x, tag') -> (x ^. stratList,
                            x ^. stratTypes,
@@ -154,24 +153,28 @@ unparse msml expr =
         Nothing -> (mempty, mempty, "")
   in case elemIndex expr sm of
     Just i -> tag ++ show i ++ formatKArgs (Map.toList ts)
-    Nothing -> case expr of
-      -- (Nullary (Value StartGas)) -> "VGas"
-      (Value x) -> show x
-      (Unary SixtyFourth e) -> (bracket $ unparse msml e) ++ " /Int 64"
-      (Binary op e f) -> bracket (s ++ opstr ++ t)
-        where s = unparse msml e
-              t = unparse msml f
-              opstr = case op of
-                        Add -> " +Int "
-                        Sub -> " -Int "
-                        Mul -> " *Int "
-      (ITE (Cond c) e f) ->
-        "(" ++ "#if " ++ (c ^. formula)
-           ++ " #then " ++ s
-           ++ " #else " ++ t
-           ++ " #fi" ++ ")"
-        where s = unparse msml e
-              t = unparse msml f
+    Nothing -> unparse (showStratified msml) expr
+
+unparse :: (Show f)
+  => (GasExpr f -> String) -> (GasExpr f) -> String
+unparse _ (Value x) = show x
+unparse recShow (Unary SixtyFourth e) =
+  (bracket $ recShow e) ++ " /Int 64"
+unparse recShow (Binary op e f) =
+  bracket (s ++ opstr ++ t)
+  where s = recShow e
+        t = recShow f
+        opstr = case op of
+                  Add -> " +Int "
+                  Sub -> " -Int "
+                  Mul -> " *Int "
+unparse recShow (ITE (Cond c) e f) =
+  "(" ++ "#if " ++ (c ^. formula)
+     ++ " #then " ++ s
+     ++ " #else " ++ t
+     ++ " #fi" ++ ")"
+  where s = recShow e
+        t = recShow f
 
 stratifier :: (Ord f, TypedVariables f)
   => (GasExpr f) -> Stratification f ()
@@ -222,9 +225,8 @@ formatStratifiedLeaf sm tag (acc, i) expr =
   ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
   ++ "rule " ++ tag ++ show i ++ (formatKArgs args)
   ++ " => "
-  ++ (unparse (Just (sm', tag)) expr) ++ " [macro]"
+  ++ (unparse (showStratified $ Just (sm, tag)) expr) ++ " [macro]"
   ++ "\n" ++ "\n", i+1)
-  where sm' = stratList %~ (delete expr) $ sm
 
 formatAbstractKArgs :: [(String, String)] -> String
 formatAbstractKArgs [] = ""
