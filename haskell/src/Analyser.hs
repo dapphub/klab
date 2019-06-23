@@ -88,17 +88,21 @@ analyserParser = AnalyserArgs
                  <> help "Disable solving and cosolving.")
 
 data StratifiedResult = StratifiedResult
-  { constructor    :: String
+  { constructors   :: [String]
   , stratification :: String
   } deriving (Generic, Show)
+
+data UnstratifiedResult = UnstratifiedResult [String]
+  deriving (Generic, Show)
+
+instance ToJSON StratifiedResult
+instance ToJSON UnstratifiedResult
 
 exit :: IO()
 exit = exitWith ExitSuccess
 
 die :: IO()
 die = exitWith (ExitFailure 1)
-
-instance ToJSON StratifiedResult where
 
 main :: IO ()
 main = do
@@ -116,26 +120,27 @@ main = do
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
       solveOn    = not $ noSolveMode args
-      -- parse JSON input
-      gaskast = either (\err -> (error $ "Failed in parsing JSON: " ++ err))
-                id
-                (eitherDecode (fromString s))
+      -- parse JSON input (array of kasts)
+      gaskasts = either
+        (\err -> (error $ "Failed in parsing JSON: " ++ err))
+        id
+        (eitherDecode (fromString s))
       -- parse into BasicGasExpr
-      g = kastToGasExpr gaskast
+      gs = kastToGasExpr <$> gaskasts
       -- solve (or not), etc.
-      solved = case (solveOn, laxOn, cosolveOn) of
-        (False, False, _)     -> normalise g
-        (True,  True,  _)     -> coerce $ maxLeaf $ solve maxG g
-        (True, False,  False) -> coerce $ solve maxG g
-        (True, False,  True)  -> coerce $ cosolve $ solve maxG g
-        _ -> error "error: illegal combination of flags."
-      -- stratify
-      sm = stratify solved
-      -- encode syntax with JSON
-      smResult = encode $ StratifiedResult
-                  (showStratified (Just (sm, tag)) solved)
-                  (formatStratifiedSyntax sm tag)
+      solved = (case (solveOn, laxOn, cosolveOn) of
+        (False, False, _)     -> normalise
+        (True,  True,  _)     -> coerce . maxLeaf . (solve maxG)
+        (True, False,  False) -> coerce . (solve maxG)
+        (True, False,  True)  -> coerce . cosolve . (solve maxG)
+        _ -> error "error: illegal combination of flags.") <$> gs
+      -- stratify and merge the stratification maps
+      sm = mconcat $ stratify <$> solved
+      -- encode result with JSON
       result = if stratifyOn
-               then smResult
-               else C8.pack $ showStratified Nothing solved
+               then encode $ StratifiedResult
+                    (showStratified (Just (sm, tag)) <$> solved)
+                    (formatStratifiedSyntax sm tag)
+               else encode $ UnstratifiedResult
+                    ((showStratified Nothing) <$> solved)
     in (C8.putStrLn result) >> exit
