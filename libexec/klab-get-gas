@@ -24,7 +24,9 @@ else
   fi;
 fi
 
-klab get-x "ethereum.evm.callState.gas" $spec_hash > "$GAS_DIR/${spec_hash}.raw.kast.json"
+klab_get_x_path=`dirname "$0"`/klab-get-x
+
+node --stack_size=7200 "$klab_get_x_path" "ethereum.evm.callState.gas" $spec_hash > "$GAS_DIR/${spec_hash}.raw.kast.json"
 result=$?
 
 if [ $result -ne "0" ]; then
