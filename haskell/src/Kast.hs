@@ -14,7 +14,12 @@ data Kast = Kast {
   arity        :: Maybe Int,
   args         :: Maybe [Kast]
   } deriving (Generic, Eq, Show)
+
+data Kasts = Kasts [Kast]
+  deriving (Generic, Eq, Show)
+
 instance FromJSON Kast
+instance FromJSON Kasts
 
 -- raiseNothing :: MonadError e m => e -> Maybe a -> m a
 -- raiseNothing err x = case x of
