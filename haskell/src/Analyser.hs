@@ -15,7 +15,7 @@ import Options.Applicative
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Gas       (coerce,
-                  unparse,
+                  showStratified,
                   stratify,
                   formatStratifiedSyntax)
 -- import Kast      (Kast)
@@ -133,9 +133,9 @@ main = do
       sm = stratify solved
       -- encode syntax with JSON
       smResult = encode $ StratifiedResult
-                  (unparse (Just (sm, tag)) solved)
+                  (showStratified (Just (sm, tag)) solved)
                   (formatStratifiedSyntax sm tag)
       result = if stratifyOn
                then smResult
-               else C8.pack $ unparse Nothing solved
+               else C8.pack $ showStratified Nothing solved
     in (C8.putStrLn result) >> exit
