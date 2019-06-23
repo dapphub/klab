@@ -34,3 +34,6 @@ if [ $result -ne "0" ]; then
   exit 1;
 fi
 
+klab get-refund $spec_hash
+
+
