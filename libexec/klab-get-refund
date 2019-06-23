@@ -55,4 +55,6 @@ const refunds = refund_nodes
     return refund_gas;
   })
 
-fs.writeFileSync(path.join(KLAB_OUT, "gas", proofid + "_refunds.json"), JSON.stringify(refunds))
+const raw = JSON.parse(read(path.join(KLAB_OUT, "gas", proofid + ".raw.kast.json")));
+
+fs.writeFileSync(path.join(KLAB_OUT, "gas", proofid + ".all.json"), JSON.stringify([raw].concat(refunds)))

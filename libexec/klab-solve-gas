@@ -26,17 +26,10 @@ fi
 
 name=$(cat "$KLAB_OUT/meta/data/$spec_hash"| jq -r ".name")
 
-
-if [ "$KLAB_LAX" ]; then
-    klab gas-analyser --input "$GAS_DIR/${spec_hash}.raw.kast.json" --lax > "$GAS_DIR/${spec_hash}.kast"
-    result=$?
-else
-  klab gas-analyser --stratification-label $name --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.kast"
-  result_solved=$?
-  klab gas-analyser --no-solve --stratification-label ${name}_raw --input "$GAS_DIR/${spec_hash}.raw.kast.json" > "$GAS_DIR/${spec_hash}.raw.kast"
-  result_raw=$?
-fi
-
+klab gas-analyser --stratification-label $name --input "$GAS_DIR/${spec_hash}.all.json" > "$GAS_DIR/${spec_hash}.kast"
+result_solved=$?
+klab gas-analyser --no-solve --stratification-label ${name}_raw --input "$GAS_DIR/${spec_hash}.all.json" > "$GAS_DIR/${spec_hash}.raw.kast"
+result_raw=$?
 
 if [ $result_solved -ne "0" ] || [ $result_raw -ne "0" ]; then
   rm "$GAS_DIR/${spec_hash}.kast"
