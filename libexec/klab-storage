@@ -1,15 +1,6 @@
 #!/usr/bin/env node
 
-const xml2json = require("xml2json");
-
 const fs = require("fs");
-const _ = require("lodash");
-const jsondiffpatch = require("jsondiffpatch").create({
-   textDiff: {
-        // default 60, minimum string length (left and right sides) to use text diff algorythm: google-diff-match-patch
-        minLength: 10
-    }
-});
 const clc = require('cli-color');
 var clear = require("cli-clear");
 const {
@@ -19,7 +10,6 @@ const {
   read
 } = require("../lib/util.js");
 const uniq = arr => Object.keys(arr.reduce((a, k) => ({...a, [k]: true}), {}))
-const { formatStep } = require("./../lib/formatter.js");
 const makeConfig = require("../lib/config.js");
 
 const {

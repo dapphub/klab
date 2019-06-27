@@ -1,21 +1,10 @@
 #!/usr/bin/env node
-const xs = require("xstream").default;
 const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
 const path = require("path");
-const onionify = require('cycle-onionify').default;
-const sampleCombine = require("xstream/extra/sampleCombine").default;
 process.title = "klab";
 
-const makeConfig = require("../lib/config.js");
-const makeCliDriver = require("../lib/driver/cliDriver.js")
-const dbDriver = require("../lib/driver/dbDriver.js")
-const move = require("../lib/move.js");
-const exec = require("../lib/exec.js");
-const view = require("../lib/view.js");
-const link = require("../lib/link.js");
-const pull = require("../lib/pull.js");
 const format = require("../lib/format.js")
 const { genBehaviour } = require("../lib/behavior.js");
 const {
@@ -23,8 +12,6 @@ const {
 } = require("../lib/compile.js");
 const {
   testPath,
-  revert,
-  warn,
   read
 } = require("../lib/util.js");
 
@@ -33,18 +20,14 @@ const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
 
 const usage = `
 Usage:
-  klab debug [options] [<hash>]
-
-Options:
-  --filter-oog
+  klab status-js [<hash>]
 `
 
 const cmd = docopt(usage, {
-  argv: ["debug"].concat(process.argv.slice(2))
+  argv: ["status-js"].concat(process.argv.slice(2))
 });
 
 const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KLAB_OUT, "HEAD")) && read(path.join(KLAB_OUT, "HEAD"))).trim();
-const FILTER_OOG = cmd['--filter-oog'];
 
 const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);
 const finished_ = finished
