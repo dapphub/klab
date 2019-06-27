@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
-const xml2json = require("xml2json");
-
 const fs = require("fs");
-const _ = require("lodash");
 const clc = require('cli-color');
 var clear = require("cli-clear");
 
@@ -21,9 +18,6 @@ const {
   get_pc_to_inst_map,
   genSrcmapArr
 } = require("../lib/srchandler.js");
-const {
-  formatStep
-} = require("./../lib/formatter.js");
 
 var stdin = process.stdin;
 stdin.setRawMode( true );
