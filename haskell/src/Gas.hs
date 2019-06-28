@@ -146,19 +146,16 @@ bracket s = "( " ++ s ++ " )"
 
 showStratified :: (Show f, Ord f)
   => (Maybe (StratificationMap f, StratificationLabel))
-  -> Int -> (GasExpr f) -> String
-showStratified msml stratDepth expr =
+  -> (GasExpr f) -> String
+showStratified msml expr =
   let (sm, ts, tag) = case msml of
         Just (x, tag') -> (x ^. stratList,
                            x ^. stratTypes,
                            tag')
         Nothing -> (mempty, mempty, "")
-      unparsedExpr = unparse (showStratified msml stratDepth) expr
   in case elemIndex expr sm of
-    Nothing -> unparsedExpr
-    Just i -> if gasDepth expr >= stratDepth
-      then tag ++ show i ++ formatKArgs (Map.toList ts)
-      else unparsedExpr
+    Just i -> tag ++ show i ++ formatKArgs (Map.toList ts)
+    Nothing -> unparse (showStratified msml) expr
 
 unparse :: (Show f)
   => (GasExpr f -> String) -> (GasExpr f) -> String
@@ -182,8 +179,8 @@ unparse recShow (ITE (Cond c) e f) =
         t = recShow f
 
 stratifier :: (Ord f, TypedVariables f)
-  => (GasExpr f) -> Stratification f ()
-stratifier expr = do
+  => Int -> (GasExpr f) -> Stratification f ()
+stratifier depth expr = if gasDepth expr < depth then return () else do
   smap <- get
   -- we deduplicate the labels
   let addSoft = (\x -> if elem expr x
@@ -193,18 +190,18 @@ stratifier expr = do
   put smap'
   case expr of
     (Unary _ e) -> do
-      stratifier e
+      stratifier depth e
       return ()
     (Binary _ e f) -> do
-      stratifier e
-      stratifier f
+      stratifier depth e
+      stratifier depth f
       return ()
     (ITE (Cond c) e f) -> do
       put $
         stratTypes %~ (Map.union (c ^. types)) $
         smap'
-      stratifier e
-      stratifier f
+      stratifier depth e
+      stratifier depth f
       return ()
     (Value x) -> do
       put $
@@ -213,24 +210,24 @@ stratifier expr = do
       return ()
 
 stratify :: (Ord f, TypedVariables f)
-  => (GasExpr f) -> (StratificationMap f)
-stratify e = execState (stratifier e) mempty
+  => Int -> (GasExpr f) -> (StratificationMap f)
+stratify depth e = execState (stratifier depth e) mempty
 
 formatStratifiedSyntax :: (Show f, Ord f)
-  => (StratificationMap f) -> StratificationLabel -> Int -> String
-formatStratifiedSyntax sm tag stratDepth =
-  fst $ foldl (formatStratifiedLeaf sm tag stratDepth) ("", 0) (sm ^. stratList)
+  => (StratificationMap f) -> StratificationLabel -> String
+formatStratifiedSyntax sm tag =
+  fst $ foldl (formatStratifiedLeaf sm tag) ("", 0) (sm ^. stratList)
 
 formatStratifiedLeaf :: (Show f, Ord f)
   => (StratificationMap f) -> StratificationLabel
-  -> Int -> (String, Int) -> (GasExpr f) -> (String, Int)
-formatStratifiedLeaf sm tag stratDepth (acc, i) expr =
-  let args = Map.toList $ sm ^. stratTypes
-      lhs  = tag ++ show i ++ (formatKArgs args)
-      rhs  = (unparse (showStratified (Just (sm, tag)) stratDepth) expr) in (acc
+  -> (String, Int) -> (GasExpr f) -> (String, Int)
+formatStratifiedLeaf sm tag (acc, i) expr =
+  let args = Map.toList $ sm ^. stratTypes in (acc
   ++ "syntax Int ::= \"" ++ tag ++ show i
   ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
-  ++ "rule " ++ lhs ++ " => " ++ rhs ++ " [macro]"
+  ++ "rule " ++ tag ++ show i ++ (formatKArgs args)
+  ++ " => "
+  ++ (unparse (showStratified $ Just (sm, tag)) expr) ++ " [macro]"
   ++ "\n" ++ "\n", i+1)
 
 formatAbstractKArgs :: [(String, String)] -> String

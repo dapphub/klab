@@ -143,12 +143,12 @@ main = do
         (True, False,  True)  -> coerce . cosolve . (solve maxG)
         _ -> error "error: illegal combination of flags.") <$> gs
       -- stratify and merge the stratification maps
-      sm = mconcat $ stratify <$> solved
+      sm = mconcat $ stratify stratDepth <$> solved
       -- encode result with JSON
       result = if stratifyOn
                then encode $ StratifiedResult
-                    (showStratified (Just (sm, tag)) stratDepth <$> solved)
-                    (formatStratifiedSyntax sm tag stratDepth)
+                    (showStratified (Just (sm, tag)) <$> solved)
+                    (formatStratifiedSyntax sm tag)
                else encode $ UnstratifiedResult
-                    ((showStratified Nothing stratDepth) <$> solved)
+                    ((showStratified Nothing) <$> solved)
     in (C8.putStrLn result) >> exit
