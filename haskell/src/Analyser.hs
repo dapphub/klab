@@ -56,7 +56,8 @@ data AnalyserArgs = AnalyserArgs {
   laxMode             :: Bool,
   noCosolveMode       :: Bool,
   noStratifyMode      :: Bool,
-  noSolveMode         :: Bool
+  noSolveMode         :: Bool,
+  stratifyDepth       :: Int
   }
 
 analyserParser :: Parser AnalyserArgs
@@ -86,6 +87,12 @@ analyserParser = AnalyserArgs
                  <*> switch
                  (long "no-solve"
                  <> help "Disable solving and cosolving.")
+                 <*> option auto
+                 (long "stratify-depth"
+                 <> help "Minimum nesting depth of subexpression to stratify."
+                 <> showDefault
+                 <> value 2
+                 <> metavar "DEPTH")
 
 data StratifiedResult = StratifiedResult
   { constructors   :: [String]
@@ -120,6 +127,7 @@ main = do
       cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
       solveOn    = not $ noSolveMode args
+      stratDepth = stratifyDepth args
       -- parse JSON input (array of kasts)
       gaskasts = either
         (\err -> (error $ "Failed in parsing JSON: " ++ err))
@@ -139,8 +147,8 @@ main = do
       -- encode result with JSON
       result = if stratifyOn
                then encode $ StratifiedResult
-                    (showStratified (Just (sm, tag)) <$> solved)
-                    (formatStratifiedSyntax sm tag)
+                    (showStratified (Just (sm, tag)) stratDepth <$> solved)
+                    (formatStratifiedSyntax sm tag stratDepth)
                else encode $ UnstratifiedResult
-                    ((showStratified Nothing) <$> solved)
+                    ((showStratified Nothing stratDepth) <$> solved)
     in (C8.putStrLn result) >> exit
