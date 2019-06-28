@@ -137,8 +137,19 @@ constraint_blobs.concat(key_terms).concat(targett.split("_")[0])
 
 console.log("reading rules: " + rule_blobs.length);
 const rules_data = rule_blobs
-  .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
-  .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
+    .reduce((a, ruleid) => {
+      if(a && !a[ruleid]) {
+        try { a[ruleid] = JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, ruleid + ".json"))) }
+        catch(e) {console.log('bad json: ' + path.join(KLAB_WD_PATH, `${proofid}_blobs`, ruleid + ".json"))}
+      }
+      return a;
+    }, {})
+
+  //     .map(blobid => {
+  //       let jsonn;
+  //       try { jsonn = JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))       } catch(e) { console.log('bad json: ' + path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json"))}
+  //       return [blobid, jsonn]})
+  // .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
 const state = {
   edges: pruned_edges,      // done: klab compile-fsm
