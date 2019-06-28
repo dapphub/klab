@@ -207,13 +207,16 @@ stratify minDepth e = execState (stratifier minDepth e) mempty
 -- we use a state monad to build up the map
 stratifier :: (Ord f, TypedVariables f)
   => Int -> (GasExpr f) -> Stratification f ()
-stratifier depth expr = if gasDepth expr < depth then return () else do
+stratifier minDepth expr = do
   smap <- get
   -- this deduplicates the labels
   let addSoft = (\x -> if elem expr x
                        then x
                        else x ++ [expr])
-      smap' = stratList %~ addSoft $ smap
+      -- add to map if expression is deep enough
+      smap' = if gasDepth expr >= minDepth
+        then stratList %~ addSoft $ smap
+        else smap
   put smap'
   case expr of
     (Unary _ e) -> do
