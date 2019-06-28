@@ -3,6 +3,7 @@
 {-# Language GADTs #-}
 {-# Language LambdaCase #-}
 {-# Language MultiParamTypeClasses #-}
+{-# Language StandaloneDeriving #-}
 {-# Language TemplateHaskell #-}
 {-# Language ViewPatterns #-}
 
@@ -27,10 +28,12 @@ data FormulaicString = FormulaicString
   deriving (Eq, Ord, Show)
 makeLenses ''FormulaicString
 
+-- unary and binary operators
 data UnOp = SixtyFourth
   deriving (Eq, Ord, Show)
 data BinOp = Add | Sub | Mul
   deriving (Eq, Ord, Show)
+-- predicates for an ITE
 data Cond = Cond FormulaicString
   deriving (Eq, Ord, Show)
 
@@ -41,27 +44,49 @@ data GasExpr r where
   Unary  :: UnOp -> GasExpr r -> GasExpr r
   Binary :: BinOp -> GasExpr r -> GasExpr r -> GasExpr r
   ITE    :: Cond -> GasExpr r -> GasExpr r -> GasExpr r
-  deriving (Eq, Ord, Show, Foldable, Traversable)
+  deriving (Eq, Ord, Show, Foldable)
 
+-- here are some types for r:
+-- this is for gas expressions with VGas,
+-- with no other variables
 data IntOrStartGas where
   Literal  :: Int -> IntOrStartGas
   StartGas :: IntOrStartGas
   deriving (Eq, Ord)
 
+-- gas expressions with VGas and "blobs":
+-- subexpressions that may contain variables
 data IntOrStartGasOrBlob where
   Basic :: IntOrStartGas -> IntOrStartGasOrBlob
   Blob :: Kast -> IntOrStartGasOrBlob
   deriving (Eq)
 
-instance Show IntOrStartGas where
-  show StartGas = "VGas"
-  show (Literal n) = show n
+type ConstantGasExpr = GasExpr Int
+type BasicGasExpr = GasExpr IntOrStartGas
+type BlobfulGasExpr = GasExpr IntOrStartGasOrBlob
 
-gasDepth :: GasExpr f -> Int
-gasDepth (Value _) = 0
-gasDepth (Unary _ e) = 1 + gasDepth e
-gasDepth (Binary _ e f) = 1 + max (gasDepth e) (gasDepth f)
-gasDepth (ITE _ e f) = 1 + max (gasDepth e) (gasDepth f)
+type VariableName = String
+type KType = String
+
+-- used to keep track of subexpressions so that they can
+-- be assigned and replaced by labels when formatting
+-- this reduces parsing complexity, and provides
+-- compressesion when there are repeated subexpressions
+data StratificationMap f = StratificationMap
+ { _stratList  :: [GasExpr f],
+   _stratTypes :: Map VariableName KType
+ }
+ deriving (Eq, Show)
+
+mkStratMap :: (Eq f)
+  => [GasExpr f]
+  -> Map VariableName KType -> StratificationMap f
+mkStratMap es ts = StratificationMap (nub es) ts
+
+makeLenses ''StratificationMap
+
+type StratificationLabel = String
+type Stratification f a = State (StratificationMap f) a
 
 class Convertible a b where
   convert :: a -> Maybe b
@@ -69,24 +94,12 @@ class Convertible a b where
 class TypedVariables r where
   getTypes :: r -> Map String String
 
-coerce :: (Show a, Convertible a b) => a -> b
-coerce x = case convert x of
-  Just y  -> y
-  Nothing -> error $ "coercion error: couldn't convert " ++ show x
+instance Show IntOrStartGas where
+  show StartGas = "VGas"
+  show (Literal n) = show n
 
 instance (Convertible a b) => Convertible (GasExpr a) (GasExpr b) where
   convert e = sequenceA (fmap convert e)
-
-instance Functor GasExpr where
-  fmap phi = \case
-    Value r -> Value $ phi r
-    Unary op e -> Unary op (phi <$> e)
-    Binary op e f -> Binary op (phi <$> e) (phi <$> f)
-    ITE c e f -> ITE c (phi <$> e) (phi <$> f)
-
-type ConstantGasExpr = GasExpr Int
-type BasicGasExpr = GasExpr IntOrStartGas
-type BlobfulGasExpr = GasExpr IntOrStartGasOrBlob
 
 instance Convertible Int IntOrStartGas where
   convert n = Just $ Literal n
@@ -102,6 +115,33 @@ instance TypedVariables IntOrStartGas where
   getTypes (Literal _) = mempty
   getTypes StartGas = Map.fromList [("VGas", "K")]
 
+instance Functor GasExpr where
+  fmap phi = \case
+    Value r -> Value $ phi r
+    Unary op e -> Unary op (phi <$> e)
+    Binary op e f -> Binary op (phi <$> e) (phi <$> f)
+    ITE c e f -> ITE c (phi <$> e) (phi <$> f)
+
+deriving instance Traversable GasExpr
+
+instance (Ord f) => Semigroup (StratificationMap f) where
+  sm1 <> sm2 = mkStratMap (_stratList sm1 <> _stratList sm2)
+    (Map.union (_stratTypes sm1) (_stratTypes sm2))
+instance (Ord f) => Monoid (StratificationMap f) where
+  mempty = mkStratMap mempty mempty
+
+-- like convert but for the brave
+coerce :: (Show a, Convertible a b) => a -> b
+coerce x = case convert x of
+  Just y  -> y
+  Nothing -> error $ "coercion error: couldn't convert " ++ show x
+
+gasDepth :: GasExpr f -> Int
+gasDepth (Value _) = 0
+gasDepth (Unary _ e) = 1 + gasDepth e
+gasDepth (Binary _ e f) = 1 + max (gasDepth e) (gasDepth f)
+gasDepth (ITE _ e f) = 1 + max (gasDepth e) (gasDepth f)
+
 getLeafValues :: GasExpr r -> [r]
 getLeafValues = toList
 
@@ -116,34 +156,11 @@ isIndependent = all $ \case
   StartGas -> False
   _ -> True
 
-type VariableName = String
-type KType = String
-
-data StratificationMap f = StratificationMap
- { _stratList  :: [GasExpr f],
-   _stratTypes :: Map VariableName KType
- }
- deriving (Eq, Show)
-
-mkStratMap :: (Eq f)
-  => [GasExpr f]
-  -> Map VariableName KType -> StratificationMap f
-mkStratMap es ts = StratificationMap (nub es) ts
-
-makeLenses ''StratificationMap
-
-instance (Ord f) => Semigroup (StratificationMap f) where
-  sm1 <> sm2 = mkStratMap (_stratList sm1 <> _stratList sm2)
-    (Map.union (_stratTypes sm1) (_stratTypes sm2))
-instance (Ord f) => Monoid (StratificationMap f) where
-  mempty = mkStratMap mempty mempty
-
-type StratificationLabel = String
-type Stratification f a = State (StratificationMap f) a
-
 bracket :: String -> String
 bracket s = "( " ++ s ++ " )"
 
+-- the superior unparser for gas expressions
+-- which leverages an existing StratificationMap
 showStratified :: (Show f, Ord f)
   => (Maybe (StratificationMap f, StratificationLabel))
   -> (GasExpr f) -> String
@@ -157,6 +174,9 @@ showStratified msml expr =
     Just i -> tag ++ show i ++ formatKArgs (Map.toList ts)
     Nothing -> unparse (showStratified msml) expr
 
+-- basic unparsing of a gas expression,
+-- accepts a continuation that tells you how to format
+-- the recursive bits
 unparse :: (Show f)
   => (GasExpr f -> String) -> (GasExpr f) -> String
 unparse _ (Value x) = show x
@@ -178,11 +198,18 @@ unparse recShow (ITE (Cond c) e f) =
   where s = recShow e
         t = recShow f
 
+-- generates a StratificationMap where only subexpressions
+-- of depth minDepth or higher get assigned labels
+stratify :: (Ord f, TypedVariables f)
+  => Int -> (GasExpr f) -> (StratificationMap f)
+stratify minDepth e = execState (stratifier minDepth e) mempty
+
+-- we use a state monad to build up the map
 stratifier :: (Ord f, TypedVariables f)
   => Int -> (GasExpr f) -> Stratification f ()
 stratifier depth expr = if gasDepth expr < depth then return () else do
   smap <- get
-  -- we deduplicate the labels
+  -- this deduplicates the labels
   let addSoft = (\x -> if elem expr x
                        then x
                        else x ++ [expr])
@@ -190,18 +217,18 @@ stratifier depth expr = if gasDepth expr < depth then return () else do
   put smap'
   case expr of
     (Unary _ e) -> do
-      stratifier depth e
+      stratifier minDepth e
       return ()
     (Binary _ e f) -> do
-      stratifier depth e
-      stratifier depth f
+      stratifier minDepth e
+      stratifier minDepth f
       return ()
     (ITE (Cond c) e f) -> do
       put $
         stratTypes %~ (Map.union (c ^. types)) $
         smap'
-      stratifier depth e
-      stratifier depth f
+      stratifier minDepth e
+      stratifier minDepth f
       return ()
     (Value x) -> do
       put $
@@ -209,10 +236,8 @@ stratifier depth expr = if gasDepth expr < depth then return () else do
          smap'
       return ()
 
-stratify :: (Ord f, TypedVariables f)
-  => Int -> (GasExpr f) -> (StratificationMap f)
-stratify depth e = execState (stratifier depth e) mempty
-
+-- used for building the K syntax declarations that
+-- accompany a stratification-formatted expression
 formatStratifiedSyntax :: (Show f, Ord f)
   => (StratificationMap f) -> StratificationLabel -> String
 formatStratifiedSyntax sm tag =
@@ -231,6 +256,7 @@ formatStratifiedLeaf sm tag (acc, i) expr =
   ++ "rule " ++ lhs ++ " => " ++ rhs ++ " [macro]"
   ++ "\n" ++ "\n", i+1)
 
+-- type-level arguments
 formatAbstractKArgs :: [(String, String)] -> String
 formatAbstractKArgs [] = ""
 formatAbstractKArgs ts =
@@ -238,6 +264,7 @@ formatAbstractKArgs ts =
   ++ (intercalate " \",\" " (snd <$> ts))
   ++ " \")\""
 
+-- value-level arguments
 formatKArgs :: [(String, String)] -> String
 formatKArgs [] = ""
 formatKArgs ts =
