@@ -222,12 +222,12 @@ formatStratifiedLeaf :: (Show f, Ord f)
   => (StratificationMap f) -> StratificationLabel
   -> (String, Int) -> (GasExpr f) -> (String, Int)
 formatStratifiedLeaf sm tag (acc, i) expr =
-  let args = Map.toList $ sm ^. stratTypes
-      lhs  = tag ++ show i ++ (formatKArgs args)
-      rhs  = (unparse (showStratified $ Just (sm, tag)) expr)
+  let args   = Map.toList $ sm ^. stratTypes
+      syntax = "\"" ++ tag ++ show i ++ "\" " ++ formatAbstractKArgs args
+      lhs    = tag ++ show i ++ formatKArgs args
+      rhs    = (unparse (showStratified $ Just (sm, tag)) expr)
   in (acc
-  ++ "syntax Int ::= \"" ++ tag ++ show i
-  ++ "\" " ++ (formatAbstractKArgs args) ++ "\n"
+  ++ "syntax Int ::= " ++ syntax ++ "\n"
   ++ "rule " ++ lhs ++ " => " ++ rhs ++ " [macro]"
   ++ "\n" ++ "\n", i+1)
 
