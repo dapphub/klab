@@ -15,6 +15,7 @@ import Options.Applicative
 import qualified Data.ByteString.Lazy.Char8 as C8
 
 import Gas       (coerce,
+                  gasDepth,
                   showStratified,
                   stratify,
                   formatStratifiedSyntax)
@@ -143,7 +144,9 @@ main = do
         (True, False,  True)  -> coerce . cosolve . (solve maxG)
         _ -> error "error: illegal combination of flags.") <$> gs
       -- stratify and merge the stratification maps
-      sm = mconcat $ stratify stratDepth <$> solved
+      -- min ensures we stratify each expr at least once
+      depths = min stratDepth <$> gasDepth <$> solved
+      sm = mconcat $ (stratify <$> depths) <*> solved
       -- encode result with JSON
       result = if stratifyOn
                then encode $ StratifiedResult
