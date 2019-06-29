@@ -97,34 +97,49 @@ cosolveStep (ITE p e f) = ITE p e' f'
 -- to have the form Sub a b where b is independent
 -- and maximal
 extirpateStep :: BasicGasExpr -> BasicGasExpr
--- extirpateStep (Value n) = Value n
--- extirpateStep (Unary op e) = error "blob extirpation doesn't support unaries!"
--- push independents to the right
-extirpateStep (Binary Add e f)
-  | (isIndependent e) && (not $ isIndependent f) = Binary Add f e
-  | otherwise = Binary Add e' f'
-    where e' = extirpateStep e
-          f' = extirpateStep f
+-- -- push independents to the right
+-- extirpateStep (Binary Add e f)
+--   | (isIndependent e) && (not $ isIndependent f) = Binary Add f e
+--   | otherwise = Binary Add e' f'
+--     where e' = extirpateStep e
+--           f' = extirpateStep f
+-- -- reassociate to the left
+-- extirpateStep (Binary Add
+--                e
+--                (Binary Add f g))
+--   | (not $ isIndependent g) = Binary Add (Binary Add e f) g
+--   | otherwise = Binary Add (Binary Add e' f') g
+--     where e' = extirpateStep e
+--           f' = extirpateStep f
+-- -- peel off independent chunks to the right
+-- extirpatestep (Binary Add
+--                (Binary Add e f)
+--                g)
+--   | (isIndependent f) && (isIndependent g)
+--     && (not $ isIndependent e) = Binary Add e (Binary Add f g)
+--   | (isIndependent f) && (not $ isIndependent g)
+--     && (not $ isIndependent e) = Binary Add (Binary Add e g) f
+--   | otherwise = Binary Add (Binary Add e' f') g'
+--     where e' = extirpateStep e
+--           f' = extirpateStep f
+--           g' = extirpateStep g
 -- reassociate to the left
-extirpateStep (Binary Add
-               e
-               (Binary Add f g))
-  | (not $ isIndependent g) = Binary Add (Binary Add e f) g
-  | otherwise = Binary Add (Binary Add e' f') g
-    where e' = extirpateStep e
-          f' = extirpateStep f
--- peel off independent chunks to the right
 extirpateStep (Binary Add
                (Binary Add e f)
                g)
-  | (isIndependent f) && (isIndependent g)
-    && (not $ isIndependent e) = Binary Add e (Binary Add f g)
-  | (isIndependent f) && (not $ isIndependent g)
-    && (not $ isIndependent e) = Binary Add (Binary Add e g) f
-  | otherwise = Binary Add (Binary Add e' f') g'
-    where e' = extirpateStep e
-          f' = extirpateStep f
-          g' = extirpateStep g
+  = Binary Add e (Binary Add f g)
+extirpateStep (Binary Add
+               (Binary Sub e f)
+               g)
+  = Binary Sub e (Binary Sub f g)
+extirpateStep (Binary Sub
+               (Binary Add e f)
+               g)
+  = Binary Add e (Binary Sub f g)
+extirpateStep (Binary Sub
+               (Binary Sub e f)
+               g)
+  = Binary Sub e (Binary Add f g)
 -- ignore everything else
 extirpateStep e = e
 
@@ -149,7 +164,15 @@ cosolve = iteratedFix (unnormaliseStep . cosolveStep)
 solveNumerically :: Int -> BasicGasExpr -> ConstantGasExpr
 solveNumerically maxGas = (solveLeaves maxGas) . normalise
 
-solve = solveNumerically
+solveAlgebraically :: BasicGasExpr -> Maybe ConstantGasExpr
+solveAlgebraically expr = case extirpate expr of
+  (Binary Sub (Value StartGas) e) -> convert e
+  _ -> Nothing
+
+solve :: Int -> BasicGasExpr -> ConstantGasExpr
+solve maxGas expr = case solveAlgebraically expr of
+  Just s -> s
+  Nothing -> solveNumerically maxGas expr
 
 newSolve :: Int -> BasicGasExpr -> ConstantGasExpr
 newSolve maxGas (Binary Sub (Value StartGas) e)
