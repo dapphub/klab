@@ -138,7 +138,7 @@ main = do
       gs = kastToGasExpr <$> gaskasts
       -- solve (or not), etc.
       solved = (case (solveOn, laxOn, cosolveOn) of
-        (False, False, _)     -> normalise
+        (False, False, _)     -> id
         (True,  True,  _)     -> coerce . maxLeaf . (solve maxG)
         (True, False,  False) -> coerce . (solve maxG)
         (True, False,  True)  -> coerce . cosolve . (solve maxG)
