@@ -22,8 +22,6 @@ import Gas       (coerce,
 -- import Kast      (Kast)
 import KastParse (kastToGasExpr)
 import Solver    (solve,
-                  normalise,
-                  cosolve,
                   maxLeaf)
 
 -- input argument is either a path or stdin flag
@@ -55,7 +53,6 @@ data AnalyserArgs = AnalyserArgs {
   sufficientGas       :: Int,
   stratificationLabel :: String,
   laxMode             :: Bool,
-  noCosolveMode       :: Bool,
   noStratifyMode      :: Bool,
   noSolveMode         :: Bool,
   stratifyDepth       :: Int
@@ -79,9 +76,6 @@ analyserParser = AnalyserArgs
                  <*> switch
                  (long "lax"
                  <> help "Returns maximum leaf in the gas tree")
-                 <*> switch
-                 (long "no-cosolve"
-                 <> help "Disable cosolving (cosolving decreases the maximum nesting depth of the expression).")
                  <*> switch
                  (long "no-stratify"
                  <> help "Disable stratification, output a K expression instead of K syntax declarations.")
@@ -125,7 +119,6 @@ main = do
   let maxG       = sufficientGas args
       tag        = stratificationLabel args
       laxOn      = laxMode args
-      cosolveOn  = not $ noCosolveMode args
       stratifyOn = not $ noStratifyMode args
       solveOn    = not $ noSolveMode args
       stratDepth = stratifyDepth args
@@ -137,11 +130,10 @@ main = do
       -- parse into BasicGasExpr
       gs = kastToGasExpr <$> gaskasts
       -- solve (or not), etc.
-      solved = (case (solveOn, laxOn, cosolveOn) of
-        (False, False, _)     -> id
-        (True,  True,  _)     -> coerce . maxLeaf . (solve maxG)
-        (True, False,  False) -> coerce . (solve maxG)
-        (True, False,  True)  -> coerce . cosolve . (solve maxG)
+      solved = (case (solveOn, laxOn) of
+        (False, False) -> id
+        (True,  True)  -> coerce . maxLeaf . (solve maxG)
+        (True, False)  -> coerce . (solve maxG)
         _ -> error "error: illegal combination of flags.") <$> gs
       -- stratify and merge the stratification maps
       -- min ensures we stratify each expr at least once
