@@ -1,28 +1,36 @@
 #!/usr/bin/env bash
-echo "Commands:
-klab build [options]
-klab prove [--dump]       <spec>
-klab hash                 <spec>
-klab status               <hash>
-klab debug [options]      <hash>
-klab prove-all
-klab get-gas              <hash>
-klab gas-analyser --input <gas>
-klab bundle [options]     <hash>
+echo "
+Klab is a tool for generating and debugging proofs in the K Framework, tailored for the formal verification of ethereum smart contracts. Its main function is to turn act specifications into K specifications and to explore the state-log of KProve.
 
-klab build options:
-  --filter=<filter>
-  --trust
-  --no-oog              Don't generate OOG specs
 
-klab prove options:
-  --dump                State logging for debug
+Commands:
+-   klab build - builds a set of K reachability claims in 'out/specs' based on the spec, lemmas and source code as specified in the projects 'config.json'.
 
-klab debug options:
-  --filter-oog          Don't display OOG branches
+-   klab prove <hash> [--dump] - executes a K reachability claim specified as a hash to the K prover. If the '--dump' flag is present, the proof can be explored using 'klab debug'.
 
-klab bundle options:
-  --prune
-  --evm
-  --rules
+-   klab prove-all - builds and executes all proof objects in the project directory.
+
+-   klab debug <hash> - opens up the cli proof explorer of a particular proof execution. Consult readme for key bindings.
+
+-   klab focus <hash> - focus on a hash, allowing you to leave out it as an argument to other commands.
+
+-   klab get-gas <hash> - Traverses the execution trace of a proof object to fetch its gas usage, put in 'out/gas/<hash>gas.k'.
+
+-   klab solve-gas <hash> - Constructs the gas condition necessary for an execution to succeed.
+
+-   klab evm <hash> - Shows opcodes and source code side-by-side (useful for extracting pc values).
+
+-   klab status <hash> - Shows whether a proof has been run, and whether it was accepted or rejected.
+
+-   klab status-js <hash> - Shows the behaviour tree for an executed proof.
+
+-   klab fetch <url> - Fetches the execution trace of a proof object at the url, preparing it for local debugging.
+
+-   klab zip <hash> - zips up an execution trace so you can share it with a friend (or enemy).
+
+-   klab storage <contractName> - Guesses what the storage layout of a given contract is
+
+-   klab report - Generates a html report of the current project state in 'out/report/index.html'.
+
+-   klab help - Generates this view
 "

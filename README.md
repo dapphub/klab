@@ -162,6 +162,24 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 -   `:omit   gas pc` - omit the contents of the `<gas>` and `<pc>` cells in the **t**erm view.
 -   `:unomit pc programBytes`  - unomit the contents of the `<pc>` and `<programBytes>` cells in the **t**erm view.
 
+### Available klab Commands
+
+-   `klab build` - builds a set of K reachability claims in `out/specs` based on the spec, lemmas and source code as specified in the projects `config.json`.
+-   `klab prove <hash> [--dump]` - executes a K reachability claim specified as a hash to the K prover. If the `--dump` flag is present, the proof can be explored using `klab debug`.
+-   `klab prove-all` - builds and executes all proof objects in the project directory.
+-   `klab debug <hash>` - opens up the cli proof explorer of a particular proof execution. See key bindings above.
+-   `klab focus <hash>` - focus on a hash, allowing you to leave out it as an argument to other commands.
+-   `klab get-gas <hash>` - Traverses the execution trace of a proof object to fetch its gas usage, put in `out/gas/<hash>gas.k`.
+-   `klab solve-gas <hash>` - Constructs the gas condition necessary for an execution to succeed.
+-   `klab evm <hash>` - Shows opcodes and source code side-by-side (useful for extracting pc values).
+-   `klab status <hash>` - Shows whether a proof has been run, and whether it was accepted or rejected.
+-   `klab status-js <hash>` - Shows the behaviour tree for an executed proof.
+-   `klab fetch <url>` - Fetches the execution trace of a proof object at the url, preparing it for local debugging.
+-   `klab zip <hash>` - zips up an execution trace so you can share it with a friend (or enemy).
+-   `klab storage <contractName>` - Guesses what the storage layout of a given contract is
+-   `klab report` - Generates a html report of the current project state in `out/report/index.html`.
+-   `klab help` - Generates this view
+
 
 Troubleshooting
 ---------------
