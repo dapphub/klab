@@ -1,5 +1,7 @@
 {-# Language DeriveFoldable #-}
 {-# Language DeriveTraversable #-}
+{-# Language FlexibleContexts #-}
+{-# Language FlexibleInstances #-}
 {-# Language GADTs #-}
 {-# Language LambdaCase #-}
 {-# Language MultiParamTypeClasses #-}
@@ -49,21 +51,23 @@ data GasExpr r where
 -- here are some types for r:
 -- this is for gas expressions with VGas,
 -- with no other variables
-data IntOrStartGas where
-  Literal  :: Int -> IntOrStartGas
-  StartGas :: IntOrStartGas
-  deriving (Eq, Ord)
+data ValueOrStartGas a where
+  Literal  :: a -> ValueOrStartGas a
+  StartGas :: ValueOrStartGas a
 
--- gas expressions with VGas and "blobs":
+type IntOrStartGas = ValueOrStartGas Int
+
+-- gas expressions with "blobs":
 -- subexpressions that may contain variables
-data IntOrStartGasOrBlob where
-  Basic :: IntOrStartGas -> IntOrStartGasOrBlob
-  Blob :: Kast -> IntOrStartGasOrBlob
+data IntOrBlob where
+  Normal :: Int -> IntOrBlob
+  Formal :: Kast -> IntOrBlob
   deriving (Eq)
 
 type ConstantGasExpr = GasExpr Int
-type BasicGasExpr = GasExpr IntOrStartGas
-type BlobfulGasExpr = GasExpr IntOrStartGasOrBlob
+type ConstantBlobfulGasExpr = GasExpr IntOrBlob
+type BasicGasExpr = GasExpr (ValueOrStartGas Int)
+type BlobfulGasExpr = GasExpr (ValueOrStartGas IntOrBlob)
 
 type VariableName = String
 type KType = String
@@ -94,24 +98,34 @@ class Convertible a b where
 class TypedVariables r where
   getTypes :: r -> Map String String
 
-instance Show IntOrStartGas where
+instance (Show a) => Show (ValueOrStartGas a) where
   show StartGas = "VGas"
   show (Literal n) = show n
 
-instance (Convertible a b) => Convertible (GasExpr a) (GasExpr b) where
-  convert e = sequenceA (fmap convert e)
+instance (Convertible a a) where
+  convert = Just
 
-instance Convertible Int IntOrStartGas where
-  convert n = Just $ Literal n
+instance (Traversable f, Convertible a b) => Convertible (f a) (f b) where
+  convert = (sequenceA) . (fmap convert)
 
-instance Convertible IntOrStartGas Int where
+instance (Ord a) => Convertible a (ValueOrStartGas a) where
+  convert = Just . Literal
+
+instance Convertible (ValueOrStartGas a) a where
   convert (Literal n) = Just n
   convert _ = Nothing
+
+instance Convertible Int IntOrBlob where
+  convert = Just . Normal
+
+instance Convertible IntOrBlob Int where
+  convert (Normal n) = Just n
+  convert (Formal _) = Nothing
 
 instance TypedVariables Int where
   getTypes _ = mempty
 
-instance TypedVariables IntOrStartGas where
+instance TypedVariables (ValueOrStartGas a) where
   getTypes (Literal _) = mempty
   getTypes StartGas = Map.fromList [("VGas", "K")]
 
@@ -122,6 +136,12 @@ instance Functor GasExpr where
     Binary op e f -> Binary op (phi <$> e) (phi <$> f)
     ITE c e f -> ITE c (phi <$> e) (phi <$> f)
 
+deriving instance Ord IntOrBlob
+deriving instance (Eq a) => Eq (ValueOrStartGas a)
+deriving instance (Ord a) => Ord (ValueOrStartGas a)
+deriving instance Functor ValueOrStartGas
+deriving instance Foldable ValueOrStartGas
+deriving instance Traversable ValueOrStartGas
 deriving instance Traversable GasExpr
 
 instance (Ord f) => Semigroup (StratificationMap f) where
@@ -147,7 +167,7 @@ getLeafValues = toList
 
 isBlobFree :: BlobfulGasExpr -> Bool
 isBlobFree = all $ \case
-  Blob _ -> False
+  Literal (Formal _) -> False
   _ -> True
 
 -- independent means "independent of VGas"

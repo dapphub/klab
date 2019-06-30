@@ -13,7 +13,7 @@ data Kast = Kast {
   variable     :: Maybe Bool,
   arity        :: Maybe Int,
   args         :: Maybe [Kast]
-  } deriving (Generic, Eq, Show)
+  } deriving (Generic, Eq, Ord, Show)
 
 data Kasts = Kasts [Kast]
   deriving (Generic, Eq, Show)

@@ -1,4 +1,3 @@
-{-# Language TemplateHaskell #-}
 module KastParse where
 
 import Control.Lens
@@ -8,22 +7,22 @@ import qualified Data.Map.Strict as Map
 import Gas
 import Kast
 
--- instance has to live here because we need formatKast
-instance Show IntOrStartGasOrBlob where
-  show (Basic n) = show n
-  show (Blob kast) = (formatKast kast) ^. formula
+-- instance has to live here because it uses formatKast
+instance Show IntOrBlob where
+  show (Normal n) = show n
+  show (Formal kast) = (formatKast kast) ^. formula
 
-kastToGasExpr :: Kast -> BasicGasExpr
+kastToGasExpr :: Kast -> BlobfulGasExpr
 kastToGasExpr kast = case node kast of
   "KVariable" -> case originalName kast of
     Nothing -> error "KVariable missing originalName."
     Just somevar ->  if "VGas" `isPrefixOf` somevar
                      then Value StartGas
-                     else error $ "Can't have variables in gas expressions, found: " ++ somevar
+                     else Value $ Literal $ Formal kast
 
   "KToken" -> case sort kast of
     Nothing -> error "KToken missing sort."
-    Just "Int" -> Value $ Literal n
+    Just "Int" -> Value $ Literal $ Normal n
       where n = read t
             Just t = token kast
     Just somesort -> error $ "Can't have sorts other than Int, found: " ++ somesort
@@ -46,7 +45,7 @@ kastToGasExpr kast = case node kast of
     Just "_/Int_" -> let Just [arg1, arg2] = args kast
                          e = kastToGasExpr arg1
       in case kastToGasExpr arg2 of
-           Value (Literal 64) -> Unary SixtyFourth e
+           Value (Literal (Normal 64)) -> Unary SixtyFourth e
            n -> error $ "Gas expressions should have /64 only, found: /" ++ (show n)
     Just "#if_#then_#else_#fi" ->
       let Just [argc, arg1, arg2] = args kast
@@ -54,7 +53,7 @@ kastToGasExpr kast = case node kast of
           e = kastToGasExpr arg1
           f = kastToGasExpr arg2
       in ITE (Cond c) e f
-    Just somelabel -> error $ "Unknown KApply in gas expression: " ++ somelabel
+    Just _ -> Value $ Literal $ Formal kast
 
   _ -> error "Unrecognised \"node\" in KAST."
 
@@ -94,7 +93,8 @@ formatKApply func fargs = let bracketed s = "( " ++ s ++ " )" in
       where func_trim = tail $ func
     -- n-ary prefix
     (_, _, _) -> bracketed $ func_trim ++ (bracketed (intercalate " , " fargs))
-      where func_trim = "`" ++ func ++ "`"
+      where func_trim | length fargs > 1 = "`" ++ func ++ "`"
+                      | otherwise = func
 
 -- the module names will be stripped from the labels
 modules :: [String]

@@ -96,7 +96,7 @@ cosolveStep (ITE p e f) = ITE p e' f'
 -- extirpation aims to transform the expression
 -- to have the form Sub a b where b is independent
 -- and maximal
-extirpateStep :: BasicGasExpr -> BasicGasExpr
+extirpateStep :: GasExpr f -> GasExpr f
 -- -- push independents to the right
 -- extirpateStep (Binary Add e f)
 --   | (isIndependent e) && (not $ isIndependent f) = Binary Add f e
@@ -143,7 +143,7 @@ extirpateStep (Binary Sub
 -- ignore everything else
 extirpateStep e = e
 
-extirpate :: BasicGasExpr -> BasicGasExpr
+extirpate :: Eq f => GasExpr f -> GasExpr f
 extirpate = iteratedFix extirpateStep
 
 iteratedFix :: (Eq a) => (a -> a) -> a -> a
@@ -162,29 +162,19 @@ cosolve :: ConstantGasExpr -> ConstantGasExpr
 cosolve = iteratedFix (unnormaliseStep . cosolveStep)
 
 solveNumerically :: Int -> BasicGasExpr -> ConstantGasExpr
-solveNumerically maxGas = (solveLeaves maxGas) . normalise
+solveNumerically maxGas = cosolve . (solveLeaves maxGas) . normalise
 
-solveAlgebraically :: BasicGasExpr -> Maybe ConstantGasExpr
+solveAlgebraically :: BlobfulGasExpr -> Maybe ConstantBlobfulGasExpr
 solveAlgebraically expr = case extirpate expr of
   (Binary Sub (Value StartGas) e) -> convert e
   _ -> Nothing
 
-solve :: Int -> BasicGasExpr -> ConstantGasExpr
+solve :: Int -> BlobfulGasExpr -> ConstantBlobfulGasExpr
 solve maxGas expr = case solveAlgebraically expr of
   Just s -> s
-  Nothing -> solveNumerically maxGas expr
-
-newSolve :: Int -> BasicGasExpr -> ConstantGasExpr
-newSolve maxGas (Binary Sub (Value StartGas) e)
-  | isIndependent e = coerce e
-  | otherwise = case extirpate e of
-      Binary Add f g | isIndependent g
-                       -> (Binary Add
-                           (solveNumerically maxGas (Binary Sub (Value StartGas) f))
-                           (coerce g))
-      _ -> solveNumerically maxGas (Binary Sub (Value StartGas) e)
-newSolve _ _ = error "Can only solve expressions in the form VGas - e(VGas)."
-
+  Nothing -> case convert expr of
+    Nothing -> error "Unable to solve expression algebraically, and it contains blobs so we must give up."
+    Just basicExpr -> coerce $ solveNumerically maxGas basicExpr
 
 -- only works for normalised GasExpr
 solveLeaves :: Int -> BasicGasExpr -> ConstantGasExpr
@@ -257,7 +247,11 @@ findCallSubexprs (Binary _ a b) =
 findCallSubexprs (ITE _ _ _) =
   error "only works for unconditional GasExpr"
 
-maxLeaf :: ConstantGasExpr -> ConstantGasExpr
+maxLeaf :: ConstantBlobfulGasExpr -> ConstantBlobfulGasExpr
 maxLeaf (Value n) = (Value n)
-maxLeaf (ITE _ e f) = max (maxLeaf e) (maxLeaf f)
+maxLeaf (ITE c e f) = case (convert e :: Maybe ConstantGasExpr,
+                            convert f :: Maybe ConstantGasExpr) of
+          (Just e', Just f') -> coerce $ Value (max (maximum e') (maximum f'))
+          _ -> ITE c e f
+
 maxLeaf _ = error "maxLeaf applied to nontrivial algebraic expression."
