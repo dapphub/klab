@@ -38,9 +38,9 @@ to make them get along.
 
 ### Building
 
-Clone the repo and install the latest stable version `v0.2.4` with
+Clone the repo and install the latest stable version `v0.3` with
 ```sh
-git clone --branch v0.2.4 https://github.com/dapphub/klab.git
+git clone --branch v0.3 https://github.com/dapphub/klab.git
 cd klab
 make deps
 ```
