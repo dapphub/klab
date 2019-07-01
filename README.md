@@ -110,18 +110,13 @@ This will generate success and failure reachability rules for each `act` of our 
 
 Now we're ready to prove each case, for example:
 ```sh
-klab prove --dump out/specs/SafeAdd_add_fail.k.
+klab prove --dump SafeAdd_add_fail
 ```
 The `--dump` flag outputs a log to `out/data/<hash>.log`, which will be needed later for interactive debugging. We can also do `klab prove-all` to prove all outstanding claims.
 
 Once the proof is complete, we can explore the generated symbolic execution trace using:
 ```sh
 klab debug <hash>
-```
-
-The output might be somewhat hard to use, due to the massive amount of branches related to gas, you can filter out gas related branches:
-```sh
-klab debug --filter-oog $(klab hash out/specs/SafeAdd_add_pass_rough.k
 ```
 
 ### Key Bindings
@@ -179,6 +174,18 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 -   `klab storage <contractName>` - Guesses what the storage layout of a given contract is
 -   `klab report` - Generates a html report of the current project state in `out/report/index.html`.
 -   `klab help` - Generates this view
+
+
+### Zsh completions
+
+There are automatic tab completions for `zsh` that can be installed by adding the following to your `.zshrc`:
+
+```sh
+# completions for klab
+fpath=(~/dapphub/klab/resources/zsh $fpath)
+autoload -U compinit
+compinit
+```
 
 
 Troubleshooting
