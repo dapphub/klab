@@ -15,54 +15,6 @@
 
     rule ( WS1 ++ WS2 ) ++ WS3 => WS1 ++ ( WS2 ++ WS3 )
 
-    syntax WordStack ::= #bufSeg ( WordStack , Int , Int ) [function, smtlib(bufSeg)] // BUFFER, START, WIDTH
-    syntax Int       ::= #bufElm ( WordStack , Int )       [function] // BUFFER, INDEX
-
-    syntax Bool ::= #isBuf ( WordStack ) [function]
-    rule #isBuf(#buf(_,_)) => true
-    rule #isBuf(#bufSeg(_,_,_)) => true
-
-    rule #asWord(#buf(SIZE, DATA)) => DATA requires SIZE <=Int 32
-
-    rule #buf(SIZE, _)        => .WordStack requires SIZE  ==Int 0
-    rule #bufSeg(_, _, WIDTH) => .WordStack requires WIDTH ==Int 0
-
-    rule #bufSeg(WS, START, WIDTH) => WS requires START ==Int 0 andBool WIDTH ==Int #sizeWordStack(WS)
-
-    rule #bufSeg(#bufSeg(BUF, START0, WIDTH0), START, WIDTH)
-      => #bufSeg(BUF, START0 +Int START, WIDTH)
-      requires 0 <=Int START andBool START +Int WIDTH <=Int WIDTH0
-
-    // Auxiliary function to make rules compatible with simplification `rule WS ++ .WordStack => WS`
-    syntax WordStack ::= #takeAux ( Int , WordStack , WordStack ) [function]
- // ------------------------------------------------------------------------
-    rule #take(N, BUF      ) => #takeAux(N, BUF, .WordStack)               requires #isBuf(BUF)
-    rule #take(N, BUF ++ WS) => #takeAux(N, BUF, WS)                       requires #isBuf(BUF)
-    rule #takeAux(N, BUF, WS) => #bufSeg(BUF, 0, N)                        requires 0 <=Int N andBool N <=Int #sizeBuffer(BUF)
-    rule #takeAux(N, BUF, WS) => BUF ++ #take(N -Int #sizeBuffer(BUF), WS) requires N >Int #sizeBuffer(BUF)
-
-    syntax WordStack ::= #dropAux ( Int , WordStack , WordStack ) [function]
- // ------------------------------------------------------------------------
-    rule #drop(N, BUF      ) => #dropAux(N, BUF, .WordStack)                    requires #isBuf(BUF)
-    rule #drop(N, BUF ++ WS) => #dropAux(N, BUF, WS)                            requires #isBuf(BUF)
-    rule #dropAux(N, BUF, WS) => #bufSeg(BUF, N, #sizeBuffer(BUF) -Int N) ++ WS requires 0 <=Int N andBool N <=Int #sizeBuffer(BUF)
-    rule #dropAux(N, BUF, WS) => #drop(N -Int #sizeBuffer(BUF), WS)             requires N >=Int #sizeBuffer(BUF)
-
-    syntax Int ::= #getElmAux ( WordStack , WordStack , Int ) [function]
- // --------------------------------------------------------------------
-    rule (BUF      ) [ N ] => #getElmAux(BUF, .WordStack, N)      requires #isBuf(BUF)
-    rule (BUF ++ WS) [ N ] => #getElmAux(BUF, WS, N)              requires #isBuf(BUF)
-    rule #getElmAux(BUF, WS, N) => #bufElm(BUF, N)                requires 0 <=Int N andBool N <Int #sizeBuffer(BUF)
-    rule #getElmAux(BUF, WS, N) => WS [ N -Int #sizeBuffer(BUF) ] requires N >=Int #sizeBuffer(BUF)
-
-
-    rule #sizeWordStack ( BUF ++ WS, SIZE ) => #sizeWordStack(WS, SIZE +Int #sizeBuffer(BUF)) requires #isBuf(BUF)
-    rule #sizeWordStack ( BUF      , SIZE ) =>                    SIZE +Int #sizeBuffer(BUF)  requires #isBuf(BUF)
-
-    syntax Int ::= #sizeBuffer ( WordStack ) [function]
- // ---------------------------------------------------
-    rule #sizeBuffer ( #buf(N,_) )      => N
-    rule #sizeBuffer ( #bufSeg(_,_,N) ) => N
 
     // Same rules exist in KEVM, but are marked [concrete]. Allowing them for symbolic arguments here.
 
