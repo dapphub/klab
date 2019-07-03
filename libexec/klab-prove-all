@@ -85,58 +85,22 @@ do_proof () {
     PROVE_DUMP="--dump"
   fi;
 
-  _post_timeout () {
-    echo "[do_proof] Timeout cleanup..."
-    local hash=$1
-    if [ -n "$hash" ]; then
-      touch "$KLAB_OUT/timeout/$hash";
-      klab get-lemmas "$hash"
-      klab zip "$hash" > /dev/null
-      echo "[do_proof] Zipped timed-out proof log for $hash."
-      if [ -n "$KLAB_REPORT_NAME_DIR" ]; then
-        cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
-      fi;
-      echo "[do_proof] Saved time-out proof log for $hash."
-    fi;
-    echo "[DEBUG] finished timeout cleanup"
-  }
-  try_kill() {
-    if [ -n "$1" ]; then
-      echo "[do_proof] Sending SIGTERM to $1"
-      pkill -x "$1" && echo "[do_proof] killed $1" || echo "[do_proof] unable to kill $1"
-    fi;
-  }
-  _sig_term () {
-    echo "[do_proof] Trapped SIGTERM."
-    try_kill "$proof_child"
-    _post_timeout "$hash"
-  }
-  trap _sig_term TERM
-  _sig_int () {
-    echo "[do_proof] Trapped SIGINT."
-    try_kill "$proof_child"
-    exit 1
-  }
-  trap _sig_int INT
-
   TIMER="/usr/bin/env time --quiet -o $KLAB_OUT/meta/time/$hash"
+
+  PROOF_TIMEOUT=$(jq -r ".timeouts["'"'"$name"'"'"]" < config.json)
+  if [ "$PROOF_TIMEOUT" == "null" ]; then PROOF_TIMEOUT="140m"; fi
+  export PROOF_TIMEOUT
 
   # report start
   touch "$RUNNING_DIR/$hash"
   report
 
   set +e
-
-  $TIMER klab prove $PROVE_DUMP --logs "$hash" & proof_child=$!
-  wait "$proof_child"
+  $TIMER klab prove $PROVE_DUMP --logs --timeout $PROOF_TIMEOUT "$hash"
   result=$?
-  unset proof_child
-
-  if [ $result -ne "0" ] && [ -z $PROVE_DUMP ]; then
-    $TIMER klab prove --dump --logs "$hash" & proof_child=$!
-    wait "$proof_child"
+  if [ $result -ne 0 ]  && [ -z $PROVE_DUMP ]; then
+    $TIMER klab prove --dump --logs --timeout $PROOF_TIMEOUT "$hash"
     result=$?
-    unset proof_child
   fi;
   set -e
 
@@ -144,13 +108,12 @@ do_proof () {
   rm "$RUNNING_DIR/$hash"
   report
 
-  if [[ $name =~ .*_pass_rough$ ]] && [ $result -eq "0" ]; then
+  if [ $result -eq 0 ] && [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
     klab get-gas "$hash"
     klab solve-gas "$hash"
-  fi;
-
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$PROVE_DUMP" ] && [ $result -ne "0" ]; then
+    klab get-lemmas "$hash"
+  elif [ $result -ne 0 ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$PROVE_DUMP" ]; then
     klab zip "$hash" > /dev/null
     cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
     cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
@@ -159,11 +122,10 @@ do_proof () {
       cp "$GAS_DIR/${hash}.kast" "$KLAB_REPORT_NAME_DIR"
       cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
     fi;
-  fi;
-
-  if [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
-  fi
+  elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
+    klab get-lemmas "$hash"
+  fi;
 
   # cleanup dumped data
   rm -fdr "$KLAB_OUT/data/${hash}_blobs"
@@ -185,7 +147,7 @@ make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
-  TIMEOUT=8400
+  TIMEOUT=20000
   export TIMEOUT
   # timeout timeout after 10 minutes
   # (enough time to zip and bookkeeping)
@@ -193,7 +155,6 @@ make_batch () {
   export TIMEOUTTIMEOUT
   parallel -u --timeout $TIMEOUT --termseq TERM,$TIMEOUTTIMEOUT,KILL,25 -P "$THREADS" do_proof {} < "$OBLIGATIONS"
   result=$?
-  echo $result
   if [ $result -ge 255 ]; then
     echo "Parallel finished with exceptional code:" "$result"
     exit $result
