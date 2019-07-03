@@ -199,10 +199,10 @@ Object.keys(build_proofs)
     console.log(rule.hash + " " + rule.name + rule.ctx.map(r => "\n - " + r.name));
     fs.writeFileSync(module_path, rule.module);
   }
-  if(rule.gas_module) {
-    const gas_module_path = path.join(KLAB_OUT, "gas", `${rule.hash}gas.k`)
-    fs.writeFileSync(gas_module_path, rule.gas_module);
-  }
+  // if(rule.gas_module) {
+  //   const gas_module_path = path.join(KLAB_OUT, "gas", `${rule.hash}gas.k`)
+  //   fs.writeFileSync(gas_module_path, rule.gas_module);
+  // }
 
   // METADATA
   // name -> hash
