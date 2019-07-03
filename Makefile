@@ -33,7 +33,7 @@ deps-npm:
 	npm install
 
 deps-haskell:
-	rm haskell/.ghc.environment*
+	rm -f haskell/.ghc.environment*
 	nix-build klab.nix
 	ln -sf $(GAS_ANALYSER) $(LIBEXEC_DIR)/klab-gas-analyser
 
