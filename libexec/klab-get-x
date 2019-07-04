@@ -27,7 +27,7 @@ const kpath = cmd['<kpath>']
 const proofid = cmd['<hash>']
 
 if(!testPath(path.join(KLAB_OUT, "data", proofid + ".log"))) {
-  console.error("ERROR: no logfile for " + proofid);
+  console.error("klab-get-x: no logfile for " + proofid);
   process.exit(1);
 }
 

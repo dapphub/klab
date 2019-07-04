@@ -110,10 +110,12 @@ do_proof () {
 
   if [ $result -eq 0 ] && [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
+    echo "klab-prove-all: refining gas.."
     klab get-gas "$hash"
     klab solve-gas "$hash"
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$PROVE_DUMP" ]; then
+    echo "klab-prove-all: zipping proof outputs.."
     klab zip "$hash" > /dev/null
     cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
     cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
