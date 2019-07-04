@@ -8,21 +8,16 @@ blue=$(tput setaf 4)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
-# parse args
-usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
-OPTS=`getopt -o "d" -l "dump" -o "l" -l "logs" -- "$@"`
 dump=false
-if [ $? != 0 ]
-then
-    exit 1
-fi
+usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
+OPTS=$(getopt -o "d" -l "dump" -o "l" -l "logs" -- "$@")
 eval set -- "$OPTS"
 while true; do
   case "$1" in
-	-d | --dump) dump=true; shift;;
+  -d | --dump) dump=true; shift;;
   --logs)      logs=true; shift;;
-	--)           shift; break;;
-	*)            usage
+  --)           shift; break;;
+  *)            usage
   esac
 done
 
@@ -36,7 +31,7 @@ fi
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
 if [ ! -z "$logs" ]; then
-  mkdir -p $KLAB_OUT/log/
+  mkdir -p "$KLAB_OUT/log/"
   STDOUT="$KLAB_OUT/log/$spec_hash.log"
   STDERR="$KLAB_OUT/log/$spec_hash.err.log"
 else
@@ -46,8 +41,8 @@ fi
 
 if [ -z "$1" ]; then
   spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
-  spec_name="$(<$KLAB_OUT/meta/data/$spec_hash jq '.name' -r)"
-  if [ -z $spec_hash ]; then
+  spec_name=$(<"$KLAB_OUT/meta/data/$spec_hash" jq '.name' -r)
+  if [ -z "$spec_hash" ]; then
     echo "ERROR: $1 no spec or active HEAD found"
     exit 1;
   fi
@@ -58,12 +53,12 @@ else
   else
     if [ -f "$KLAB_OUT/meta/data/$1" ]; then
       spec_hash="$1"
-      spec_name="$(<$KLAB_OUT/meta/data/$spec_hash jq '.name' -r)"
+      spec_name=$(<"$KLAB_OUT/meta/data/$spec_hash" jq '.name' -r)
     else
       if [[ $1 =~ .k$ ]]; then
         target_spec=$1
-        spec_hash=$(basename -s .k $1)
-        spec_name="$(basename -s .k $1)"
+        spec_hash=$(basename -s .k "$1")
+        spec_name=$(basename -s .k "$1")
       else
         echo "ERROR: $1 is unknown"
         exit 1;
@@ -76,14 +71,14 @@ target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
 
 if $dump; then
   z3=",RULEATTEMPT,SRULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT"
-  K_FLAGS="$K_FLAGS --state-log --state-log-path $KLAB_OUT/data --state-log-id $spec_hash --state-log-events OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,CLOSE"
+  K_FLAGS=("$K_FLAGS" --state-log --state-log-path "$KLAB_OUT/data" --state-log-id "$spec_hash" --state-log-events "OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,CLOSE")
   dump_notice="(with ${yellow}state logging${reset})"
 fi
 
 kprove() {
   K_OPTS="$K_OPTS" \
   "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
-  $K_FLAGS \
+  "${K_FLAGS[@]}" \
   --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
   --def-module RULES \
   --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
@@ -94,7 +89,7 @@ kprove() {
   --no-sort-collections \
   --output json \
   --boundary-cells k,pc \
-  --smt_prelude $KLAB_OUT/prelude.smt2 \
+  --smt_prelude "$KLAB_OUT/prelude.smt2" \
   --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
   "$1"
   exit $?
@@ -109,7 +104,7 @@ try_kill() {
 
 _term() {
   echo "[prove] Trapped SIG$(kill -l $?)."
-  try_kill $kprove_child
+  try_kill "$kprove_child"
 }
 trap _term SIGTERM SIGINT
 
