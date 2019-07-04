@@ -149,25 +149,19 @@ do_proof () {
     klab get-gas "$hash"
     klab solve-gas "$hash"
   fi;
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$KLAB_WEBPROOF_DIR" ] && [ -n "$PROVE_FLAGS" ]; then
-    if [ $result -ne "0" ]; then
-      klab zip "$hash" > /dev/null
-      cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
-      cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
-      cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
-      if [[ $name =~ .*_pass_rough$ ]]; then
-        cp "$GAS_DIR/${hash}.kast" "$KLAB_REPORT_NAME_DIR"
-        cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
-      fi;
-    else
-      # generate and upload bundle to proof.dapp.ci
-      # klab bundle --prune --evm "$hash"
-      # cp "$KLAB_OUT/log/boot_${hash}.json" "$KLAB_WEBPROOF_DIR"
-      :
+
+  if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -n "$PROVE_DUMP" ] && [ $result -ne "0" ]; then
+    klab zip "$hash" > /dev/null
+    cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+    cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
+    cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
+    if [[ $name =~ .*_pass_rough$ ]]; then
+      cp "$GAS_DIR/${hash}.kast" "$KLAB_REPORT_NAME_DIR"
+      cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
     fi;
   fi;
 
-  if [ -n "$PROVE_FLAGS" ]; then
+  if [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
   fi
 

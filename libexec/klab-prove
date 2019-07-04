@@ -10,7 +10,7 @@ reset=$(tput sgr0)
 
 dump=false
 usage() { echo "Usage: klab prove [-d] [<spec>]" 1>&2; exit 1; }
-OPTS=$(getopt -o "d" -l "dump" -o "l" -l "logs" -- "$@")
+OPTS=$(getopt -o "d" -l "dump" -l "logs" -- "$@")
 eval set -- "$OPTS"
 while true; do
   case "$1" in
