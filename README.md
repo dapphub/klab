@@ -164,6 +164,7 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 -   `klab prove-all` - builds and executes all proof objects in the project directory.
 -   `klab debug <hash>` - opens up the cli proof explorer of a particular proof execution. See key bindings above.
 -   `klab focus <hash>` - focus on a hash, allowing you to leave out it as an argument to other commands.
+-   `klab hash` - prints the hash of the focused proof
 -   `klab get-gas <hash>` - Traverses the execution trace of a proof object to fetch its gas usage, put in `out/gas/<hash>gas.k`.
 -   `klab solve-gas <hash>` - Constructs the gas condition necessary for an execution to succeed.
 -   `klab evm <hash>` - Shows opcodes and source code side-by-side (useful for extracting pc values).
