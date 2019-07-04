@@ -47,8 +47,8 @@ if [ -d ".git" ]; then
     if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
       echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
     fi;
-    jq -r '.src.rules[]' < config.json |xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
-    jq -r '.src.smt_prelude' < config.json |xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+    jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+    jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
   fi;
 fi;
 
@@ -61,7 +61,8 @@ report () {
   klab report
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
-    cat <<< $(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json") > "$KLAB_REPORT_DIR/$PNAME/report.json"
+    concat=$(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json")
+    echo "$concat" > "$KLAB_REPORT_DIR/$PNAME/report.json"
     echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
   fi;
   if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
