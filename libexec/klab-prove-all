@@ -122,8 +122,8 @@ do_proof () {
   TIMER="/usr/bin/env time --quiet -o $KLAB_OUT/meta/time/$hash"
 
   # report start
-  report
   touch "$RUNNING_DIR/$hash"
+  report
 
   set +e
 
