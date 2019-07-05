@@ -93,6 +93,10 @@ const mapCaseStatus = cases => cases
       const duration_raw = fs.readFileSync(path.join(KLAB_OUT, 'meta', 'time', proofid));
       const duration = (/\d*/).exec(duration_raw)[0]
       ret.duration = Math.floor(duration / 60) + ' min ' + (duration % 60) + ' sec'
+    } else if(status == 'running') {
+      var stats = fs.statSync(path.join(KLAB_OUT, "meta", status, proofid));
+      var mtime = new Date(stats.mtime);
+      ret.date = moment(mtime).format('YYYY-MM-DD, HH:mm');
     }
     return ret;
   })
@@ -118,10 +122,11 @@ const getBadges = (cases, act) => {
       const rejected = s.status == 'reject' || s.status == 'timeout';
       const accepted = s.status == 'accept';
       const blocked  = s.status == 'blocked';
+      const running  = s.status == 'running';
       const finished = accepted || rejected;
 
       proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
-      // proof_info.push(td(finished ?  : ""))
+      proof_info.push(td(running  ? bspan("started:") + span(s.date) : ""))
 
       let blocked_links = "";
       if(blocked && c.imports) {
