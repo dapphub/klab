@@ -33,15 +33,6 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
 fi
 echo "Using evm-semantics from $KLAB_EVMS_PATH"
 
-if $logs; then
-  mkdir -p "$KLAB_OUT/log/"
-  STDOUT="$KLAB_OUT/log/$spec_hash.log"
-  STDERR="$KLAB_OUT/log/$spec_hash.err.log"
-else
-  STDOUT=/dev/stdout
-  STDERR=/dev/stderr
-fi
-
 if [ -z "$1" ]; then
   spec_hash=${KLAB_HEAD:-$(cat "$KLAB_OUT/HEAD")}
   spec_name=$(<"$KLAB_OUT/meta/data/$spec_hash" jq '.name' -r)
@@ -63,6 +54,15 @@ else
   echo "ERROR: $1 is unknown"
   exit 1;
 fi;
+
+if $logs; then
+  mkdir -p "$KLAB_OUT/log/"
+  STDOUT="$KLAB_OUT/log/$spec_hash.log"
+  STDERR="$KLAB_OUT/log/$spec_hash.err.log"
+else
+  STDOUT=/dev/stdout
+  STDERR=/dev/stderr
+fi
 
 target_spec=${target_spec:-"$KLAB_OUT/specs/${spec_hash}.k"}
 
