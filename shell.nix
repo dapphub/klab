@@ -22,7 +22,6 @@ stdenv.mkDerivation {
     pkgconfig
     python
     python3
-    wget
     zip
     z3
   ];
