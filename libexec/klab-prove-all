@@ -147,23 +147,17 @@ make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
-  TIMEOUT=20000
-  export TIMEOUT
-  # timeout timeout after 10 minutes
-  # (enough time to zip and bookkeeping)
-  TIMEOUTTIMEOUT=600000
-  export TIMEOUTTIMEOUT
-  parallel -u --timeout $TIMEOUT --termseq TERM,$TIMEOUTTIMEOUT,KILL,25 -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
+  parallel -u -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
   trap 'echo "Trapped SIGTERM in klab-prove-all" && kill -s INT $parallel_id && exit 1' TERM
   trap 'echo "Trapped SIGINT  in klab-prove-all" && kill -s INT $parallel_id && exit 1' INT
   wait $parallel_id
   result=$?
-  echo result: $result
   unset parallel_id
   if [ $result -ge 255 ]; then
     echo "Parallel finished with exceptional code:" "$result"
     exit $result
   else
+    echo "batch ${bold}COMPLETE${reset} ($result): no outstanding proof obligations."
     klab build;
     return $result
   fi;
