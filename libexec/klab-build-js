@@ -51,8 +51,9 @@ const config_json   = JSON.parse(fs.readFileSync("./config.json"));
 const config        = makeConfig(config_json);
 const config_path   = cmd["<spec>"] || config.src.specification;
 const filter_subject= cmd["--filter"] || null;
-const OOGActs     = config.oog || [];
+const OOGActs       = config.oog || [];
 const splitActs     = config.split_fail  || [];
+const timeouts      = config.timeouts || {}
 const DEBUG         = cmd["--debug"] || false;
 config.DEBUG        = DEBUG;
 const raw_md_config = Array.isArray(config_path) && config_path.map(p => read(p)).join("\n\n") || read(config_path)
@@ -78,10 +79,11 @@ const bin_runtime_defs = Object.keys(config.implementations)
     return [syntaxDef, ruleDef].join("\n")
   }).join('\n\n')
 
-config.get_proof_hash = spec => sha3(JSON.stringify({
+config.get_proof_hash = ({name, spec}) => sha3(JSON.stringify({
   evms: EVM_SEMANTICS_VERSION,
   rules: rules_str,
   spec : spec,
+  timeout: timeouts[name] || null,
   smt_prelude: prelude_str,
   bin_runtime_defs
 }));
