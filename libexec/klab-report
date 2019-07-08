@@ -151,9 +151,6 @@ const getBadges = (cases, act) => {
             hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
             hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
           ]
-        || accepted && [
-          sspan(h(['a', `href="https://proof.dapp.ci/#${s.proofid}"`])('inspect-proof'))
-        ]
         || blocked && [
           sspan(`blocked on: ${blocked_links}`)
         ]
