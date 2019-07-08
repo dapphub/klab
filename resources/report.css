@@ -159,7 +159,7 @@ p {
         color: #d9534f; }
       #coverage table.abi td.status.timeout, #coverage table.lemmas td.status.timeout {
         font-weight: bold;
-        color: #dddddd; }
+        color: #fc8080; }
       #coverage table.abi td.status.running, #coverage table.lemmas td.status.running {
         font-weight: bold;
         color: #337ab7; }
