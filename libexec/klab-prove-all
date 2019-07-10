@@ -104,10 +104,6 @@ do_proof () {
   fi;
   set -e
 
-  # report finish
-  rm "$RUNNING_DIR/$hash"
-  report
-
   if [ $result -eq 0 ] && [[ $name =~ .*_pass_rough$ ]]; then
     # gas analysis from the rough pass
     klab get-gas "$hash"
@@ -126,6 +122,10 @@ do_proof () {
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
   fi;
+
+  # report finish
+  rm "$RUNNING_DIR/$hash"
+  report
 
   # cleanup dumped data
   rm -fdr "$KLAB_OUT/data/${hash}_blobs"
