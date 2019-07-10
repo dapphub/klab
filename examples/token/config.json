@@ -8,8 +8,9 @@
     ]
   },
   "implementations": {
-    "Token" :
-        {"solc_output": "dapp/out/token.sol.json"}
+    "Token" : {
+      "src": "src/token.sol"
+    }
   },
   "dapp_root": "dapp"
 }

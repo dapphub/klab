@@ -9,7 +9,7 @@
   },
   "implementations": {
     "Vat": {
-      "solc_output": "dapp/out/vat.sol.json"
+      "src": "src/vat.sol"
     }
   },
   "split_fail": [

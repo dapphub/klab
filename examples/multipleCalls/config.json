@@ -10,12 +10,10 @@
   },
   "implementations": {
     "Callee": {
-      "name": "Callee",
-      "solc_output": "dapp/out/easyNest.sol.json"
+      "src": "src/easyNest.sol"
     },
     "easyNest": {
-      "name": "easyNest",
-      "solc_output": "dapp/out/easyNest.sol.json"
+      "src": "src/easyNest.sol"
     }
   },
   "dapp_root": "dapp"
