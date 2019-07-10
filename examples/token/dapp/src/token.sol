@@ -1,13 +1,15 @@
+pragma solidity >=0.5.0;
+
 contract Token {
   mapping(address => uint) public balanceOf;
   uint public totalSupply;
 
-  function add(uint256 x, uint256 y) internal returns (uint z) {
+  function add(uint256 x, uint256 y) internal pure returns (uint z) {
     z = x + y;
     require(z >= x);
   }
 
-  function sub(uint256 x, uint256 y) internal returns (uint z) {
+  function sub(uint256 x, uint256 y) internal pure returns (uint z) {
     z = x - y;
     require(x >= y);
   }

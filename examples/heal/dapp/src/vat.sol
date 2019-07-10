@@ -1,3 +1,5 @@
+pragma solidity >=0.5.0;
+
 contract Vat {
   mapping (address => uint256)                   public dai;  // [rad]
   mapping (address => uint256)                   public sin;  // [rad]

@@ -8,7 +8,7 @@
   },
   "implementations": {
     "SafeAdd": {
-      "solc_output": "dapp/out/SafeAdd.sol.json"
+      "src": "src/SafeAdd.sol"
     }
   },
   "dapp_root": "dapp"
