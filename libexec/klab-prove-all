@@ -104,10 +104,8 @@ do_proof () {
   fi;
   set -e
 
-  if [ $result -eq 0 ] && [[ $name =~ .*_pass_rough$ ]]; then
-    # gas analysis from the rough pass
+  if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
     klab get-gas "$hash"
-    klab solve-gas "$hash"
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     klab zip "$hash" > /dev/null
@@ -115,7 +113,6 @@ do_proof () {
     cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
     cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
     if [[ $name =~ .*_pass_rough$ ]]; then
-      cp "$GAS_DIR/${hash}.kast" "$KLAB_REPORT_NAME_DIR"
       cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
     fi;
     klab get-lemmas "$hash"
