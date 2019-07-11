@@ -70,10 +70,12 @@ const getStatus = proofid => proofid
     && testPath(path.join(KLAB_OUT, `timeout`, proofid))
     && `timeout`)
   || (proofid
+    && testPath(path.join(KLAB_OUT, `aborted`, proofid))
+    && `aborted [${read(path.join(KLAB_OUT, `aborted`, proofid)).trim()}]`)
+  || (proofid
     && `queue`)
   || `blocked`
 ;
-
 
 const mapCaseStatus = cases => cases
   .map(c => {
@@ -109,7 +111,7 @@ const getBadges = (cases, act) => {
   const links = cases
     .map((c, i) => [c, status[i]])
     .sort((a, b) => {
-      let s = x => ['accept', 'running', 'queue', 'blocked', 'reject', 'timeout'].indexOf(x.status)
+      let s = x => ['accept', 'running', 'queue', 'blocked', 'reject', 'timeout', 'aborted'].indexOf(x.status)
       return s(a[1]) - s(b[1]);
     })
     .map(([c, s]) => {
@@ -123,7 +125,8 @@ const getBadges = (cases, act) => {
       const accepted = s.status == 'accept';
       const blocked  = s.status == 'blocked';
       const running  = s.status == 'running';
-      const finished = accepted || rejected;
+      const aborted  = s.status.startsWith('aborted');
+      const finished = accepted || rejected || aborted;
 
       proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
       proof_info.push(td(running  ? bspan("started:") + span(s.date) : ""))

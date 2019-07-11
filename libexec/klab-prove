@@ -105,6 +105,7 @@ elif [ $result -eq 124 ]; then
   echo "${red}Proof ${bold}TIMEOUT${reset}: $info"
 elif [ $result -gt 127 ]; then
   # results > 127 are 128 + signal number
+  mkdir -p "$KLAB_OUT/aborted" && echo "$(($result%128))" > "$KLAB_OUT/aborted/$spec_hash";
   echo "Proof ${bold}ABORT${reset} $result SIG$(kill -l $result): $info"
 else
   mkdir -p "$KLAB_OUT/reject" && touch "$KLAB_OUT/reject/$spec_hash"

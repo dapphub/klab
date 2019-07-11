@@ -118,7 +118,10 @@ p {
   background-color: #d9534f; }
 
 .double-val-label > span.timeout {
-  background-color: #d9534f; }
+  background-color: #d99d30; }
+
+.double-val-label > span.aborted {
+  background-color: #656565; }
 
 #coverage {
   width: 100%;
@@ -159,7 +162,10 @@ p {
         color: #d9534f; }
       #coverage table.abi td.status.timeout, #coverage table.lemmas td.status.timeout {
         font-weight: bold;
-        color: #fc8080; }
+        color: #d99d30; }
+      #coverage table.abi td.status.aborted, #coverage table.lemmas td.status.aborted {
+        font-weight: bold;
+        color: #808080; }
       #coverage table.abi td.status.running, #coverage table.lemmas td.status.running {
         font-weight: bold;
         color: #337ab7; }
