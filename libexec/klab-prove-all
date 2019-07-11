@@ -195,7 +195,7 @@ while [ -s "$OBLIGATIONS" ]; do
   count=$((count+1))
 done;
 echo "${bold}COMPLETE${reset}: no outstanding proof obligations."
-printf "Finished with %d failed proofs." $failures
+echo "Finished with ${failures} failed proofs."
 if [ $failures -ge 1 ]; then
   exit 1
 else
