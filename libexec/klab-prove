@@ -24,6 +24,13 @@ while true; do
   esac
 done
 
+case $TIMEOUT in
+  *d) TIMEOUT=$(bc <<< "${TIMEOUT%d} * 86400 / 1") ;;
+  *h) TIMEOUT=$(bc <<< "${TIMEOUT%h} * 3600  / 1") ;;
+  *m) TIMEOUT=$(bc <<< "${TIMEOUT%m} * 60    / 1") ;;
+  *s) TIMEOUT=$(bc <<< "${TIMEOUT%s}         / 1") ;;
+esac
+
 export KLAB_OUT=${KLAB_OUT:-out}
 export K_OPTS=${K_OPTS:--Xmx10G}
 
@@ -74,10 +81,11 @@ fi
 
 info="$(basename "$target_spec") [$spec_name] $dump_notice"
 echo "${blue}Proof ${bold}STARTING${reset}: $info"
-set +e
 trap 'echo "Trapped SIGTERM in klab-prove" && kill $kprove_child' TERM
 trap 'echo "Trapped SIGINT in klab-prove"  && kill $kprove_child' INT
-timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
+ulimit -St $TIMEOUT
+set +e
+("$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
   "${K_FLAGS[@]}" \
   --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
   --def-module RULES \
@@ -91,7 +99,7 @@ timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/k
   --boundary-cells k,pc \
   --smt_prelude "$KLAB_OUT/prelude.smt2" \
   --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-  "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
+  "$target_spec" >"$STDOUT" 2>"$STDERR") & kprove_child=$!
 wait "$kprove_child"
 result=$?
 unset kprove_child
@@ -100,9 +108,12 @@ set -e
 if [ $result -eq 0 ]; then
   mkdir -p "$KLAB_OUT/accept" && touch "$KLAB_OUT/accept/$spec_hash"
   echo "${green}Proof ${bold}ACCEPT${reset}: $info"
-elif [ $result -eq 124 ]; then
+elif [ $result -eq 152 ]; then
+  # ulimit timeout kills with SIGXCPU (152)
   mkdir -p "$KLAB_OUT/timeout" && touch "$KLAB_OUT/timeout/$spec_hash";
   echo "${red}Proof ${bold}TIMEOUT${reset}: $info"
+  # use 124 to mimic gnu timeout
+  result=124
 elif [ $result -gt 127 ]; then
   # results > 127 are 128 + signal number
   mkdir -p "$KLAB_OUT/aborted" && echo "$(($result%128))" > "$KLAB_OUT/aborted/$spec_hash";
