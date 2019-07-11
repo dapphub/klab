@@ -29,6 +29,14 @@
     rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES ))
 
 
+//Operator direction normalization rules. Required to reduce the number of forms of inequalities that can be matched by general lemmas. We chose to keep <Int and <=Int because those operators are used in all range lemmas and in #range macros. Operators >Int and >=Int are still allowed anywhere except rules LHS. In all other places they will be matched and rewritten by rules below.
+    rule X >Int Y => Y <Int X
+    rule X >=Int Y => Y <=Int X
+
+    rule notBool (X <Int Y) => Y <=Int X
+    rule notBool (X <=Int Y) => Y <Int X
+
+
 
     rule 0 <=Int nthbyteof(V, I, N)          => true
     rule         nthbyteof(V, I, N) <Int 256 => true
@@ -330,6 +338,11 @@ rule ACCTCODE in SetItem( 1 )
 
     rule bool2Word(A)  ==K 0 => notBool(A)
     rule bool2Word(A)  ==K 1 => A
+
+    rule 1 |Int bool2Word(X) => 1
+    rule  bool2Word(X) |Int 1 => 1
+    rule 1 &Int bool2Word(X) => bool2Word(X)
+    rule bool2Word(X) &Int 1 => bool2Word(X)
 
     rule chop(bool2Word(B)) => bool2Word(B)
 
