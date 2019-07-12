@@ -42,7 +42,7 @@ const refund_rule = Object.keys(logs
     a[r] = true;
     return a;
   }, {}))
-  .find(r => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", r + ".json"))).term.att.split(" ").indexOf("label(EVM.refund)") > -1)
+      .find(r => JSON.parse(read(path.join(KLAB_WD_PATH, proofid + "_blobs", r + ".json"))).term.att.indexOf('refund') > - 1)
 
 const refund_nodes = logs
   .filter(l => l.split(" ")[1] == "RULE" && l.split(" ")[2].split("_")[0] == refund_rule)
