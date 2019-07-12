@@ -221,10 +221,18 @@ Object.keys(build_proofs)
   }));
 })
 
-const obligations = Object.keys(act_proofs)
+var obligations = Object.keys(act_proofs)
+  .filter(n => act_proofs[n].status === '????')
+  .filter(n => !(n in timeouts))
+  .concat(exhaustiveness_obligations)
+  .sort((a, b) => Math.random() - 0.5)
+
+if(obligations.length == 0) {
+  obligations = Object.keys(act_proofs)
   .filter(n => act_proofs[n].status === '????')
   .concat(exhaustiveness_obligations)
   .sort((a, b) => Math.random() - 0.5)
+}
 
 fs.writeFileSync(path.join(KLAB_OUT, "obligations.batch"), obligations.join("\n"))
 
