@@ -20,6 +20,9 @@ const {
 const fs     = require("fs");
 const KLAB_OUT      = process.env.KLAB_OUT || "out";
 const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH || path.join(__dirname, '..', 'evm-semantics');
+if ('evm-semantics' !== KLAB_EVMS_PATH.match(/([^\/]*)\/*$/)[1]) {
+  throw new Error(`Wrong EVMS path: ${KLAB_EVMS_PATH}`);
+}
 const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
   cwd: KLAB_EVMS_PATH,
   encoding: 'utf8'
