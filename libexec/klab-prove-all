@@ -88,7 +88,7 @@ do_proof () {
   TIMER="/usr/bin/env time --quiet -o $KLAB_OUT/meta/time/$hash"
 
   PROOF_TIMEOUT=$(jq -r ".timeouts["'"'"$name"'"'"]" < config.json)
-  if [ "$PROOF_TIMEOUT" == "null" ]; then PROOF_TIMEOUT="140m"; fi
+  if [ "$PROOF_TIMEOUT" == "null" ]; then PROOF_TIMEOUT="200m"; fi
   export PROOF_TIMEOUT
 
   # report start
