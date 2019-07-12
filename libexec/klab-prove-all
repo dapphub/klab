@@ -106,6 +106,7 @@ do_proof () {
 
   if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
     klab get-gas "$hash"
+    klab solve-gas "$hash"  
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     klab zip "$hash" > /dev/null
