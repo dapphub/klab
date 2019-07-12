@@ -9,14 +9,16 @@ bold=$(tput bold)
 reset=$(tput sgr0)
 
 dump=false
+kdebug=false
 logs=false
 TIMEOUT=1d
-usage() { echo "Usage: klab prove [-d|--dump] [--logs] [--timeout=<timeout>] [<spec>]" 1>&2; exit 1; }
-OPTS=$(getopt --name="$0" --options=d --longoptions="dump,logs,timeout:" -- "$@") || usage
+usage() { echo "Usage: klab prove [-d|--dump] [--logs] [--timeout=<timeout>] [--kdebug] [<spec>]" 1>&2; exit 1; }
+OPTS=$(getopt --name="$0" --options=d --longoptions="dump, kdebug,logs,timeout:" -- "$@") || usage
 eval set -- "$OPTS"
 while true; do
   case "$1" in
     --dump|-d) dump=true;  shift   ;;
+    --kdebug)   kdebug=true;  shift   ;;
     --logs)    logs=true;  shift   ;;
     --timeout) TIMEOUT=$2; shift 2 ;;
     --) shift; break ;;
@@ -77,6 +79,10 @@ if $dump; then
   z3=",RULEATTEMPT,SRULEATTEMPT,IMPLICATION,Z3QUERY,Z3RESULT"
   K_FLAGS=("$K_FLAGS" --state-log --state-log-path "$KLAB_OUT/data" --state-log-id "$spec_hash" --state-log-events "OPEN,REACHINIT,REACHTARGET,REACHPROVED,RULE,SRULE,NODE,CLOSE")
   dump_notice="(with ${yellow}state logging${reset})"
+fi
+
+if $kdebug; then
+  K_FLAGS=("$K_FLAGS" --debug)
 fi
 
 info="$(basename "$target_spec") [$spec_name] $dump_notice"
