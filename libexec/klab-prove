@@ -80,6 +80,7 @@ if $dump; then
 fi
 
 info="$(basename "$target_spec") [$spec_name] $dump_notice"
+mkdir -p "$KLAB_OUT/started" && echo "$result" > "$KLAB_OUT/started/$spec_hash"
 echo "${blue}Proof ${bold}STARTING${reset}: $info"
 set +e
 ulimit -St $TIMEOUT

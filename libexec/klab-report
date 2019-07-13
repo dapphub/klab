@@ -91,18 +91,19 @@ const mapCaseStatus = cases => cases
       spec: c.name
     };
     if(status == 'accept' || status == 'reject' || status == 'timeout' || status == 'aborted') {
-      var stats = fs.statSync(path.join(KLAB_OUT, status, proofid));
-      var mtime = new Date(stats.mtime);
-      ret.date = moment(mtime).format('YYYY-MM-DD, HH:mm');
-
-      const duration_raw = read(path.join(KLAB_OUT, 'meta', 'time', proofid));
-      const duration = (/\d*/).exec(duration_raw)[0]
-      ret.duration = Math.floor(duration / 60) + ' min ' + (duration % 60) + ' sec'
       ret.exit = read(path.join(KLAB_OUT, status, proofid)).trim()
+
+      const stopped = new Date(fs.statSync(path.join(KLAB_OUT, status, proofid)).mtime);
+      const started = new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime);
+      const duration = Math.floor((stopped.getTime() - started.getTime()) / 1000);
+
+      ret.stopped = moment(stopped).format('YYYY-MM-DD, HH:mm');
+      ret.started = moment(started).format('YYYY-MM-DD, HH:mm');
+      ret.duration = Math.floor(duration / 60) + ' min ' + (duration % 60) + ' sec'
     } else if(status == 'running') {
-      var stats = fs.statSync(path.join(KLAB_OUT, "meta", status, proofid));
-      var mtime = new Date(stats.mtime);
-      ret.date = moment(mtime).format('YYYY-MM-DD, HH:mm');
+      const stats = fs.statSync(path.join(KLAB_OUT, "meta", status, proofid));
+      const mtime = new Date(stats.mtime);
+      ret.started = moment(mtime).format('YYYY-MM-DD, HH:mm');
     }
     return ret;
   })
@@ -132,8 +133,8 @@ const getBadges = (cases, act) => {
       const aborted  = s.status == 'aborted';
       const finished = accepted || rejected || aborted;
 
-      proof_info.push(td(finished ? bspan("finished:") + span(s.date) + bspan("in") + span(s.duration) : ""))
-      proof_info.push(td(running  ? bspan("started:") + span(s.date) : ""))
+      proof_info.push(td(finished ? bspan("finished:") + span(s.stopped) + bspan("in") + span(s.duration) : ""))
+      proof_info.push(td(running  ? bspan("started:") + span(s.started) : ""))
 
       let blocked_links = "";
       if(blocked && c.imports) {
