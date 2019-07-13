@@ -94,9 +94,8 @@ const mapCaseStatus = cases => cases
       ret.exit = read(path.join(KLAB_OUT, status, proofid)).trim()
 
       const stopped = new Date(fs.statSync(path.join(KLAB_OUT, status, proofid)).mtime);
-      const started = (testPath(path.join(KLAB_OUT, 'started', proofid)
-        && new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime)))
-        || stopped;
+      const started = testPath(path.join(KLAB_OUT, 'started', proofid))
+        ? new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime) : stopped;
       const duration = Math.floor((stopped.getTime() - started.getTime()) / 1000);
 
       ret.stopped = moment(stopped).format('YYYY-MM-DD, HH:mm');
@@ -126,8 +125,6 @@ const getBadges = (cases, act) => {
         td(codespan((s.proofid || "").slice(0, 8)) + span( s.status !== 'blocked' ? h(["a", `href="/${config.name}/${s.proofid + ".k"}"`])(s.spec+'.k') : s.spec + '.k'))
       ]
 
-      var zip = '';
-
       const rejected = s.status == 'reject' || s.status == 'timeout';
       const accepted = s.status == 'accept';
       const blocked  = s.status == 'blocked';
@@ -150,41 +147,37 @@ const getBadges = (cases, act) => {
 
       const outPath = path.join(KLAB_OUT, "log", s.proofid + ".log");
       const errPath = path.join(KLAB_OUT, "log", s.proofid + ".err.log");
+      const zipPath = path.join(KLAB_OUT, "log", s.proofid + ".zip");
+
       const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
       const hasOut = testPath(outPath) && read(outPath).trim() !== "";
       const hasErr = testPath(errPath) && read(errPath).trim() !== "";
+      const hasZip = testPath(zipPath);
 
       const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
 
-      proof_info.push(td(
-           rejected && [
+      proof_info.push(td(rejected ? [
             hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
             hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
-          ]
-        || blocked && [
-          sspan(`blocked on: ${blocked_links}`)
-        ]
-        || ''
-      ))
+          ] : ""))
 
-      if (rejected || aborted) {
-        proof_info.push(td(badge(c.suffix, `${s.status} [${s.exit}]`)))
-      } else {
-        proof_info.push(td(badge(c.suffix, s.status)))
-      }
+      proof_info.push(td(blocked ? [ sspan(`blocked on: ${blocked_links}`) ] : ""))
 
-      if(rejected) {
+      proof_info.push(td(badge(c.suffix, ((rejected || aborted) ? `${s.status} [${s.exit}]` : s.status))))
+
+      let zip = "";
+      if((rejected || aborted) && hasZip) {
         zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://dapp.ci/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
+      } else if (rejected || aborted) {
+        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="No log archive found"`])("")}</td>`)
       }
 
       let lemmas = ""
       if(Object.keys(lemma_stats).length > 0) {
         lemmas = tr([
         `<td colspan="4" class="lemma_stats"><ul>${Object.keys(lemma_stats).map(name => `<li><a href="#${name}">${name}</a>: ${lemma_stats[name]}</li>`).join("\n")}</ul></td>`
-
         ])
       }
-
 
       return h(["tr", `id="${s.spec}" class="${s.status}"`])(proof_info) + zip + lemmas
     })
