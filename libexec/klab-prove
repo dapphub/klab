@@ -81,11 +81,11 @@ fi
 
 info="$(basename "$target_spec") [$spec_name] $dump_notice"
 echo "${blue}Proof ${bold}STARTING${reset}: $info"
+set +e
+ulimit -St $TIMEOUT
 trap 'echo "Trapped SIGTERM in klab-prove" && kill $kprove_child' TERM
 trap 'echo "Trapped SIGINT in klab-prove"  && kill $kprove_child' INT
-ulimit -St $TIMEOUT
-set +e
-("$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
+timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
   "${K_FLAGS[@]}" \
   --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
   --def-module RULES \
@@ -99,7 +99,7 @@ set +e
   --boundary-cells k,pc \
   --smt_prelude "$KLAB_OUT/prelude.smt2" \
   --z3-tactic "(or-else (using-params smt :random-seed 3 :timeout 1000) (using-params smt :random-seed 2 :timeout 2000) (using-params smt :random-seed 1))" \
-  "$target_spec" >"$STDOUT" 2>"$STDERR") & kprove_child=$!
+  "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
 wait "$kprove_child"
 result=$?
 unset kprove_child
