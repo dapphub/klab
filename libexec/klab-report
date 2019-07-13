@@ -94,7 +94,9 @@ const mapCaseStatus = cases => cases
       ret.exit = read(path.join(KLAB_OUT, status, proofid)).trim()
 
       const stopped = new Date(fs.statSync(path.join(KLAB_OUT, status, proofid)).mtime);
-      const started = new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime);
+      const started = (testPath(path.join(KLAB_OUT, 'started', proofid)
+        && new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime)))
+        || stopped;
       const duration = Math.floor((stopped.getTime() - started.getTime()) / 1000);
 
       ret.stopped = moment(stopped).format('YYYY-MM-DD, HH:mm');
