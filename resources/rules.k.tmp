@@ -293,11 +293,6 @@ rule ACCTCODE in SetItem( 1 )
 
 
     /// GAS Simplification
-    rule ((A -Int (X +Int C)) +Int (C -Int Y)) => (A -Int X) -Int Y
-
-    rule #if C #then G -Int X #else G -Int Y #fi => G -Int (#if C #then X #else Y #fi)
-      requires notBool #isConcrete(G)
-
     rule (#if C #then B1 #else B2 #fi) >Int A => true
       requires B1 >Int A andBool B2 >Int A
 
@@ -307,17 +302,64 @@ rule ACCTCODE in SetItem( 1 )
     rule #if C #then (#if C #then B1 #else B2 #fi) -Int D #else (#if C #then B3 #else B4 #fi) -Int E #fi =>
          #if C #then B1 -Int D #else B4 -Int E #fi
 
-    rule (G -Int A) -Int (#if C #then P #else Q #fi) =>
-          G -Int (#if C #then A +Int P #else A +Int Q #fi)
-      requires #isConcrete(A)
-      andBool  #isConcrete(P)
-      andBool  #isConcrete(Q)
+    // propagate stuff out of #ifs
 
-    rule (G -Int (#if C #then P #else Q #fi)) -Int A =>
-          G -Int (#if C #then P +Int A #else Q +Int A #fi)
+    rule #if C #then X #else Y #fi => Y +Int #if C #then X -Int Y #else 0 #fi
+      requires #isConcrete(X)
+      andBool  #isConcrete(Y)
+      andBool  X >Int Y
+      andBool  Y =/=Int 0
+
+    rule #if C #then X #else Y #fi => X +Int #if C #then 0 #else Y -Int X #fi
+      requires #isConcrete(X)
+      andBool  #isConcrete(Y)
+      andBool  Y >Int X
+      andBool  X =/=Int 0
+
+    rule #if C #then X +Int A #else X +Int B #fi => X +Int (#if C #then A #else B #fi)
+
+    rule #if C #then (A +Int X) #else (B +Int X) #fi => ( #if C #then A #else B #fi ) +Int X
+
+    rule #if C #then G -Int X #else G -Int Y #fi => G -Int (#if C #then X #else Y #fi)
+
+    rule #if C #then X -Int G #else Y -Int G #fi => (#if C #then X #else Y #fi) -Int G
+
+    rule #if C #then ((P -Int X) -Int A) #else ((Q -Int X) -Int B) #fi => (#if C #then (P -Int A) #else (Q -Int B) #fi) -Int X
+
+    // join together concrete numbers
+
+    rule (((A -Int B) -Int C) -Int D) => ((A -Int (B +Int D)) -Int C)
+      requires #isConcrete(B)
+      andBool  #isConcrete(D)
+
+    rule (((A +Int B) +Int C) +Int D) => ((A +Int (B +Int D)) +Int C)
+      requires #isConcrete(B)
+      andBool  #isConcrete(D)
+
+    rule (A +Int X) +Int (Y +Int Z) => ((A +Int (X +Int Y)) +Int Z)
+      requires #isConcrete(X)
+      andBool  #isConcrete(Y)
+
+    // special forms
+
+    rule ((A -Int (X +Int C)) +Int (C -Int Y)) => (A -Int X) -Int Y
+
+    rule (V -Int (A +Int (V -Int (A +Int G)))) => G
+
+    rule (G +Int (V -Int ((B +Int G) +Int C))) => V -Int (B +Int C)
+
+    rule (G +Int (A +Int X)) +Int (B +Int Y) => G +Int ( (X +Int Y) +Int (A +Int B) )
       requires #isConcrete(A)
-      andBool  #isConcrete(P)
-      andBool  #isConcrete(Q)
+      andBool  #isConcrete(B)
+
+    rule (G +Int (X +Int A)) +Int (B +Int Y) => G +Int ( (X +Int Y) +Int (A +Int B) )
+      requires #isConcrete(A)
+      andBool  #isConcrete(B)
+
+    rule ( ( ( VGas -Int ( X2 +Int ( A1 +Int ( VGas -Int K ) ) ) ) +Int ( VGas -Int ( K +Int X1 ) ) ) -Int A2 ) => VGas -Int ( ( ( A1 +Int A2 ) +Int X1 ) +Int X2 )
+      requires #isConcrete(A1)
+      andBool  #isConcrete(A2)
+
     /// ---
 
 
