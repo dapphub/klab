@@ -163,7 +163,7 @@ const getBadges = (cases, act) => {
 
       const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
 
-      proof_info.push(td((accepted ? [
+      proof_info.push(td(accepted ? [
         hasGas && sspan(h(['a', `href="/${config.name}/${s.proofid}.all.json"`])('gas')) || sspan("no-gas"),
       ] : ""))
 
