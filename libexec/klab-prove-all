@@ -71,6 +71,15 @@ report () {
 }
 export -f report
 
+savelogs() {
+  local hash=$1
+  klab zip "$hash" > /dev/null
+  cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
+  cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
+  cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
+}
+export -f savelogs
+
 # perform a single proof and exit
 do_proof () {
   set -e
@@ -105,16 +114,12 @@ do_proof () {
   set -e
 
   if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
-    klab get-gas "$hash"
+    klab get-gas "$hash" \
+    && cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR" \
+    || savelogs "$hash"
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
-    klab zip "$hash" > /dev/null
-    cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
-    cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
-    cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"
-    if [[ $name =~ .*_pass_rough$ ]]; then
-      cp "$GAS_DIR/${hash}.raw.kast.json" "$KLAB_REPORT_NAME_DIR"
-    fi;
+    savelogs "$hash"
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
