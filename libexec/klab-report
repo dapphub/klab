@@ -97,10 +97,14 @@ const mapCaseStatus = cases => cases
       const started = testPath(path.join(KLAB_OUT, 'started', proofid))
         ? new Date(fs.statSync(path.join(KLAB_OUT, 'started', proofid)).mtime) : stopped;
       const duration = Math.floor((stopped.getTime() - started.getTime()) / 1000);
+      const cpu_time = testPath(path.join(KLAB_OUT, 'meta', 'time', proofid))
+        ? read(path.join(KLAB_OUT, 'meta', 'time', proofid)).match(/\d*/)[0] : null
 
       ret.stopped = moment(stopped).format('YYYY-MM-DD, HH:mm');
       ret.started = moment(started).format('YYYY-MM-DD, HH:mm');
-      ret.duration = Math.floor(duration / 60) + ' min ' + (duration % 60) + ' sec'
+      const format = s => Math.floor(s / 60) + ' min ' + (s % 60) + ' sec'
+      ret.duration = format(duration)
+      ret.cpu_time = cpu_time ? format(cpu_time) : null
     } else if(status == 'running') {
       const stats = fs.statSync(path.join(KLAB_OUT, "meta", status, proofid));
       const mtime = new Date(stats.mtime);
@@ -132,7 +136,8 @@ const getBadges = (cases, act) => {
       const aborted  = s.status == 'aborted';
       const finished = accepted || rejected || aborted;
 
-      proof_info.push(td(finished ? bspan("finished:") + span(s.stopped) + bspan("in") + span(s.duration) : ""))
+      const duration = s.duration + (s.cpu_time ? ` / ${s.cpu_time} cpu` : "")
+      proof_info.push(td(finished ? bspan("finished:") + span(s.stopped) + bspan("in") + span(duration) : ""))
       proof_info.push(td(running  ? bspan("started:") + span(s.started) : ""))
 
       let blocked_links = "";
