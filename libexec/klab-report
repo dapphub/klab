@@ -163,12 +163,14 @@ const getBadges = (cases, act) => {
 
       const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
 
-      proof_info.push(td((accepted && hasGas) ? sspan(h(['a', `href="/${config.name}/${s.proofid}.all.json"`])('gas')) : sspan("no-gas")))
+      proof_info.push(td((accepted ? [
+        hasGas && sspan(h(['a', `href="/${config.name}/${s.proofid}.all.json"`])('gas')) || sspan("no-gas"),
+      ] : ""))
 
       proof_info.push(td(rejected ? [
-            hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
-            hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
-          ] : ""))
+        hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
+        hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
+      ] : ""))
 
       proof_info.push(td(blocked ? [ sspan(`blocked on: ${blocked_links}`) ] : ""))
 
