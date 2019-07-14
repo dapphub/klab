@@ -156,5 +156,5 @@ try {
   console.log(JSON.stringify(traverse(initt)));
 } catch(e) {
   console.error(e);
-  exit(1);
+  process.exit(1);
 }
