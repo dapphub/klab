@@ -326,39 +326,93 @@ rule ACCTCODE in SetItem( 1 )
 
     rule #if C #then ((P -Int X) -Int A) #else ((Q -Int X) -Int B) #fi => (#if C #then (P -Int A) #else (Q -Int B) #fi) -Int X
 
+    // NEW GAS LEMMAS
     // join together concrete numbers
+    rule (A -Int  B) -Int C  =>  A -Int (B +Int C)
+    rule (A -Int  B) +Int C  =>  A -Int (B -Int C)
+    rule (A +Int B) -Int C  => A +Int (B -Int C)
+    rule (A +Int B) +Int  C => A +Int (B +Int C)
 
-    rule (((A -Int B) -Int C) -Int D) => ((A -Int (B +Int D)) -Int C)
+    // deal with 0
+    rule  A +Int (0 -Int  C) => A -Int C
+    rule  A -Int (0 -Int  C) => A +Int C
+
+
+    // deal with negative concrete number
+    rule A -Int B => A +Int (0 -Int B)
       requires #isConcrete(B)
-      andBool  #isConcrete(D)
+      andBool B <Int 0
 
-    rule (((A +Int B) +Int C) +Int D) => ((A +Int (B +Int D)) +Int C)
+    rule A +Int B => A -Int (0 -Int B)
       requires #isConcrete(B)
-      andBool  #isConcrete(D)
+      andBool B <Int 0
 
-    rule (A +Int X) +Int (Y +Int Z) => ((A +Int (X +Int Y)) +Int Z)
-      requires #isConcrete(X)
-      andBool  #isConcrete(Y)
+    // SORT
 
-    // special forms
+    //    DIV
+    rule  A -Int ( (B /Int 64)  +Int C) => (0 -Int ( (B /Int 64) -Int (A -Int C)))
+      requires (notBool #isVariable(A))
+      andBool (notBool #isConcrete(A))
+    rule  A -Int ( (B /Int 64)  -Int C) => (0 -Int ( (B /Int 64) -Int (A +Int C)))
+      requires (notBool #isVariable(A))
+      andBool (notBool #isConcrete(A))
+    rule  A +Int ( (B /Int 64) +Int  C) => (B /Int 64) +Int (A +Int  C)
+      requires (notBool #isVariable(A))
+      andBool (notBool #isConcrete(A))
+    rule  A +Int ( (B /Int 64) -Int  C) => (B /Int 64) +Int (A -Int  C)
+      requires (notBool #isVariable(A))
+      andBool (notBool #isConcrete(A))
 
-    rule ((A -Int (X +Int C)) +Int (C -Int Y)) => (A -Int X) -Int Y
+    //    VAR
+    rule  A -Int (B  +Int C) => (0 -Int (B -Int (A -Int C)))
+      requires #isVariable(B)
+      andBool (notBool #isVariable(A))
+    rule  A -Int (B  -Int C) => (0 -Int (B -Int (A +Int C)))
+      requires #isVariable(B)
+      andBool (notBool #isVariable(A))
+    rule  A +Int (B +Int  C) => B +Int (A +Int  C)
+      requires #isVariable(B)
+      andBool (notBool #isVariable(A))
+    rule  A +Int (B -Int  C) => B +Int (A -Int  C)
+      requires #isVariable(B)
+      andBool (notBool #isVariable(A))
 
-    rule (V -Int (A +Int (V -Int (A +Int G)))) => G
+    //    CONCRETE
+    rule  A -Int (B  +Int C) => (0 -Int (B -Int (A -Int C)))
+      requires #isConcrete(A)
+      andBool A =/=Int 0
+      andBool (notBool #isConcrete(B))
+    rule  A -Int (B  -Int C) => (0 -Int (B -Int (A +Int C)))
+      requires #isConcrete(A)
+      andBool A =/=Int 0
+      andBool (notBool #isConcrete(B))
+    rule  A +Int (B +Int  C) => B +Int (A +Int  C)
+      requires #isConcrete(A)
+      andBool (notBool #isConcrete(B))
+    rule  A +Int (B -Int  C) => B +Int (A -Int  C)
+      requires #isConcrete(A)
+      andBool (notBool #isConcrete(B))
 
-    rule (G +Int (V -Int ((B +Int G) +Int C))) => V -Int (B +Int C)
+    // SOLVE
+    //    duplicates
+    rule A -Int (A +Int B) => 0 -Int B
+    rule A -Int (A -Int B) => B
 
-    rule (G +Int (A +Int X)) +Int (B +Int Y) => G +Int ( (X +Int Y) +Int (A +Int B) )
+    //    concrete
+    rule  A -Int (B  -Int C) => (A -Int  B) +Int C
+      requires #isConcrete(A)
+      andBool  #isConcrete(B)
+    rule  A -Int (B  +Int C) => (A -Int  B) -Int C
+      requires #isConcrete(A)
+      andBool  #isConcrete(B)
+    rule  A +Int (B -Int  C) => (A +Int  B) -Int C
+      requires #isConcrete(A)
+      andBool  #isConcrete(B)
+    rule  A +Int (B +Int  C) => (A +Int  B) +Int C
       requires #isConcrete(A)
       andBool  #isConcrete(B)
 
-    rule (G +Int (X +Int A)) +Int (B +Int Y) => G +Int ( (X +Int Y) +Int (A +Int B) )
-      requires #isConcrete(A)
-      andBool  #isConcrete(B)
 
-    rule ( ( ( VGas -Int ( X2 +Int ( A1 +Int ( VGas -Int K ) ) ) ) +Int ( VGas -Int ( K +Int X1 ) ) ) -Int A2 ) => VGas -Int ( ( ( A1 +Int A2 ) +Int X1 ) +Int X2 )
-      requires #isConcrete(A1)
-      andBool  #isConcrete(A2)
 
     /// ---
 
