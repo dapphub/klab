@@ -256,9 +256,50 @@ const genCoverageReport = (proofs) => {
           status: exhaustive_status
         },
         coverage: contract_coverage,
-        total: abi_functions.concat(lemmas).reduce((a, o) => a + o.total, 0)
+        total: abi_functions.concat(lemmas).reduce((a, o) => a + o.total, 0),
+        totals: abi_functions.concat(lemmas).reduce((a, o) => ({
+          total: a.total + o.total,
+          accept: a.accept + o.accept,
+          reject: a.reject + o.reject,
+          running: a.running + o.running,
+          timeout: a.timeout + o.timeout,
+          aborted: a.aborted + o.aborted
+        }), { total: 0,
+              accept: 0,
+              reject: 0,
+              running: 0,
+              timeout: 0,
+              aborted: 0
+        })
       }
     })
+
+  const totals = Object.keys(coverage)
+    .reduce((a, o) => ({
+          total: a.total + coverage[o].totals.total,
+          accept: a.accept + coverage[o].totals.accept,
+          reject: a.reject + coverage[o].totals.reject,
+          running: a.running + coverage[o].totals.running,
+          timeout: a.timeout + coverage[o].totals.timeout,
+          aborted: a.aborted + coverage[o].totals.aborted
+        }), { total: 0,
+              accept: 0,
+              reject: 0,
+              running: 0,
+              timeout: 0,
+              aborted: 0
+        }
+    )
+
+  const total_info = totals => (h(["tr", `class="contract_coverage"`])( [
+    td(bspan(`Total: ${totals.total}`)),
+    td(sspan(`Accept: ${totals.accept}`)),
+    td(sspan(`Reject: ${totals.reject}`)),
+    td(sspan(`Timeout: ${totals.timeout}`)),
+    td(sspan(`Aborted: ${totals.aborted}`)),
+    td(sspan(`Running: ${totals.running}`)),
+    ]
+  ))
 
   const contract_coverage = coverage
     .map(cc => {
@@ -307,6 +348,7 @@ const genCoverageReport = (proofs) => {
         `
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
+        <span class="totals">${total_info(cc.totals)}</span>
         <span class="progress">${Math.floor(cc.coverage)} / ${cc.total}</span>
         <table class="abi">${abi_list}</table>
         ${lemmas_str}
@@ -314,7 +356,8 @@ const genCoverageReport = (proofs) => {
         </li>`
     })
 
-  return `<ul class="contract_coverage">${contract_coverage.join('\n')}</ul>`
+  return `<div class="total_coverage"><b>SUMMARY</b>${total_info(totals)}</div>` +
+  `<ul class="contract_coverage">${contract_coverage.join('\n')}</ul>`
 }
 
 const stats_object = [
