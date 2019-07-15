@@ -100,6 +100,10 @@ do_proof () {
   if [ "$PROOF_TIMEOUT" == "null" ]; then PROOF_TIMEOUT="200m"; fi
   export PROOF_TIMEOUT
 
+  PROOF_MEMORY=$(jq -r ".memory["'"'"$name"'"'"]" < config.json)
+  if [ "$PROOF_MEMORY" == "null" ]; then PROOF_MEMORY="10G"; fi
+  export K_OPTS="-Xmx$PROOF_MEMORY"
+
   # report start
   touch "$RUNNING_DIR/$hash"
   report
