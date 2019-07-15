@@ -4,9 +4,11 @@ set -e
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 yellow=$(tput setaf 3)
+blue=$(tput setaf 4)
+magenta=$(tput setaf 5)
 bold=$(tput bold)
 reset=$(tput sgr0)
-export red green yellow bold reset
+export red green yellow blue magenta bold reset
 
 if [ -z "$KLAB_OUT" ]; then
   echo "KLAB_OUT not set, defaulting to ./out/"
@@ -118,9 +120,8 @@ do_proof () {
   set -e
 
   if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
-    klab get-gas "$hash" \
-    && cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR" \
-    || savelogs "$hash"
+    klab get-gas "$hash"
+    GETGAS=$?
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     savelogs "$hash"
@@ -128,6 +129,13 @@ do_proof () {
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
   fi;
+
+  if [[ $GETGAS -eq 0 ]] && [ -n "$KLAB_REPORT_NAME_DIR" ]; then
+    cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR"
+  elif [ -n "$KLAB_REPORT_NAME_DIR" ]; then
+    echo "${magenta}Proof ${bold}BADGAS${reset}: $hash [$name]"
+    savelogs "$hash"
+  fi
 
   # report finish
   rm "$RUNNING_DIR/$hash"
