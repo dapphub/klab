@@ -266,7 +266,7 @@ const genCoverageReport = (proofs) => {
           reject: a.reject + o.reject,
           running: a.running + o.running,
           timeout: a.timeout + o.timeout,
-          aborted: a.aborted + o.aborted
+          aborted: a.aborted + o.aborted,
         }), { total: 0,
               queue: 0,
               accept: 0,
@@ -297,53 +297,40 @@ const genCoverageReport = (proofs) => {
         }
     )
 
-  const total_info = totals => (h(["tr", `class="contract_coverage"`])( [
-    td(bspan(`Total: ${totals.total}`)),
-    td(sspan(`Accept: ${totals.accept}`)),
-    td(sspan(`Reject: ${totals.reject}`)),
-    td(sspan(`Timeout: ${totals.timeout}`)),
-    td(sspan(`Aborted: ${totals.aborted}`)),
-    td(sspan(`Running: ${totals.running}`)),
-    td(sspan(`Queue: ${totals.queue}`)),
-    ]
-  ))
+  const render = name => {
+    return o => (`<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">
+    <td class="status ${o.accept > 0 ? "accept" : "empty"}">
+      ${o.accept > 0 ? o.accept : "-"}
+    </td>
+    <td class="status ${o.reject > 0 ? "reject" : "empty"}">
+      ${o.reject > 0 ? o.reject : "-"}
+    </td>
+    <td class="status ${o.timeout > 0 ? "timeout" : "empty"}">
+      ${o.timeout > 0 ? o.timeout : "-"}
+    </td>
+    <td class="status ${o.aborted > 0 ? "aborted" : "empty"}">
+      ${o.aborted > 0 ? o.aborted : "-"}
+    </td>
+    <td class="status ${o.running > 0 ? "running" : "empty"}">
+      ${o.running > 0 ? o.running : "-"}
+    </td>
+    <td class="status ${o.total > 0 ? "" : "empty"}">
+      ${o.total > 0 ? o.total : "-"}
+    </td>
+    <td class="sig">${o.sig ? o.total > 0 ? `<a href="#${name+"_"+o.sig}">${o.sig}</a>` : o.sig : ''}</td>
+    <td>
+      ${o.msg ? o.msg : ''}
+    </td>
+    </tr>`)
+  }
 
   const contract_coverage = coverage
     .map(cc => {
-      const render = o => {
-        let sig = o.total > 0
-          ? `<a href="#${cc.name+"_"+o.sig}">${o.sig}</a>`
-          : o.sig
-        return `<tr class="${o.accept == o.total && o.total > 0 ? "" : "outstanding"}">
-        <td class="status ${o.accept > 0 ? "accept" : "empty"}">
-          ${o.accept > 0 ? o.accept : "-"}
-        </td>
-        <td class="status ${o.reject > 0 ? "reject" : "empty"}">
-          ${o.reject > 0 ? o.reject : "-"}
-        </td>
-        <td class="status ${o.timeout > 0 ? "timeout" : "empty"}">
-          ${o.timeout > 0 ? o.timeout : "-"}
-        </td>
-        <td class="status ${o.aborted > 0 ? "aborted" : "empty"}">
-          ${o.aborted > 0 ? o.aborted : "-"}
-        </td>
-        <td class="status ${o.running > 0 ? "running" : "empty"}">
-          ${o.running > 0 ? o.running : "-"}
-        </td>
-        <td class="status ${o.total > 0 ? "" : "empty"}">
-          ${o.total > 0 ? o.total : "-"}
-        </td>
-        <td class="sig">${sig}</td>
-        <td>
-          ${o.msg}
-        </td>
-        </tr>`
-      }
       const abi_list = cc.abi_functions
-        .map(render)
+        .map(render(cc.name))
         .join('\n')
       const lemmas_list = cc.lemmas
-        .map(render)
+        .map(render(cc.name))
         .join('\n')
       const lemmas_str = lemmas_list.length == 0 ? "" : `
         <span class="lemmas">lemmas:</span>
@@ -355,16 +342,20 @@ const genCoverageReport = (proofs) => {
         `
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
-        <span class="totals">${total_info(cc.totals)}</span>
         <span class="progress">${Math.floor(cc.coverage)} / ${cc.total}</span>
+        <table class="total">${render('')(cc.totals)}</table>
         <table class="abi">${abi_list}</table>
         ${lemmas_str}
         ${exhaust_str}
         </li>`
     })
 
-  return `<div class="total_coverage"><b>SUMMARY</b>${total_info(totals)}</div>` +
-  `<ul class="contract_coverage">${contract_coverage.join('\n')}</ul>`
+  const total_coverage = `<li class="contract_coverage">
+        <span class="name">${config.name}</span>
+        <table class="total">${render('')(totals)}</table>
+        </li>`
+
+  return `<ul class="contract_coverage">${[total_coverage].concat(contract_coverage).join('\n')}</ul>`
 }
 
 const stats_object = [
