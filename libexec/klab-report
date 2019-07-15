@@ -223,6 +223,7 @@ const genCoverageReport = (proofs) => {
           timeout: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].timeout || 0,
           aborted: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].aborted || 0,
           running: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].running || 0,
+          queue:   proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].queue   || 0,
           total:   proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total   || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'not specified' : ''
         }))
@@ -238,6 +239,7 @@ const genCoverageReport = (proofs) => {
           timeout: proofs[key].timeout,
           aborted: proofs[key].aborted,
           running: proofs[key].running,
+          queue: proofs[key].queue,
           total: proofs[key].total,
           msg: ''
         }))
@@ -259,12 +261,14 @@ const genCoverageReport = (proofs) => {
         total: abi_functions.concat(lemmas).reduce((a, o) => a + o.total, 0),
         totals: abi_functions.concat(lemmas).reduce((a, o) => ({
           total: a.total + o.total,
+          queue: a.queue + o.queue,
           accept: a.accept + o.accept,
           reject: a.reject + o.reject,
           running: a.running + o.running,
           timeout: a.timeout + o.timeout,
           aborted: a.aborted + o.aborted
         }), { total: 0,
+              queue: 0,
               accept: 0,
               reject: 0,
               running: 0,
@@ -277,12 +281,14 @@ const genCoverageReport = (proofs) => {
   const totals = Object.keys(coverage)
     .reduce((a, o) => ({
           total: a.total + coverage[o].totals.total,
+          queue: a.queue + coverage[o].totals.queue,
           accept: a.accept + coverage[o].totals.accept,
           reject: a.reject + coverage[o].totals.reject,
           running: a.running + coverage[o].totals.running,
           timeout: a.timeout + coverage[o].totals.timeout,
           aborted: a.aborted + coverage[o].totals.aborted
         }), { total: 0,
+              queue: 0,
               accept: 0,
               reject: 0,
               running: 0,
@@ -298,6 +304,7 @@ const genCoverageReport = (proofs) => {
     td(sspan(`Timeout: ${totals.timeout}`)),
     td(sspan(`Aborted: ${totals.aborted}`)),
     td(sspan(`Running: ${totals.running}`)),
+    td(sspan(`Queue: ${totals.queue}`)),
     ]
   ))
 
@@ -397,6 +404,7 @@ const proofs = parsed_tokens
       running: cstatus.filter(o => o.status == 'running').length,
       timeout: cstatus.filter(o => o.status == 'timeout').length,
       aborted: cstatus.filter(o => o.status == 'aborted').length,
+      queue: cstatus.filter(o => o.status == 'queue').length,
       total: cstatus.length,
       proofs: cstatus
     }
@@ -409,6 +417,7 @@ const proofs = parsed_tokens
       a[id].running += o.running;
       a[id].timeout += o.timeout;
       a[id].aborted += o.aborted;
+      a[id].queue += o.queue;
       a[id].total += o.total;
       a[id].proofs = a[id].proofs.concat(o.proofs)
     } else {
