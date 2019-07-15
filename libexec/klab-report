@@ -314,6 +314,9 @@ const genCoverageReport = (proofs) => {
     <td class="status ${o.running > 0 ? "running" : "empty"}">
       ${o.running > 0 ? o.running : "-"}
     </td>
+    <td class="status ${o.queue > 0 ? "queue" : "empty"}">
+      ${o.queue > 0 ? o.queue : "-"}
+    </td>
     <td class="status ${o.total > 0 ? "" : "empty"}">
       ${o.total > 0 ? o.total : "-"}
     </td>
