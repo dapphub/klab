@@ -218,11 +218,12 @@ const genCoverageReport = (proofs) => {
       const abi_functions = abi_signatures
         .map(sig => ({
           sig,
-          accept: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept || 0,
-          reject: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].reject || 0,
+          accept:  proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].accept  || 0,
+          reject:  proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].reject  || 0,
           timeout: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].timeout || 0,
+          aborted: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].aborted || 0,
           running: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].running || 0,
-          total: proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total || 0,
+          total:   proofs[contract_name + '.' + sig] && proofs[contract_name + '.' + sig].total   || 0,
           msg: !proofs[contract_name + '.' + sig] ? 'not specified' : ''
         }))
         .sort((a, b) => a.sig < b.sig ? -1 : 1)
@@ -235,6 +236,7 @@ const genCoverageReport = (proofs) => {
           accept: proofs[key].accept,
           reject: proofs[key].reject,
           timeout: proofs[key].timeout,
+          aborted: proofs[key].aborted,
           running: proofs[key].running,
           total: proofs[key].total,
           msg: ''
@@ -273,6 +275,9 @@ const genCoverageReport = (proofs) => {
         </td>
         <td class="status ${o.timeout > 0 ? "timeout" : "empty"}">
           ${o.timeout > 0 ? o.timeout : "-"}
+        </td>
+        <td class="status ${o.aborted > 0 ? "aborted" : "empty"}">
+          ${o.aborted > 0 ? o.aborted : "-"}
         </td>
         <td class="status ${o.running > 0 ? "running" : "empty"}">
           ${o.running > 0 ? o.running : "-"}
@@ -348,6 +353,7 @@ const proofs = parsed_tokens
       reject: cstatus.filter(o => o.status == 'reject').length,
       running: cstatus.filter(o => o.status == 'running').length,
       timeout: cstatus.filter(o => o.status == 'timeout').length,
+      aborted: cstatus.filter(o => o.status == 'aborted').length,
       total: cstatus.length,
       proofs: cstatus
     }
@@ -359,6 +365,7 @@ const proofs = parsed_tokens
       a[id].reject += o.reject;
       a[id].running += o.running;
       a[id].timeout += o.timeout;
+      a[id].aborted += o.aborted;
       a[id].total += o.total;
       a[id].proofs = a[id].proofs.concat(o.proofs)
     } else {
