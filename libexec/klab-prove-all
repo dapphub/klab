@@ -122,6 +122,12 @@ do_proof () {
   if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
     klab get-gas "$hash"
     GETGAS=$?
+    if [[ $GETGAS -eq 0 ]] && [ -n "$KLAB_REPORT_NAME_DIR" ]; then
+      cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR"
+    elif [ -n "$KLAB_REPORT_NAME_DIR" ]; then
+      echo "${magenta}Proof ${bold}BADGAS${reset}: $hash [$name]"
+      savelogs "$hash"
+    fi
     klab get-lemmas "$hash"
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     savelogs "$hash"
@@ -129,13 +135,6 @@ do_proof () {
   elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
     klab get-lemmas "$hash"
   fi;
-
-  if [[ $GETGAS -eq 0 ]] && [ -n "$KLAB_REPORT_NAME_DIR" ]; then
-    cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR"
-  elif [ -n "$KLAB_REPORT_NAME_DIR" ]; then
-    echo "${magenta}Proof ${bold}BADGAS${reset}: $hash [$name]"
-    savelogs "$hash"
-  fi
 
   # report finish
   rm "$RUNNING_DIR/$hash"
