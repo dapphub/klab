@@ -117,7 +117,6 @@ do_proof () {
     $TIMER klab prove --dump --logs --timeout $PROOF_TIMEOUT "$hash"
     result=$?
   fi;
-  set -e
 
   if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
     klab get-gas "$hash"
