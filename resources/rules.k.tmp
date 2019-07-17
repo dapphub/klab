@@ -335,7 +335,9 @@ rule ACCTCODE in SetItem( 1 )
 
     // deal with 0
     rule  A +Int (0 -Int  C) => A -Int C
+      requires (notBool #isConcrete(C))
     rule  A -Int (0 -Int  C) => A +Int C
+      requires (notBool #isConcrete(C))
 
 
     // deal with negative concrete number
