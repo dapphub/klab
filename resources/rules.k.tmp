@@ -407,6 +407,8 @@ rule ACCTCODE in SetItem( 1 )
     //    duplicates
     rule A -Int (A +Int B) => 0 -Int B
     rule A -Int (A -Int B) => B
+    rule A -Int (B +Int (A +Int C)) => 0 -Int (B +Int C)
+    rule A -Int (B +Int (A -Int C)) => 0 -Int (B -Int C)
 
     //    concrete
     rule  A -Int (B  -Int C) => (A -Int  B) +Int C
