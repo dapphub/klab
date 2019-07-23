@@ -3,6 +3,7 @@ stdenv.mkDerivation {
   name = "klab-env";
   buildInputs = [
     autoconf
+    bc
     flex
     utillinux
     gcc
