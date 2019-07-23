@@ -128,12 +128,14 @@ const key_terms = traverse(initt);
 console.log("reading constraints: " + constraint_blobs.length + " and key terms: " + key_terms.length);
 const blobs_data = {};
 
+if(targett) {
 constraint_blobs.concat(key_terms).concat(targett.split("_")[0])
   .forEach((blobid, i) => {
     console.log(i);
     const json = JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json"))).term;
     blobs_data[blobid] = json;
   })
+}
 
 console.log("reading rules: " + rule_blobs.length);
 const rules_data = rule_blobs
