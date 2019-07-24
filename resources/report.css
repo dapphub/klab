@@ -109,7 +109,7 @@ p {
   background-color: #6f976f; }
 
 .double-val-label > span.queue {
-  background-color: #91e34f; }
+  background-color: #4fdee3; }
 
 .double-val-label > span.blocked {
   background-color: #f0ad4e; }
@@ -172,7 +172,7 @@ p {
         color: #337ab7; }
       #coverage table.total td.status.queue, #coverage table.abi td.status.queue, #coverage table.lemmas td.status.queue {
         font-weight: bold;
-        color: #91e34f; }
+        color: #4fdee3; }
     #coverage table.abi td.sig, #coverage table.lemmas td.sig {
       width: 70%;
       padding: 2px 2.5em; }
