@@ -186,3 +186,12 @@ such that
     YGas >= VGas - 109
     YGas <= VGas - 80
 ```
+
+### calls
+Lists the behaviours that this spec calls. If the listed behaviour's `_pass` proofs have been ran already, the call to the corresponding functions will be lemma-ized, and won't have to be explored again.
+
+```
+calls
+    DSToken.transferFrom
+```
+    
