@@ -118,7 +118,7 @@ do_proof () {
     result=$?
   fi;
 
-  if [ $result -eq 0 ] && [ -n "$PROVE_DUMP" ] && [[ $name =~ .*_pass_rough$ ]]; then
+  if [ $result -eq 0 ] && [[ $name =~ .*_pass_rough$ ]]; then
     klab get-gas "$hash"
     GETGAS=$?
     if [[ $GETGAS -eq 0 ]] && [ -n "$KLAB_REPORT_NAME_DIR" ]; then
@@ -128,10 +128,10 @@ do_proof () {
       savelogs "$hash"
     fi
     klab get-lemmas "$hash"
-  elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ] && [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+  elif [ $result -ne 0 ] && [ -n "$KLAB_REPORT_NAME_DIR" ]; then
     savelogs "$hash"
     klab get-lemmas "$hash"
-  elif [ $result -ne 0 ] && [ -n "$PROVE_DUMP" ]; then
+  elif [ $result -ne 0 ] ; then
     klab get-lemmas "$hash"
   fi;
 
