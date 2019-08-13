@@ -28,7 +28,7 @@ On OSX, using Homebrew, after installing the command line tools package:
 ```sh
 brew tap homebrew/cask-versions
 brew cask install caskroom/versions/java8
-brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node gnu-getopt
+brew install automake libtool gmp mpfr pkg-config pandoc maven opam z3 node gnu-getopt jq
 ```
 This project uses the `GNU` version of `getopt` and `time`. `OSX` and `gnu` have a complicated relationship but you can run:
 ```sh
