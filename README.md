@@ -14,7 +14,7 @@ Installing klab automatically installs `K` and `KEVM`. You will therefore need t
 To install all of these dependencies on Ubuntu, try:
 
 ```sh
-sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm parallel gnu-time
+sudo apt-get install make gcc maven openjdk-8-jdk flex pkg-config libmpfr-dev autoconf libtool pandoc zlib1g-dev z3 libz3-dev npm parallel gnu-time jq
 ```
 
 On ArchLinux:
