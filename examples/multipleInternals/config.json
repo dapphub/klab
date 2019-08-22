@@ -1,0 +1,18 @@
+{
+  "name": "multipleCalls",
+  "src": {
+    "smt_prelude":   "src/prelude.smt2.md",
+    "specification": "src/specification.act.md",
+    "rules": [
+      "src/lemmas.k.md",
+      "src/storage.k.md"
+    ]
+  },
+  "implementations": {
+    "ConstantTemp": {
+      "src": "src/constant.sol"
+    }
+  },
+  "dapp_root": "dapp"
+}
+
