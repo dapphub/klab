@@ -8,7 +8,7 @@ types
 
 storage
 
-  0 |-> Temperature
+  0 |-> Temperature => Temperature
 
 iff in range uint256
 
