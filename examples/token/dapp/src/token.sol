@@ -20,6 +20,7 @@ contract Token {
   }
   
   function transfer(address to, uint256 value) public {
+    require(to != msg.sender);
     balanceOf[msg.sender] = sub(balanceOf[msg.sender], value);
     balanceOf[to] = add(balanceOf[to], value);
   }

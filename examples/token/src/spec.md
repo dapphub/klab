@@ -58,13 +58,14 @@ iff in range uint256
 iff
 
     VCallValue == 0
+    CALLER_ID =/= To
 
 if
     CALLER_ID =/= To
 ```
 
 ```act
-behaviour transfer-same of Token
+failure transfer-same of Token
 interface transfer(address To, uint Value)
 
 types
@@ -82,6 +83,7 @@ iff in range uint256
 iff
 
     VCallValue == 0
+    CALLER_ID =/= To
 
 if
 
