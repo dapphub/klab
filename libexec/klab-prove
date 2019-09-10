@@ -96,7 +96,7 @@ timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/k
   "${K_FLAGS[@]}" \
   --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
   --def-module RULES \
-  --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
+  --output-omit "<jumpDests> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <block> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
   --output-flatten "_Map_ #And" \
   --z3-impl-timeout 300 --no-exc-wrap \
   --cache-func-optimized --format-failures \
