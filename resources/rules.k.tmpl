@@ -231,18 +231,21 @@ rule ACCTCODE in SetItem( 1 )
       => #asByteStackInWidthaux(0, 30, 32, nthbyteof(bool2Word(E), 31, 32) : .WordStack)
 
     // for Solidity
-    rule #asWord(WS) /Int D => #asWord(#take(#sizeWordStack(WS) -Int log256Int(D), WS))
+    rule #asWord(WS) /Int D => #asWord(WS [0 .. #sizeByteArray(WS) -Int log256Int(D)])
       requires D modInt 256 ==Int 0 andBool D >=Int 0
-       andBool #sizeWordStack(WS) >=Int log256Int(D)
-       andBool #sizeWordStack(WS) <=Int 32
+       andBool #sizeByteArray(WS) >=Int log256Int(D)
+       andBool #sizeByteArray(WS) <=Int 32
 
     // for Solidity >= 0.5.6
-    rule #asWord(WS) >>Int D => #asWord(#take(#sizeWordStack(WS) -Int (D /Int 8), WS))
+    rule #asWord(BS) >>Int D => #asWord(BS [0 .. #sizeByteArray(BS) -Int (D /Int 8)])
      requires D modInt 8 ==Int 0 andBool D >=Int 0
-       andBool #sizeWordStack(WS) >=Int (D /Int 8)
-       andBool #sizeWordStack(WS) <=Int 32
-    rule #sizeWordStack(#take(N, _)) => N
-    rule #sizeWordStack(#take(N, _), M) => N +Int M
+       andBool #sizeByteArray(BS) >=Int (D /Int 8)
+       andBool #sizeByteArray(BS) <=Int 32
+
+    rule #sizeByteArray(BS [0 .. N]) => N
+
+    rule BS [0 .. N] [0 .. M] => BS [0 .. M]
+    requires M <=Int N
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
