@@ -230,13 +230,28 @@ rule ACCTCODE in SetItem( 1 )
     rule #padToWidth(32, #asByteStack(bool2Word(E)))
       => #asByteStackInWidthaux(0, 30, 32, nthbyteof(bool2Word(E), 31, 32) : .WordStack)
 
-    // for Solidity
+      
+    // for Solidity (WORDSTACK)
+    rule #asWord(WS) /Int D => #asWord(#take(#sizeWordStack(WS) -Int log256Int(D), WS))
+      requires D modInt 256 ==Int 0 andBool D >=Int 0
+       andBool #sizeWordStack(WS) >=Int log256Int(D)
+       andBool #sizeWordStack(WS) <=Int 32
+
+    // for Solidity >= 0.5.6 (WORDSTACK)
+    rule #asWord(WS) >>Int D => #asWord(#take(#sizeWordStack(WS) -Int (D /Int 8), WS))
+     requires D modInt 8 ==Int 0 andBool D >=Int 0
+       andBool #sizeWordStack(WS) >=Int (D /Int 8)
+       andBool #sizeWordStack(WS) <=Int 32
+    rule #sizeWordStack(#take(N, _)) => N
+    rule #sizeWordStack(#take(N, _), M) => N +Int M
+
+    // for Solidity (BYTEARRAY)
     rule #asWord(WS) /Int D => #asWord(WS [0 .. #sizeByteArray(WS) -Int log256Int(D)])
       requires D modInt 256 ==Int 0 andBool D >=Int 0
        andBool #sizeByteArray(WS) >=Int log256Int(D)
        andBool #sizeByteArray(WS) <=Int 32
 
-    // for Solidity >= 0.5.6
+    // for Solidity >= 0.5.6 (BYTEARRAY)
     rule #asWord(BS) >>Int D => #asWord(BS [0 .. #sizeByteArray(BS) -Int (D /Int 8)])
      requires D modInt 8 ==Int 0 andBool D >=Int 0
        andBool #sizeByteArray(BS) >=Int (D /Int 8)
