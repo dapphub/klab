@@ -13,7 +13,7 @@ Installation
 
 This project uses the `GNU` version of `getopt` and `time`. `OSX` and `gnu` have a complicated relationship but you can run:
 ```sh
-export PATH=/usr/local/opt/gnu-getopt/bin:/usr/local/opt/gnu-time/libexec/gnubin:$PATH
+export PATH=/usr/local/opt/gnu-getopt/bin:/usr/local/opt/gnu-time/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH
 ```
 to make them get along.
 
