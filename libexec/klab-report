@@ -44,7 +44,7 @@ const build_hash = getBuildId();
 
 const config        = JSON.parse(read(path.join(KLAB_OUT, "config.tmp.json")))
 const parsed_tokens = JSON.parse(read(path.join(KLAB_OUT, "report.tmp.json")))
-const exhaustiveness= JSON.parse(read(path.join(KLAB_OUT, "exhaustiveness.tmp.json")))
+//const exhaustiveness= JSON.parse(read(path.join(KLAB_OUT, "exhaustiveness.tmp.json")))
 const prelude_path  = config.src.smt_prelude;
 const prelude_hash  = sha3(read(prelude_path)).slice(0, 40)
 const bin_runtime_k = read(path.join(KLAB_OUT, "bin_runtime.k"));
@@ -211,9 +211,8 @@ const genCoverageReport = (proofs) => {
       const abi_signatures = JSON.parse(c.abi)
         .filter(fabi => fabi.type == 'function')
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`);
-
-      const exhaustive_proof = exhaustiveness[contract_name];
-      const exhaustive_status = getStatus(exhaustive_proof.hash)
+      // const exhaustive_proof = exhaustiveness[contract_name];
+      // const exhaustive_status = getStatus(exhaustive_proof.hash)
 
       const abi_functions = abi_signatures
         .map(sig => ({
@@ -253,10 +252,10 @@ const genCoverageReport = (proofs) => {
         name: contract_name,
         abi_functions,
         lemmas,
-        exhaustive: {
-          proof: exhaustive_proof,
-          status: exhaustive_status
-        },
+        // exhaustive: {
+        //   proof: exhaustive_proof,
+        //   status: exhaustive_status
+        // },
         coverage: contract_coverage,
         total: abi_functions.concat(lemmas).reduce((a, o) => a + o.total, 0),
         totals: abi_functions.concat(lemmas).reduce((a, o) => ({
@@ -339,17 +338,16 @@ const genCoverageReport = (proofs) => {
         <span class="lemmas">lemmas:</span>
         <table class="lemmas">${lemmas_list}</table>
         `
-      const exhaust_str = `
-        <span class="lemmas">abi exhaustive:</span>
-        <span class="exhaustiveness">${badge("exhaustive", cc.exhaustive.status)}</span>
-        `
+      // const exhaust_str = `
+      //   <span class="lemmas">abi exhaustive:</span>
+      //   <span class="exhaustiveness">${badge("exhaustive", cc.exhaustive.status)}</span>
+      //   `
       return `<li class="contract_coverage">
         <span class="name">${cc.name}</span>
         <span class="progress">${Math.floor(cc.coverage)} / ${cc.total}</span>
         <table class="total">${render('')(cc.totals)}</table>
         <table class="abi">${abi_list}</table>
         ${lemmas_str}
-        ${exhaust_str}
         </li>`
     })
 
