@@ -89,7 +89,7 @@ do_proof () {
   name=$1
   hash=$(klab hash "$name")
 
-  if [[ $name =~ .*_pass$ ]] || [[ $name =~ .*_pass_oog$ ]] ; then
+  if [[ $name =~ .*_pass$ ]] || [[ $name =~ .*_fail_rough$ ]] ; then
     # do not dump _pass.k or pass_oog.k
     PROVE_DUMP=""
   else
