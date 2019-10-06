@@ -154,19 +154,26 @@ const getBadges = (cases, act) => {
       const errPath = path.join(KLAB_OUT, "log", s.proofid + ".err.log");
       const zipPath = path.join(KLAB_OUT, "log", s.proofid + ".zip");
       const gasPath = path.join(KLAB_OUT, "gas", s.proofid + ".all.json");
+      const gasAnalysisPath = path.join(KLAB_OUT, "gasanalysis", s.proofid + ".txt");
 
       const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
       const hasOut = testPath(outPath) && read(outPath).trim() !== "";
       const hasErr = testPath(errPath) && read(errPath).trim() !== "";
       const hasZip = testPath(zipPath);
       const hasGas = testPath(gasPath);
+      const hasGasAnalysis = testPath(gasAnalysisPath)
 
       const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
 
       proof_info.push(td(accepted ? [
         hasGas && sspan(h(['a', `href="/${config.name}/${s.proofid}.all.json"`])('gas')) || sspan("no-gas"),
       ] : ""))
+      
+      proof_info.push(td(accepted ? [
+        hasGasAnalysis && sspan(h(['a', `href="/${config.name}/${s.proofid}.txt"`])('gasanalysis') ) || sspan("no-gas-analysis"),
+      ] : ""))
 
+      
       proof_info.push(td(rejected ? [
         hasOut && sspan(h(['a', `href="/${config.name}/${s.proofid}.log"`])('stdout')) || "",
         hasErr && sspan(h(['a', `href="/${config.name}/${s.proofid}.err.log"`])('stderr')) || "",
