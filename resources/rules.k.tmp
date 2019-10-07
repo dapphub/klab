@@ -24,7 +24,16 @@
     rule #range(WM, START, WIDTH) => #range(WM, START +Int WIDTH -Int 1, WIDTH, .WordStack)
 
     rule WM[ N := W : WS     ] => (WM[N <- W])[N +Int 1 := WS]
+    rule WM[ N := #take(M, WS) ] => WM [ N := asnthbyte(0, M, #take(M, WS)) ]
+     
+    syntax WordStack ::= asnthbyte ( Int , Int , WordStack ) [function]
+    syntax Int ::= nthbyte ( Int , Int , WordStack ) [function]
 
+    rule asnthbyte(N, M, WS) => nthbyte(N, M, WS) : asnthbyte(N +Int 1, M, WS) requires N <Int M
+    rule asnthbyte(M, M, WS) => .WordStack
+
+    
+    
     //semantics of #buf
     rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES ))
 
