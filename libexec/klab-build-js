@@ -18,6 +18,7 @@ const {
   parseAct,
   buildAct,
   buildActs,
+  makeInterabiExhaustiveness,
   caseSplitAct,
   newCleanup
 }                   = require("../lib/build.js");
@@ -95,40 +96,40 @@ config.get_proof_hash = ({name, spec}) => {
   return sha3(JSON.stringify(proof))
 }
 
-// const exhaustiveness_obligations = [];
-// const exhaustiveness = {};
+const exhaustiveness_obligations = [];
+const exhaustiveness = {};
 
-// Object.keys(config.implementations)
-//   .forEach(alias => {
-//     const cname = config.implementations[alias].name
-//     const name = alias + "__exhaustiveness";
-//     const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
+Object.keys(config.implementations)
+  .forEach(alias => {
+    const cname = config.implementations[alias].name
+    const name = alias + "__exhaustiveness";
+    const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
 
-//     // TODO - write meta/data and name
+    // TODO - write meta/data and name
 
-//     fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), id);
-//     // hash -> data
-//     fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", id), JSON.stringify({
-//       name,
-//       src: config.src,
-//       srcs: config.srcs,
-//       contracts: config.contracts,
-//       implementations: config.implementations
-//     }));
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), id);
+    // hash -> data
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", id), JSON.stringify({
+      name,
+      src: config.src,
+      srcs: config.srcs,
+      contracts: config.contracts,
+      implementations: config.implementations
+    }));
 
-//     fs.writeFileSync(path.join(KLAB_OUT, "specs", `${id}.k`), module)
+    fs.writeFileSync(path.join(KLAB_OUT, "specs", `${id}.k`), module)
 
-//     if(status == "????") {
-//       console.log(id, name);
-//       exhaustiveness_obligations.push(name)
-//     }
-//     exhaustiveness[cname] = {
-//       hash: id,
-//       name,
-//       spec: module,
-//       status
-//     }
-//   })
+    if(status == "????") {
+      console.log(id, name);
+      exhaustiveness_obligations.push(name)
+    }
+    exhaustiveness[cname] = {
+      hash: id,
+      name,
+      spec: module,
+      status
+    }
+  })
 
 
 // 1. get acts
