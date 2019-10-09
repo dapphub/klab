@@ -159,7 +159,7 @@ make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
-  parallel -u -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
+  parallel -u -P "$THREADS" --halt now,fail=1 do_proof {} < "$OBLIGATIONS" & parallel_id=$!
   trap 'echo "Trapped SIGTERM in klab-prove-all" && kill -s INT $parallel_id && exit 1' TERM
   trap 'echo "Trapped SIGINT  in klab-prove-all" && kill -s INT $parallel_id && exit 1' INT
   wait $parallel_id
@@ -207,6 +207,7 @@ while [ -s "$OBLIGATIONS" ]; do
   if [ $result -gt 100 ]; then exit 1; fi
   # parallel exit code is number of failures
   failures+=$result
+  if [ $result -gt 0 ]; then exit 1; fi
   count=$((count+1))
 done;
 echo "${bold}COMPLETE${reset}: no outstanding proof obligations."
