@@ -32,8 +32,7 @@
     rule asnthbyte(N, M, WS) => nthbyte(N, M, WS) : asnthbyte(N +Int 1, M, WS) requires N <Int M
     rule asnthbyte(M, M, WS) => .WordStack
 
-    
-    
+   
     //semantics of #buf
     rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES ))
 
@@ -284,6 +283,8 @@ rule ACCTCODE in SetItem( 1 )
 
     rule N <<Int 0 => N
     rule N >>Int 0 => N
+
+    rule A xorInt B ==K 0 => A ==Int B
 
     rule (I1 +Int I2) +Int I3 => I1 +Int (I2 +Int I3) when #isConcrete(I2) andBool #isConcrete(I3)
     rule (I1 +Int I2) -Int I3 => I1 +Int (I2 -Int I3) when #isConcrete(I2) andBool #isConcrete(I3)
