@@ -21,7 +21,7 @@ clean:
 	git submodule sync --recursive
 	git submodule update --init evm-semantics
 
-deps: deps-kevm deps-npm
+deps: deps-kevm deps-npm deps-haskell
 
 deps-kevm:
 	git submodule update --init evm-semantics
