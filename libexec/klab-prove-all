@@ -130,6 +130,7 @@ do_proof () {
       klab gas-analyser --input "$GAS_DIR/${hash}.all.json" --no-stratify --reduce min | jq '.[0]' | sed s/\"// >> $GAS_ANALYSIS
       echo "max:" >> $GAS_ANALYSIS
       klab gas-analyser --input "$GAS_DIR/${hash}.all.json" --no-stratify --reduce max | jq '.[0]' | sed s/\"// >> $GAS_ANALYSIS
+      cp $GAS_ANALYSIS "$KLAB_REPORT_NAME_DIR"
     elif [ -n "$KLAB_REPORT_NAME_DIR" ]; then
       echo "${magenta}Proof ${bold}BADGAS${reset}: $hash [$name]"
       savelogs "$hash"
