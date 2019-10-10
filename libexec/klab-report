@@ -154,7 +154,7 @@ const getBadges = (cases, act) => {
       const errPath = path.join(KLAB_OUT, "log", s.proofid + ".err.log");
       const zipPath = path.join(KLAB_OUT, "log", s.proofid + ".zip");
       const gasPath = path.join(KLAB_OUT, "gas", s.proofid + ".all.json");
-      const gasAnalysisPath = path.join(KLAB_OUT, "gasanalysis", s.proofid + ".txt");
+      const gasAnalysisPath = path.join(KLAB_OUT, "gas", s.proofid + ".gas_analysis.txt");
 
       const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
       const hasOut = testPath(outPath) && read(outPath).trim() !== "";
@@ -170,7 +170,7 @@ const getBadges = (cases, act) => {
       ] : ""))
       
       proof_info.push(td(accepted ? [
-        hasGasAnalysis && sspan(h(['a', `href="/${config.name}/${s.proofid}.txt"`])('gasanalysis') ) || sspan("no-gas-analysis"),
+        hasGasAnalysis && sspan(h(['a', `href="/${config.name}/${s.proofid}.gas_analysis.txt"`])('gas') ) || sspan("no-gas-analysis"),
       ] : ""))
 
       
