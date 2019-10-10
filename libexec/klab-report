@@ -92,6 +92,13 @@ const mapCaseStatus = cases => cases
     };
     if(status == 'accept' || status == 'reject' || status == 'timeout' || status == 'aborted') {
       ret.exit = read(path.join(KLAB_OUT, status, proofid)).trim()
+      const analysis_path = path.join(KLAB_OUT, `gas/${proofid}.gas_analysis.txt`)
+      let proof_gas
+      if (status == 'accept' && testPath(analysis_path)) {
+        console.log('proof gas:')
+        proof_gas = Number(read(analysis_path).split('max:\n')[1])
+        console.log(proof_gas)
+      }
 
       const stopped = new Date(fs.statSync(path.join(KLAB_OUT, status, proofid)).mtime);
       const started = testPath(path.join(KLAB_OUT, 'started', proofid))
@@ -100,6 +107,7 @@ const mapCaseStatus = cases => cases
       const cpu_time = testPath(path.join(KLAB_OUT, 'meta', 'time', proofid))
         ? read(path.join(KLAB_OUT, 'meta', 'time', proofid)).match(/\d*/)[0] : null
 
+      ret.proof_gas = proof_gas;
       ret.stopped = moment(stopped).format('YYYY-MM-DD, HH:mm');
       ret.started = moment(started).format('YYYY-MM-DD, HH:mm');
       const format = s => Math.floor(s / 60) + ' min ' + (s % 60) + ' sec'
@@ -366,24 +374,6 @@ const genCoverageReport = (proofs) => {
   return `<ul class="contract_coverage">${[total_coverage].concat(contract_coverage).join('\n')}</ul>`
 }
 
-const stats_object = [
-  ["Klab version", `<a href="https://github.com/dapphub/klab/tree/${klab_HEAD}">${klab_HEAD}</a>`],
-  ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`],
-  ["bin_runtime", `<a href="bin_runtime.k">${bin_runtime_hash}</a>`]
-].concat(
-  project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
-).concat(
-  rule_paths.map((rule_path, i) => [path.basename(rule_path), h(["a", `href="${path.basename(rule_path)}"`])(rule_hashes[i])])
-).concat(
-  prelude_path ? [[path.basename(prelude_path), h(["a", `href="${path.basename(prelude_path)}"`])(prelude_hash)]] : []
-)
-
-const stats = table(
-    stats_object
-      .map(([k, v]) => tr(td(k) + td(v)))
-      .join("\n")
-)
-
 const case_map = parsed_tokens
   .filter(o => o.type == 'code' && o.lang === "act")
   .map(e => e.cases)
@@ -395,6 +385,9 @@ const proofs = parsed_tokens
   .map(o => {
     const contract_name = config.implementations[o.obj.subject];
     const cstatus = mapCaseStatus(o.cases)
+    const total_gas = cstatus.filter(o => o.status == 'accept' && -1 < o.spec.indexOf('pass') )
+          .reduce((acc, cur) => cur.proof_gas + acc, 0)
+    console.log("accumulated gas: " + total_gas)
     return {
       contract: contract_name.name,
       sig: o.obj.signature || "lemma." + o.obj.name,
@@ -405,6 +398,7 @@ const proofs = parsed_tokens
       aborted: cstatus.filter(o => o.status == 'aborted').length,
       queue: cstatus.filter(o => o.status == 'queue').length,
       total: cstatus.length,
+      success_gas_sum: total_gas,
       proofs: cstatus
     }
   })
@@ -424,6 +418,31 @@ const proofs = parsed_tokens
     }
     return a;
   }, {})
+
+
+const gasList = Object.keys(proofs).map(key => proofs[key].success_gas_sum)
+const sumgas = gasList.reduce((acc, cur) => acc + cur, 0)
+
+const stats_object = [
+  ["Klab version", `<a href="https://github.com/dapphub/klab/tree/${klab_HEAD}">${klab_HEAD}</a>`],
+  ["EVM-semantics version", `<a href="https://github.com/kframework/evm-semantics/tree/${EVM_SEMANTICS_VERSION}">${EVM_SEMANTICS_VERSION}</a>`],
+  ["bin_runtime", `<a href="bin_runtime.k">${bin_runtime_hash}</a>`]
+].concat(
+  project_HEAD ? [[config.name + " version", `<a href="${config.url}/tree/${project_HEAD}">${project_HEAD}</a>`]] : []
+).concat(
+  rule_paths.map((rule_path, i) => [path.basename(rule_path), h(["a", `href="${path.basename(rule_path)}"`])(rule_hashes[i])])
+).concat(
+  prelude_path ? [[path.basename(prelude_path), h(["a", `href="${path.basename(prelude_path)}"`])(prelude_hash)]] : []
+).concat(
+  [["Sum of maxgas of all functions:", `<a>${sumgas}</a>`]])
+
+const stats = table(
+    stats_object
+      .map(([k, v]) => tr(td(k) + td(v)))
+      .join("\n")
+)
+
+
 
 const enriched_tokens = [{
   type: 'html',
@@ -451,7 +470,8 @@ const json_report = {
     proofs
   },
   url: config.url,
-  name: config.name
+  name: config.name,
+  totalGas: sumgas
 }
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'report.json'), JSON.stringify(json_report))
 console.log(new Date());
