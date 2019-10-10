@@ -170,7 +170,7 @@ const getBadges = (cases, act) => {
       ] : ""))
       
       proof_info.push(td(accepted ? [
-        hasGasAnalysis && sspan(h(['a', `href="/${config.name}/${s.proofid}.gas_analysis.txt"`])('gas') ) || sspan("no-gas-analysis"),
+        hasGasAnalysis && sspan(h(['a', `href="/${config.name}/${s.proofid}.gas_analysis.txt"`])('gas-analysis') ) || sspan("no-gas-analysis"),
       ] : ""))
 
       
