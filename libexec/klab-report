@@ -470,8 +470,7 @@ const json_report = {
     proofs
   },
   url: config.url,
-  name: config.name,
-  totalGas: sumgas
+  name: config.name
 }
 fs.writeFileSync(path.join(KLAB_OUT, 'report', 'report.json'), JSON.stringify(json_report))
 console.log(new Date());
