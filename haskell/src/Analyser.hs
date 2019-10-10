@@ -24,7 +24,8 @@ import KastParse (kastToGasExpr)
 import Solver    (solve,
                   normalise,
                   cosolve,
-                  maxLeaf)
+                  maxLeaf,
+                  reduceGas)
 
 -- input argument is either a path or stdin flag
 data Input
@@ -58,7 +59,8 @@ data AnalyserArgs = AnalyserArgs {
   noCosolveMode       :: Bool,
   noStratifyMode      :: Bool,
   noSolveMode         :: Bool,
-  stratifyDepth       :: Int
+  stratifyDepth       :: Int,
+  reduce              :: String
   }
 
 analyserParser :: Parser AnalyserArgs
@@ -94,6 +96,12 @@ analyserParser = AnalyserArgs
                  <> showDefault
                  <> value 2
                  <> metavar "DEPTH")
+                 <*> strOption
+                 (long "reduce"
+                 <> help "Type of reduction to perform on the solved gas tree."
+                 <> showDefault
+                 <> value ""
+                 <> metavar "REDUCTION")
 
 data StratifiedResult = StratifiedResult
   { constructors   :: [String]
@@ -136,12 +144,20 @@ main = do
         (eitherDecode (fromString s))
       -- parse into BasicGasExpr
       gs = kastToGasExpr <$> gaskasts
+      reduceOn = case (reduce args) of
+        "" -> False
+        _ -> True
+      reducer = case (reduce args) of
+        "max" -> max
+        "min" -> min
+        "" -> (+)
       -- solve (or not), etc.
-      solved = (case (solveOn, laxOn, cosolveOn) of
-        (False, False, _)     -> id
-        (True,  True,  _)     -> coerce . maxLeaf . (solve maxG)
-        (True, False,  False) -> coerce . (solve maxG)
-        (True, False,  True)  -> coerce . cosolve . (solve maxG)
+      solved = (case (solveOn, laxOn, cosolveOn, reduceOn) of
+        (False, False, _, _)       -> id
+        (True,  True,  _, _)       -> coerce . maxLeaf . (solve maxG)
+        (True, False, False, _)    -> coerce . (solve maxG)
+        (True, False, True, False) -> coerce . cosolve . (solve maxG)
+        (True, False, True, True)  -> coerce . (reduceGas reducer) . (solve maxG)
         _ -> error "error: illegal combination of flags.") <$> gs
       -- stratify and merge the stratification maps
       -- min ensures we stratify each expr at least once

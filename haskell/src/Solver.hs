@@ -261,3 +261,19 @@ maxLeaf :: ConstantGasExpr -> ConstantGasExpr
 maxLeaf (Value n) = (Value n)
 maxLeaf (ITE _ e f) = max (maxLeaf e) (maxLeaf f)
 maxLeaf _ = error "maxLeaf applied to nontrivial algebraic expression."
+
+reduceGas :: (Int -> Int -> Int) -> ConstantGasExpr -> ConstantGasExpr
+reduceGas m (Value x) = Value x
+reduceGas m (ITE c e f) =
+  let Value x1 = reduceGas m e
+      Value x2 = reduceGas m f in
+    Value (m x1 x2)
+reduceGas m (Binary Add e f) =
+  let Value x1 = reduceGas m e
+      Value x2 = reduceGas m f in
+    Value (x1 + x2)
+reduceGas m (Binary Sub e f) =
+  let Value x1 = reduceGas m e
+      Value x2 = reduceGas m f in
+    Value (x1 - x2)
+reduceGas _ _ = error "whoops"
