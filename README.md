@@ -48,7 +48,7 @@ PREFIX=/path/to/custom/prefix make link
 The file `env` will setup the environment for you if sourced from the root directory of the repo.
 
 ```sh
-source env
+source ./env
 ```
 
 It sets three environment variables:
