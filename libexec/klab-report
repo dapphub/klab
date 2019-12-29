@@ -208,7 +208,7 @@ const genCoverageReport = (proofs) => {
   const coverage = Object.keys(config.contracts)
     .map(contract_name => {
       const c = config.contracts[contract_name];
-      const abi_signatures = JSON.parse(c.abi)
+      const abi_signatures = c.abi
         .filter(fabi => fabi.type == 'function')
         .map(fabi => `${fabi.name}(${fabi.inputs.map(i => i.type).join(',')})`);
 
