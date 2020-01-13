@@ -1,4 +1,10 @@
-with import <nixpkgs> {};
+with import (builtins.fetchGit rec {
+  name = "nixpkgs-19.09-${rev}";
+  url = https://github.com/nixos/nixpkgs;
+  ref = "nixos-19.09";
+  # git ls-remote https://github.com/nixos/nixpkgs-channels nixos-19.09
+  rev = "9f453eb97ffe261ff93136757cd08b522fac83b7";
+}) {};
 stdenv.mkDerivation {
   name = "klab-env";
   buildInputs = [
