@@ -42,7 +42,7 @@
         "receiptsRoot": "_",
         "logsBloom": "_",
         "difficulty": "_",
-        "number": "_",
+        "number": "BLOCK_NUMBER",
         "gasLimit": "_",
         "gasUsed": "_",
         "timestamp": "TIME",
