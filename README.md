@@ -157,6 +157,47 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 -   `klab report` - Generates a html report of the current project state in `out/report/index.html`.
 -   `klab help` - Generates this view
 
+### Configuration
+
+The `config.json` file is used to configure klab.
+
+Here's an example:
+
+```json
+{
+  "name": "k-dss",
+  "url": "https://github.com/dapphub/k-dss",
+  "src": {
+    "specification": "./src/dss.md",
+    "smt_prelude": "./src/prelude.smt2.md",
+    "rules": [
+      "./src/storage.k.md",
+      "./src/lemmas.k.md"
+    ],
+    "dirty_rules": [
+      "./src/dirty_lemmas.k.md"
+    ]
+  },
+  "implementations": {
+    "Vat": {
+      "src": "src/vat.sol"
+    },
+    "Vow": {
+      "src": "src/vow.sol"
+    },
+  },
+  "timeouts": {
+    "Vat_grab_pass_rough": "16h",
+  },
+  "memory" : {
+    "Vat_frob-diff-nonzero_fail_rough": "25G",
+  },
+  "dapp_root": "./dss",
+  "solc_output_path": "out/dapp.sol.json",
+  "host": "127.0.0.1:8080"
+}
+```
+
 
 ### Zsh completions
 
