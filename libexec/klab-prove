@@ -94,6 +94,7 @@ trap 'echo "Trapped SIGTERM in klab-prove" && kill $kprove_child' TERM
 trap 'echo "Trapped SIGINT in klab-prove"  && kill $kprove_child' INT
 timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/kprove" \
   "${K_FLAGS[@]}" \
+  --skip-invoking-backend \
   --directory "$KLAB_EVMS_PATH/.build/defn/java/" \
   --def-module RULES \
   --output-omit "<programBytes> <program> <code> <previousGas> <touchedAccounts> <interimStates> <callStack> <callData> <substate> <previousHash> <ommersHash> <stateRoot> <transactionsRoot> <receiptsRoot> <logsBloom> <difficulty> <number> <gasLimit> <callGas> <extraData> <mixHash> <blockNonce> <ommerBlockHeaders> <blockhash> <txOrder> <txPending> <messages> #mkCall________EVM #callWithCode_________EVM" \
