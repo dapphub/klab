@@ -170,7 +170,7 @@ make_batch () {
     exit $result
   else
     echo "batch ${bold}COMPLETE${reset} ($result): no outstanding proof obligations."
-    klab build;
+    klab build >/dev/null
     return $result
   fi;
 }
