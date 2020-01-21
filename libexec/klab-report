@@ -443,7 +443,8 @@ fs.writeFileSync(path.join(KLAB_OUT, 'report', 'index.html'), htmlString);
 const json_report = {
   [build_hash]: {
     date: new Date(),
-    proofs
+    proofs,
+    git: project_HEAD
   },
   url: config.url,
   name: config.name
