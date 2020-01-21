@@ -139,7 +139,7 @@ timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/k
   --output json \
   --boundary-cells k,pc \
   --smt_prelude "$KLAB_OUT/prelude.smt2" \
-  --concrete-rules "$KLAB_OUT/concrete-rules" \
+  --concrete-rules EDSL.keccakIntList \
   --z3-tactic "(or-else (using-params smt :random-seed 3) (using-params smt :random-seed 2) (using-params smt :random-seed 1))" \
   "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
 wait "$kprove_child"
