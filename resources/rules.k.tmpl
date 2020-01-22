@@ -513,3 +513,7 @@ rule M [ START := WS ]       => storeRange(M, START, #sizeWordStack(WS), WS) req
 // shouldn't have the infinite rule application
 rule select(M, K)                 => #lookup(M, K)           [concrete]
 rule selectRange(M, START, WIDTH) => #range(M, START, WIDTH) [concrete]
+
+// we want symbolic arguments to remain in #buf form.
+rule #padToWidth(32, #asByteStack(V)) => #buf(32, V)
+      requires 0 <=Int V andBool V <Int pow256
