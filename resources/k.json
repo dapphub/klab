@@ -3,7 +3,7 @@
     "k": "VKCell",
     "exit-code": "1",
     "mode": "NORMAL",
-    "schedule": "PETERSBURG",
+    "schedule": "ISTANBUL",
     "ethereum": {
       "evm": {
         "output": "_ => VOutput",
