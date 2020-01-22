@@ -19,6 +19,7 @@ stdenv.mkDerivation {
     gnumake
     jq
     maven
+    nix
     mpfr
     ncurses
     nodejs-10_x
@@ -29,6 +30,7 @@ stdenv.mkDerivation {
     pkgconfig
     python
     python3
+    time
     wget
     zip
     z3
