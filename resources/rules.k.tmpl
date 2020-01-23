@@ -193,7 +193,10 @@ rule ACCTCODE in SetItem( 1 )
 
     syntax IntList ::= bytesToWords ( WordStack )       [function]
 
- // --------------------------------------------------------------
+    rule BS [0 .. M] [0 .. N ] => BS [ 0 .. N]
+      requires N <=Int M
+
+// --------------------------------------------------------------
     rule bytesToWords ( WS )
          => #asWord(#take(#sizeWordStack(WS) modInt 32, WS)) byteStack2IntList(#drop(#sizeWordStack(WS) modInt 32, WS))
          requires 0 <Int #sizeWordStack(WS) modInt 32
