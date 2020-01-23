@@ -108,13 +108,6 @@ concrete_rules=(
   EVM.#lookup.some
   EVM.#lookup.none
   EVM.#memoryUsageUpdate.some
-  EVM.Cgascap
-  EVM.Csstore.new
-  EVM.Csstore.old
-  EVM.Rsstore.new
-  EVM.Rsstore.old
-  EVM.Cextra
-  EVM.Cmem
   SERIALIZATION.keccak
   SERIALIZATION.#newAddr
   SERIALIZATION.#newAddrCreate2
