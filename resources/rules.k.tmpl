@@ -62,7 +62,7 @@ rule ACCTCODE in SetItem( 1 )
       
     // for Solidity (WORDSTACK)
     rule #asWord(WS) /Int D => #asWord(#take(#sizeWordStack(WS) -Int log256Int(D), WS))
-      requires D modInt 256 ==Int 0 andBool D >=Int 0
+       requires D ==Int 256 ^Int log256Int(D) andBool D >=Int 0
        andBool #sizeWordStack(WS) >=Int log256Int(D)
        andBool #sizeWordStack(WS) <=Int 32
 
@@ -76,7 +76,7 @@ rule ACCTCODE in SetItem( 1 )
 
     // for Solidity (BYTEARRAY)
     rule #asWord(WS) /Int D => #asWord(WS [0 .. #sizeByteArray(WS) -Int log256Int(D)])
-      requires D modInt 256 ==Int 0 andBool D >=Int 0
+       requires D ==Int 256 ^Int log256Int(D) andBool D >=Int 0
        andBool #sizeByteArray(WS) >=Int log256Int(D)
        andBool #sizeByteArray(WS) <=Int 32
 
