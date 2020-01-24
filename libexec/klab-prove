@@ -107,6 +107,8 @@ concrete_rules=(
   EVM-TYPES.#padRightToWidth
   EVM.#lookup.some
   EVM.#lookup.none
+  EVM.Csstore.new
+  EVM.Csstore.old
   EVM.#memoryUsageUpdate.some
   SERIALIZATION.keccak
   SERIALIZATION.#newAddr
