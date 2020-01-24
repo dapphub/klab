@@ -305,7 +305,12 @@ rule ACCTCODE in SetItem( 1 )
     rule #if C #then (#if C #then B1 #else B2 #fi) -Int D #else (#if C #then B3 #else B4 #fi) -Int E #fi =>
          #if C #then B1 -Int D #else B4 -Int E #fi
 
-    // propagate stuff out of #ifs
+
+    // avoid nested #ifte
+    rule #if C1 #then A #else (B +Int #if C2 #then B2 #else B3 #fi) #fi =>
+         #if C1 #then A #else B #fi +Int #if (C2 andBool notBool C1) #then B2 #else 0 #fi +Int #if ((notBool C2) andBool (notBool C1)) #then B3 #else 0 #fi
+
+   // propagate stuff out of #ifs
 
     rule #if C #then X #else Y #fi => Y +Int #if C #then X -Int Y #else 0 #fi
       requires #isConcrete(X)
