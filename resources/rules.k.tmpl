@@ -310,8 +310,11 @@ rule ACCTCODE in SetItem( 1 )
     rule #if C1 #then A #else (B +Int #if C2 #then B2 #else B3 #fi) #fi =>
          #if C1 #then A #else B #fi +Int #if (C2 andBool notBool C1) #then B2 #else 0 #fi +Int #if ((notBool C2) andBool (notBool C1)) #then B3 #else 0 #fi
 
-   // propagate stuff out of #ifs
+   //simplify trivial #ifs
+   rule #if C1 #then A #else B #fi => A
+      requires A ==K B
 
+   // propagate stuff out of #ifs
     rule #if C #then X #else Y #fi => Y +Int #if C #then X -Int Y #else 0 #fi
       requires #isConcrete(X)
       andBool  #isConcrete(Y)
