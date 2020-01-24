@@ -62,7 +62,7 @@ loadJSON(json => {
     };
   }
 
-  const map = Object.keys(json)
+  const m = Object.keys(json)
     .map(hash => ({
       ...json[hash],
       hash
@@ -80,7 +80,7 @@ loadJSON(json => {
       return i == 0 || (!grouped_proofs.running) && (accepted_num > 0 || rejected_num > 0)
     })
 
-  const html = map
+  const html = m
     .map((o, i) => {
       const {
         prooflist,
@@ -96,8 +96,8 @@ loadJSON(json => {
         .map(o => o.spec)
 
       var diff = '';
-      if(i == 0 && map.length > 1) {
-        const diff_basis = process_proofs(map[1].proofs)
+      if(i == 0 && m.length > 1) {
+        const diff_basis = process_proofs(m[1].proofs)
         const types = ['accept', 'reject']
         const do_diff = type => {
           const da = (diff_basis.grouped_proofs[type] || [])
@@ -142,6 +142,7 @@ loadJSON(json => {
         h(["div", 'class="proofinfo"'])([
           h(["div", 'class="link"'])([
             h(['a', `href="${o.hash}"`])(o.hash),
+            h(['a', 'class="git-hash"', `href="${o.git}"`])(`(git: ${o.git}`),
             h(['div', 'class="info"'])([
               date(o.date),
               h(['span', 'class="running"'])(running ? 'running (' + skip.length + ')' : '')
