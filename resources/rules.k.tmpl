@@ -188,8 +188,9 @@ rule ACCTCODE in SetItem( 1 )
                  SetItem ( 6 )
                  SetItem ( 7 )
                  SetItem ( 8 )
+                 SetItem ( 9 )
                  => false
-     requires 9 <=Int ACCTCODE
+     requires ACCTCODE ==Int 0 orBool 10 <=Int ACCTCODE
 
     syntax IntList ::= bytesToWords ( WordStack )       [function]
 
@@ -503,7 +504,7 @@ rule A modInt pow160 => A
 
 syntax Bool ::= #notPrecompileAddress ( Int ) [function]
 // ---------------------------------------
-rule #notPrecompileAddress ( X ) => 0 <Int X andBool 9 <=Int X andBool #rangeAddress(X)
+rule #notPrecompileAddress ( X ) => 0 ==Int X orBool 10 <=Int X andBool #rangeAddress(X)
 
 // ABSTRACT SEMANTICS.k
 
