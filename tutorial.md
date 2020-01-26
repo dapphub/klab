@@ -104,7 +104,7 @@ running `klab build` from the root of the `tutorial` directory. It is structured
 
 It is recomended that before continuing you open this file in a text editor on a machine with `klab` installed.
 
-## Basic Syntax
+## Basic Syntax And Proof Exploration
 
 `act` is a concise, declarative, specification DSL for ethereum smart contracts that compiles into
 `K` reachability claims.
@@ -137,38 +137,20 @@ klab focus Trivial_one_pass_rough
 klab prove --dump
 ```
 
-This will take a few minutes. Lets discuss some syntax while you wait.
+This will take a few minutes.
 
 `act` specs are intended to be comprehensible by both humans and machines, and are therefore are
 written in a literate style as embedded code blocks within markdown files. Code blocks that are not
 annotated with `act` will be ignored by `klab build`.
 
-An `act` spec is split up into behaviours. a behaviour describes the state transitions made by a
-single call to a single method on a smart contract. A single method can have multiple specs, each
-describing the behaviour of the method over some range of input conditions. By default a behaviour
-will cover all possible inputs to the method.
+Speaking precisely, the above `act` declares that every call to an address containing the contract
+`Trivial`, where the first four bytes of calldata are the first four bytes of `keccak256("one()")`,
+will always return a 256bit word with the lowest order bit set to `1`.
 
-Each `behaviour` has a name (`one` in the spec above). By convention behaviours are named following
-the method they describe, but this is not required. A `behaviour` is associated with a specific
-smart contract (`Trivial` in the spec above), mappings between contract names and evm bytecode are
-made in `klab`'s `config.json` file.
-
-A `behaviour` declaration is followed by an `interface` declaration that describes the solidity
-signature of the method to be specified. The syntax is the same as that in solidity, with return
-types and modifiers are omitted.
-
-The final part of the spec is a `returns` declaration, which states that the method returns the
-concrete value `1` for all inputs.
-
-To be precise, the above `act` behaviour declares that every call to an address containing the
-bytecode represented by the name `Trivial`, where the first four bytes of calldata are the first four
-bytes of `keccak256("one()")`, will always return a 256bit word with the lowest order bit set to `1`.
-
-## Proof Exploration
+A full description of the `act` syntax can be found [here](https://github.com/dapphub/klab/blob/master/acts.md).
+You should go skim through it while you wait for the spec to prove.
 
 Once the proof has succeeded, run `klab debug` to start the interactive proof explorer. You will
 initially be presented with a blank screen. press `e` to bring up the `evm` view. press `s` to bring
 up the `solidity` view. You should see something that looks like a traditional debugger. Press `n`
 to move forward one step, and `p` to move backwards.
-
-Step through
