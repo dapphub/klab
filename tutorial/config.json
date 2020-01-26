@@ -1,0 +1,19 @@
+{
+  "name": "klab-tutorial",
+  "url": "https://github.com/dapphub/klab/",
+  "src": {
+    "specification": "./tutorial.act.md",
+    "smt_prelude": "./prelude.smt2.md",
+    "rules": [
+      "./storage.k.md",
+      "./lemmas.k.md"
+    ]
+  },
+  "implementations": {
+    "Trivial": {
+      "src": "contracts/contracts.sol"
+    }
+  },
+  "dapp_root": "."
+}
+

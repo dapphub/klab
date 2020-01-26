@@ -113,8 +113,8 @@ Consider the following trivial smart contract:
 
 ```solidity
 contract Trivial {
-  function one() payable returns uint {
-    returns 1;
+  function one() public payable returns (uint) {
+    return 1;
   }
 }
 ```
