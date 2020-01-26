@@ -7,15 +7,24 @@ SOLC_FLAGS=
 
 TUTORIAL_FILE=tutorial.act.md
 
-prove: dapp
-	nix-shell --pure --command "make prove.shell"
+GC_ROOTS=.gcroots
+NIX_SHELL=nix-shell --pure --indirect --add-root $(GC_ROOTS)/$@ --command
+
+all: prove
+
+# --- prove ---
+
+prove: .gcroots
+	cd .. && pwd && $(NIX_SHELL) "cd tutorial && make $@.shell"
 
 prove.shell:
 	klab build
 	klab prove-all --dump
 
-dapp:
-	nix-shell --pure --command "make dapp.shell"
+# --- dapp ---
+
+dapp: .gcroots
+	$(NIX_SHELL) "make $@.shell"
 
 dapp.shell:
 	mkdir -p $(DAPP_DIR)/$(DAPP_SRC)
@@ -24,3 +33,7 @@ dapp.shell:
 	dapp --version
 	cd $(DAPP_DIR) && DAPP_SRC=$(DAPP_SRC) DAPP_SOLC_VERSION=$(SOLC_VERSION) SOLC_FLAGS=$(SOLC_FLAGS) dapp build && cd -
 
+# --- gcroots ---
+
+.gcroots:
+	mkdir -p $(GC_ROOTS)
