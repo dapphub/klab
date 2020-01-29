@@ -6,8 +6,8 @@ using `klab`. No prior knowledge of formal methods or programming language theor
 This tutorial will teach you how to model smart contracts, using techniques built upon a rigorous formal
 grounding, and determine whether a given configuration of `EVM` bytecode faithfully implements the model.
 
-To put it in more practical terms, you will learn how to define tests for methods of solidity smart
-contracts, that describe *all possible behaviours* of the method.
+To put it in more terms that may be more familliar: you will learn how to define tests for methods
+on solidity smart contracts, that describe *all possible behaviours* of the method.
 
 This tutorial is concerned with the hard practicalities of formal verification, not the theoretical
 foundations. It is hands on and practical. You do not need to be a mathemetician to follow along.
@@ -15,10 +15,10 @@ foundations. It is hands on and practical. You do not need to be a mathemetician
 ## Why Verify Formally
 
 Humans are bad at fully grasping the complexity of even very small software systems. Unit tests have
-been proven to be very ineffective at actually finding bugs. Formal methods give us the tools we
-need to ensure critical system invariants with a very high degree of confidence.
+proven to be very ineffective at actually finding bugs. Formal methods give us the tools we need to
+ensure critical system invariants with a very high degree of confidence.
 
-In addition the process of generating a mathematically rigourus description of a software system
+In addition, the process of generating a mathematically rigourus description of a software system
 nescessitates the kind of close reading and detailed attention that builds deep understanding and
 itself helps to uncover bugs.
 
@@ -26,9 +26,9 @@ itself helps to uncover bugs.
 
 ### `klab`
 
-`klab` is a thin convenience wrapper around the [`K` framework](http://www.kframework.org/index.php/Main_Page), and in particular the
-[`evm-semantics`](https://github.com/kframework/evm-semantics). It was developed as part of the work
-on formally verifying the smart contracts for [multi collateral Dai](https://github.com/dapphub/k-dss).
+`klab` is a thin convenience wrapper around the [`K` framework](http://www.kframework.org/index.php/Main_Page),
+and in particular the [`evm-semantics`](https://github.com/kframework/evm-semantics). It was developed
+as part of the work on formally verifying the smart contracts for [multi collateral Dai](https://github.com/dapphub/k-dss).
 
 `klab` has a few main functions:
 
@@ -62,10 +62,6 @@ The framework is powerful and generic. High quality semantics of
 [Java](https://github.com/kframework/java-semantics), [Web
 Assembly](https://github.com/kframework/wasm-semantics), and [X86-64
 Assembly](https://github.com/kframework/X86-64-Semantics) have been written in `K`.
-
-It is also slow and often inscrutable. Just parsing takes more than a minute, and even quite simple
-proofs can take 10's of minutes to execute. Error messages are often unhelpful and seemingly
-unrelated to the source of the problem.
 
 ## Installation
 
