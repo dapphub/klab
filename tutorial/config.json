@@ -10,7 +10,7 @@
     ]
   },
   "implementations": {
-    "Trivial": {
+    "BadMath": {
       "src": "contracts/contracts.sol"
     }
   },

@@ -109,31 +109,38 @@ It is recomended that before continuing you open this file in a text editor on a
 `act` is a concise, declarative, specification DSL for ethereum smart contracts that compiles into
 `K` reachability claims.
 
-Consider the following trivial smart contract:
+Consider the following smart contract:
 
 ```solidity
-contract Trivial {
-  function one() public payable returns (uint) {
-    return 1;
+contract BadMath {
+  function add(uint x, uint y) public returns (uint z) {
+    if (x == 7) {
+      z = y * y;
+    }
+    require((z = x + y) >= x);
   }
 }
 ```
 
-We can model this contract with the following act specification:
+We can model this contract with the following `act`:
 
 ```act
-behaviour one of Trivial
-interface one()
+behaviour add of BadMath
+interface add(uint x, uint y)
 
-returns 1
+iff in range uint256
+
+  x + y
+
+returns x + y
 ```
 
-You can build and prove this trivial spec by running the following from the tutorial root:
+You can build and prove this spec by running the following from the tutorial root:
 
 ```
 make dapp
 klab build
-klab focus Trivial_one_pass_rough
+klab focus Math_add_pass_rough
 klab prove --dump
 ```
 
