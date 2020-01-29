@@ -10,6 +10,7 @@ stdenv.mkDerivation {
   buildInputs = [
     autoconf
     bc
+    cacert
     flex
     utillinux
     gcc
