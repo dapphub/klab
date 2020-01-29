@@ -1,6 +1,6 @@
 # A `klab` Tutorial
 
-This documented is intended as a practical introduction to the practice of verifying smart contracts
+This document is intended as a practical introduction to the practice of verifying smart contracts
 using `klab`. No prior knowledge of formal methods or programming language theory is assumed.
 
 This tutorial will teach you how to model smart contracts, using techniques built upon a rigorous formal
@@ -10,7 +10,7 @@ To put it in more terms that may be more familliar: you will learn how to define
 on solidity smart contracts, that describe *all possible behaviours* of the method.
 
 This tutorial is concerned with the hard practicalities of formal verification, not the theoretical
-foundations. It is hands on and practical. You do not need to be a mathemetician to follow along.
+foundations. You do not need to be a mathemetician to follow along.
 
 ## Why Verify Formally
 

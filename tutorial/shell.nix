@@ -28,7 +28,7 @@ let
   );
 in
 pkgs.stdenv.mkDerivation {
-  name = "k-uniswap";
+  name = "klab-tutorial-dapptools";
   buildInputs = with pkgs; [ coreutils dapp gnused ];
 }
 
