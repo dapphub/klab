@@ -14,7 +14,7 @@ yellow:=$(shell tput setaf 3)
 bold:=$(shell tput bold)
 reset:=$(shell tput sgr0)
 
-default: deps deps-haskell
+default: deps
 
 clean:
 	rm -fdR out/* evm-semantics
