@@ -104,7 +104,7 @@ klab debug <hash>
 
 klab comes with a set of pre-defined K rewrite rules, additional to the ones
 defined in [evm-semantics](https://github.com/kframework/evm-semantics). They
-are located in `resources/rules.k`.
+are located in `resources/rules.k.tmpl`.
 
 ### Key Bindings
 
