@@ -492,7 +492,7 @@ rule A modInt pow160 => A
 
 syntax Bool ::= #notPrecompileAddress ( Int ) [function]
 // ---------------------------------------
-rule #notPrecompileAddress ( X ) => 0 <Int X andBool 9 <=Int X andBool #rangeAddress(X)
+rule #notPrecompileAddress ( X ) => notBool #range(1 <= X <= 9) andBool #rangeAddress(X)
 
 // ABSTRACT SEMANTICS.k
 
