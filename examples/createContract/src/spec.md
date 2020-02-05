@@ -4,18 +4,21 @@ interface create()
 
 types
 
-    Parent : address
     KID    : address Kid
 
 creates storage KID
 
-    #Kid.parent |-> Parent
+    #Kid.parent |-> ACCT_ID
 
 storage
 
-    #Mom.child |-> _ => KID
+    #Mom.child |-> 0 => KID
 
 iff
 
     VCallValue == 0
+    KID =/= 0
+    #newAddr(ACCT_ID, Mom_nonce) == KID
+    Mom_nonce > 0
+    VCallDepth <Int 1024
 ```
