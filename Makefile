@@ -61,7 +61,7 @@ media/%.pdf: media/%.md
 KLAB = $(CURDIR)/bin/klab
 
 # doing them in this order should save time
-examples := $(addprefix examples/,heal multipleCalls token SafeAdd multipleInternals)
+examples := $(addprefix examples/,heal multipleCalls token SafeAdd multipleInternals createContract)
 
 # this is now redundant
 build-test:
