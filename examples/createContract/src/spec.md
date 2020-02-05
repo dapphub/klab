@@ -18,7 +18,7 @@ iff
 
     VCallValue == 0
     KID =/= 0
-    #newAddr(ACCT_ID, Mom_nonce) == KID
+    #newAddr(ACCT_ID, Nonce_Mom) == KID
     Mom_nonce > 0
     VCallDepth <Int 1024
 ```
