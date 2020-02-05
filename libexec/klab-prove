@@ -105,8 +105,6 @@ concrete_rules=(
   EVM-TYPES.#asByteStackAux.recursive
   EVM-TYPES.#padToWidth
   EVM-TYPES.#padRightToWidth
-  EVM.#lookup.some
-  EVM.#lookup.none
   EVM.#memoryUsageUpdate.some
   SERIALIZATION.keccak
   SERIALIZATION.#newAddr
