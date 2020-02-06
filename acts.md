@@ -74,6 +74,13 @@ storage
 #hashedLocation("Solidity", 0, Someone) |-> PreStateValue => PostStateValue
 
 ```
+
+### Static vs Non-Static `act` Specifications
+
+An `act` that does not specify any storage updates (i.e. the storage block contains no `=>` arrows) will generate a `K` reachability claim where the value of the `<static>` cell is set to `_`. Conversely, an `act` with a storage block containing at least one `=>` will have the `<static>` cell in the resulting reachability claim set to `false`.
+
+When running `klab prove`, the `<static>` cell will set to `true` during a `STATICCALL` and `false` otherwise.
+
 ## Example: Token
 Now we are ready to verify a (simplified) ERC20 token:
 ```Solidity
