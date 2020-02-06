@@ -516,6 +516,8 @@ rule #notPrecompileAddress ( X ) => 0 ==Int X orBool (10 <=Int X andBool #rangeA
 
 //RULES MUST USE ==K and not ==Int
 //Warning: assumes injective hashing
+rule #newAddr(A, B) ==K 0 => false
+
 rule keccakIntList(A B .IntList) ==K keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
 
 rule keccakIntList(A B C .IntList) ==K keccakIntList(D E F .IntList) => A ==Int D andBool B ==Int E andBool C ==Int F

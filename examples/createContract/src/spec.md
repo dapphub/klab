@@ -14,10 +14,12 @@ storage
 
     #Mom.child |-> 0 => KID
 
+if
+
+    #newAddr(ACCT_ID, Nonce_Mom) == KID
+
 iff
 
     VCallValue == 0
-    KID =/= 0
-    #newAddr(ACCT_ID, Nonce_Mom) == KID
     VCallDepth <Int 1024
 ```
