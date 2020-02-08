@@ -141,7 +141,7 @@ loadJSON(json => {
       return h(["div", 'class="proof"'])([
         h(["div", 'class="proofinfo"'])([
           h(["div", 'class="link"'])([
-            h(['a', `href="${o.hash}"`])(o.hash),
+            h(['a', 'class="build-hash"' `href="${o.hash}"`])(o.hash),
             h(['a', 'class="git-hash"', `href="${o.git}"`])(`git: ${o.git}`),
             h(['div', 'class="info"'])([
               date(o.date),
