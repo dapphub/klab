@@ -52,7 +52,7 @@ overview_js:
 resources/report.tmp.html: resources/report.css
 	# node -e 'const fs=require("fs"); const t=fs.readFileSync("./resources/report.tmp.csstmp.html", "utf8"); const s=t.replace("{{style}}", fs.readFileSync("./resources/report.css")); fs.writeFileSync("resources/report.tmp.html", s);'
 
-resources/report.css: resources/report.scss
+resources/report.css: deps-npm resources/report.scss
 	 ./node_modules/node-sass/bin/node-sass --source-map resources -o resources resources/report.scss
 
 media/%.pdf: media/%.md
