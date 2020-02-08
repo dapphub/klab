@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-### Usage: KLAB_RESOURCES_PATH=foo KLAB_REPORT_PATH=bar klab-setup-ci-project project_name
+### Usage: KLAB_RESOURCES_PATH=foo KLAB_REPORT_PATH=bar KLAB_PROJECT_NAME=baz klab-setup-ci-project
 set -u
 
 cp -n "${KLAB_RESOURCES_PATH}/overview.css" "${KLAB_REPORT_PATH}"
 cp -n "${KLAB_RESOURCES_PATH}/overview.js" "${KLAB_REPORT_PATH}"
 cp -n "${KLAB_RESOURCES_PATH}/report.css" "${KLAB_REPORT_PATH}"
-cp -n "${KLAB_RESOURCES_PATH}/overview.html" "${KLAB_REPORT_PATH}/$1/index.html"
+cp -n "${KLAB_RESOURCES_PATH}/overview.html" "${KLAB_REPORT_PATH}/${KLAB_PROJECT_NAME}/index.html"
