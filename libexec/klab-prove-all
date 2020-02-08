@@ -33,7 +33,10 @@ export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=8
 export THREADS=${THREADS:-2}
 PNAME=$(jq -r '.name' < config.json)
-if [ "$PNAME" == "null" ]; then PNAME=""; fi
+if [ "$PNAME" == "null" ]; then
+  echo "Please set the 'name' in config.json" >&2
+  exit 1
+fi
 export PNAME
 
 if [ -d ".git" ]; then
