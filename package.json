@@ -24,6 +24,6 @@
     "xstream": "^11.3.0"
   },
   "devDependencies": {
-    "node-sass": "^4.11.0"
+    "node-sass": "^4.13.1"
   }
 }
