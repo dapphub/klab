@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+### Usage: KLAB_REPORT_DIR=foo klab-setup-ci-project project_name
+set -u
 
 resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
