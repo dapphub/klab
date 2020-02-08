@@ -44,16 +44,17 @@ if [ -d ".git" ]; then
   export build_hash
   if [ -n "$KLAB_REPORT_DIR" ]; then
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
-    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
-    mkdir -p "$KLAB_REPORT_PROJECT_DIR"
+    export KLAB_REPORT_PROJECT_DIR="${KLAB_REPORT_DIR}/${PNAME}"
+    export KLAB_REPORT_BUILD_DIR="${KLAB_REPORT_PROJECT_DIR}/${build_hash}"
+    mkdir -p "$KLAB_REPORT_BUILD_DIR"
     if [ -n "$PNAME" ]; then
       klab setup-ci-project "$PNAME"
     fi;
     if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
       echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
     fi;
-    jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
-    jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+    jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_BUILD_DIR"
+    jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_BUILD_DIR"
   fi;
 fi;
 
@@ -64,11 +65,11 @@ report () {
     flock -x 3 || exit 0
   fi;
   klab report
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
-    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
+  if [ -n "$KLAB_REPORT_BUILD_DIR" ]; then
+    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_BUILD_DIR"
     concat=$(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json")
     echo "$concat" > "$KLAB_REPORT_DIR/$PNAME/report.json"
-    echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
+    echo "Report exported to $KLAB_REPORT_BUILD_DIR"
   fi;
   if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
     exec 3>&-
@@ -159,7 +160,7 @@ trap clean_running_dir EXIT
 
 
 make_batch () {
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
+  if [ -n "$KLAB_REPORT_BUILD_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
   parallel -u -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
@@ -189,10 +190,10 @@ rm -fdr "$KLAB_OUT/specs"
 klab build >/dev/null
 if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
   rm -f "$KLAB_REPORT_NAME_DIR/latest"
-  ln -s "$KLAB_REPORT_PROJECT_DIR" "$KLAB_REPORT_NAME_DIR/latest"
+  ln -s "$KLAB_REPORT_BUILD_DIR" "$KLAB_REPORT_NAME_DIR/latest"
 fi
-if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -f "$KLAB_OUT/bin_runtime.k" ]; then
-  cp "$KLAB_OUT/bin_runtime.k" "$KLAB_REPORT_PROJECT_DIR"
+if [ -n "$KLAB_REPORT_BUILD_DIR" ] && [ -f "$KLAB_OUT/bin_runtime.k" ]; then
+  cp "$KLAB_OUT/bin_runtime.k" "$KLAB_REPORT_BUILD_DIR"
 fi
 
 echo "${bold}Proofs to run:${reset}"
