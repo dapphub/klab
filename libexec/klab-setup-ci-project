@@ -2,7 +2,7 @@
 
 while [[ $1 ]]; do
     case "$1" in
-        --no-overwrite) no_overwrite="-n"; shift;;
+        --no-overwrite) overwrite_opt="-n"; shift;;
         --report-dir) shift; KLAB_REPORT_DIR=$1; shift;;
         --project-name) shift; PROJECT_NAME=$1; shift;;
         *) echo Unrecognized argument "$1"; exit 1;;
@@ -14,10 +14,10 @@ resources_path=$(dirname "${BASH_SOURCE}")/../resources
 node-sass "${resources_path}" -o "${resources_path}" --source-map true
 
 mkdir -p "${KLAB_REPORT_DIR}"
-cp $no_overwrite -t "${KLAB_REPORT_DIR}" "${resources_path}"/{overview.css,overview.js,report.css}
+cp $overwrite_opt -t "${KLAB_REPORT_DIR}" "${resources_path}"/{overview.css,overview.js,report.css}
 
 if [[ -n $PROJECT_NAME ]]; then
     PROJECT_DIR="${KLAB_REPORT_DIR}/${PROJECT_NAME}"
     mkdir -p "${PROJECT_DIR}"
-    cp $no_overwrite "${resources_path}/overview.html" "${PROJECT_DIR}/index.html"
+    cp $overwrite_opt "${resources_path}/overview.html" "${PROJECT_DIR}/index.html"
 fi
