@@ -3,9 +3,8 @@
 resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
 node-sass "${resources_path}" -o "${resources_path}" --source-map true
-cp -n "${resources_path}/overview.css" "${KLAB_REPORT_DIR}"
-cp -n "${resources_path}/overview.js" "${KLAB_REPORT_DIR}"
-cp -n "${resources_path}/report.css" "${KLAB_REPORT_DIR}"
+
+cp -n -t "${KLAB_REPORT_DIR}" "${resources_path}/{overview.css,overview.js,report.css}"
 
 if [[ $# -gt 1 ]]; then
     cp -n "${resources_path}/overview.html" "${KLAB_REPORT_DIR}/$1/index.html"
