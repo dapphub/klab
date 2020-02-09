@@ -2,10 +2,10 @@
 
 resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
-cp -n $resources_path/overview.css "$KLAB_REPORT_DIR"
-cp -n $resources_path/overview.js "$KLAB_REPORT_DIR"
-cp -n $resources_path/report.css "$KLAB_REPORT_DIR"
+cp -n "${resources_path}/overview.css" "${KLAB_REPORT_DIR}"
+cp -n "${resources_path}/overview.js" "${KLAB_REPORT_DIR}"
+cp -n "${resources_path}/report.css" "${KLAB_REPORT_DIR}"
 
 if [[ $# -gt 1 ]]; then
-    cp -n $resources_path/overview.html "$KLAB_REPORT_DIR"/"$1"/index.html
+    cp -n "${resources_path}/overview.html" "${KLAB_REPORT_DIR}/$1/index.html"
 fi
