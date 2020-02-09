@@ -13,6 +13,7 @@ resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
 node-sass "${resources_path}" -o "${resources_path}" --source-map true
 
+mkdir -p "${KLAB_REPORT_DIR}"
 cp $no_overwrite -t "${KLAB_REPORT_DIR}" "${resources_path}"/{overview.css,overview.js,report.css}
 
 if [[ -n $PROJECT_NAME ]]; then
