@@ -16,5 +16,7 @@ node-sass "${resources_path}" -o "${resources_path}" --source-map true
 cp $no_overwrite -t "${KLAB_REPORT_DIR}" "${resources_path}"/{overview.css,overview.js,report.css}
 
 if [[ -n $PROJECT_NAME ]]; then
-    cp $no_overwrite "${resources_path}/overview.html" "${KLAB_REPORT_DIR}/${PROJECT_NAME}/index.html"
+    PROJECT_DIR="${KLAB_REPORT_DIR}/${PROJECT_NAME}"
+    mkdir -p "${PROJECT_DIR}"
+    cp $no_overwrite "${resources_path}/overview.html" "${PROJECT_DIR}/index.html"
 fi

@@ -42,7 +42,6 @@ if [ -d ".git" ]; then
   if [ -n "$KLAB_REPORT_DIR" ]; then
     export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
     export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
-    mkdir -p "$KLAB_REPORT_PROJECT_DIR"
     if [ -n "$PNAME" ]; then
       klab setup-ci-project --no-overwrite --report-dir "${KLAB_REPORT_DIR}" --project-name "${PNAME}"
     fi;
