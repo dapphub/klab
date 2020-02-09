@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 
+while [[ $1 ]]; do
+    case "$1" in
+        --no-overwrite) no_overwrite="-n"; shift;;
+        --report-dir) shift; KLAB_REPORT_DIR=$1; shift;;
+        --project-name) shift; PROJECT_NAME=$1; shift;;
+        *) echo Unrecognized argument "$1"; exit 1;;
+    esac
+done
+
 resources_path=$(dirname "${BASH_SOURCE}")/../resources
 
 node-sass "${resources_path}" -o "${resources_path}" --source-map true
 
-cp -n -t "${KLAB_REPORT_DIR}" "${resources_path}/{overview.css,overview.js,report.css}"
+cp $no_overwrite -t "${KLAB_REPORT_DIR}" "${resources_path}"/{overview.css,overview.js,report.css}
 
-if [[ $# -gt 1 ]]; then
-    cp -n "${resources_path}/overview.html" "${KLAB_REPORT_DIR}/$1/index.html"
+if [[ -n $PROJECT_NAME ]]; then
+    cp $no_overwrite "${resources_path}/overview.html" "${KLAB_REPORT_DIR}/${PROJECT_NAME}/index.html"
 fi
