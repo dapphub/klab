@@ -74,7 +74,7 @@ storage
 
 if
 
-    #newAddr(ACCT_ID, 1, Mom_bin_runtime) == KID
+    #newAddr(ACCT_ID, 1, Mom_bin) == KID
 
 iff
 
