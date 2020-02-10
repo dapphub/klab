@@ -74,25 +74,29 @@ const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
   encoding: 'utf8'
 });
 
-const bin_runtime_defs = Object.keys(config.implementations)
+const bin_defs = Object.keys(config.implementations)
   .map(alias => {
     const name = config.implementations[alias].name;
     const c = config.contracts[name];
+    const bin = c.bin;
     const bin_runtime = c.bin_runtime;
-    const syntaxDef = `syntax WordStack ::= "${alias}_bin_runtime"`;
-    const ruleDef = `rule ${alias}_bin_runtime => #parseByteStack("0x${bin_runtime}") [macro]`;
-    return [syntaxDef, ruleDef].join("\n")
+    const binDef  = `syntax WordStack ::= "${alias}_bin"`;
+    const binRule = `rule ${alias}_bin => #parseByteStack("0x${bin}") [macro]\n`;
+    const runtimeDef  = `syntax WordStack ::= "${alias}_bin_runtime"`;
+    const runtimeRule = `rule ${alias}_bin_runtime => #parseByteStack("0x${bin_runtime}") [macro]`;
+    return [binDef, binRule, runtimeDef, runtimeRule].join("\n")
   }).join('\n\n')
 
 config.get_proof_hash = ({name, spec}) => {
   let proof = {
-    bin_runtime_defs,
+    bin_defs,
     evms: EVM_SEMANTICS_VERSION,
     klab: getKlabHEAD(),
     rules: rules_str,
     smt_prelude: prelude_str,
     spec : spec,
     timeout: timeouts[name] || null,
+    smt_prelude: prelude_str,
   }
   if (memory[name]) proof.memory = memory[name];
   return sha3(JSON.stringify(proof))
@@ -258,4 +262,4 @@ if(write_rules) {
 
 // Implementations
 const wrapModule = (name, str) => `requires "data.k"\n\nmodule ${name}\n    imports EVM-DATA\n\n${str}\n\nendmodule`
-fs.writeFileSync(path.join(KLAB_OUT, "bin_runtime.k"), wrapModule("BIN_RUNTIME", bin_runtime_defs))
+fs.writeFileSync(path.join(KLAB_OUT, "bin_runtime.k"), wrapModule("BIN_RUNTIME", bin_defs))
