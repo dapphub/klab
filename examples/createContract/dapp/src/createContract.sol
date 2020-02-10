@@ -1,7 +1,7 @@
 pragma solidity >=0.5.15;
 
 contract Kid {
-  address parent;
+  address public parent;
 
   constructor() public {
     parent = msg.sender;
@@ -9,12 +9,12 @@ contract Kid {
 }
 
 contract Mom {
-  Kid kid0;
-  Kid kid1;
-  Kid kid2;
+  address public kid0;
+  address public kid1;
+  address public kid2;
 
   function create_kid0() public {
-    kid0 = new Kid();
+    kid0 = address(new Kid());
   }
 
   function create_kid1() public {

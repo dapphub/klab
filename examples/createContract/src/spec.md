@@ -6,7 +6,7 @@ interface create_kid0()
 
 types
 
-    KID    : address Kid
+    KID : address Kid
 
 creates storage KID
 
@@ -23,7 +23,7 @@ if
 iff
 
     VCallValue == 0
-    VCallDepth <Int 1024
+    VCallDepth < 1024
 ```
 
 ### create assembly
@@ -34,7 +34,7 @@ interface create_kid1()
 
 types
 
-    KID    : address Kid
+    KID : address Kid
 
 creates storage KID
 
@@ -47,11 +47,11 @@ storage
 if
 
     #newAddr(ACCT_ID, Nonce_Mom) == KID
+    VCallDepth < 1024
 
 iff
 
     VCallValue == 0
-    VCallDepth <Int 1024
 ```
 
 ### create2
@@ -62,7 +62,7 @@ interface create_kid2()
 
 types
 
-    KID    : address Kid
+    KID : address Kid
 
 creates storage KID
 
@@ -74,10 +74,10 @@ storage
 
 if
 
-    #newAddr(ACCT_ID, 1, Mom_bin) == KID
+    #newAddr(ACCT_ID, 1, Kid_bin) == KID
+    VCallDepth < 1024
 
 iff
 
     VCallValue == 0
-    VCallDepth <Int 1024
 ```
