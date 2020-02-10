@@ -19,7 +19,7 @@
     "handlebars": "^4.1.1",
     "keccak": "^1.4.0",
     "lodash": "^4.17.5",
-    "marked": "^0.6.2",
+    "marked": "^0.8.0",
     "moment": "^2.22.2",
     "xstream": "^11.3.0"
   },
