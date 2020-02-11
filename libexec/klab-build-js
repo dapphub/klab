@@ -23,12 +23,13 @@ const {
   makeInterabiExhaustiveness
 }                   = require("../lib/build.js");
 const {
-  read,
-  testPath,
-  revert,
   ensureDirs,
+  getKlabHEAD,
+  read,
+  revert,
+  sha3,
+  testPath,
   warn,
-  sha3
 }                   = require("../lib/util.js");
 const __a2n = act => act.subject + "_" + act.name;
 
@@ -85,12 +86,13 @@ const bin_runtime_defs = Object.keys(config.implementations)
 
 config.get_proof_hash = ({name, spec}) => {
   let proof = {
+    bin_runtime_defs,
     evms: EVM_SEMANTICS_VERSION,
+    klab: getKlabHEAD(),
     rules: rules_str,
+    smt_prelude: prelude_str,
     spec : spec,
     timeout: timeouts[name] || null,
-    smt_prelude: prelude_str,
-    bin_runtime_defs
   }
   if (memory[name]) proof.memory = memory[name];
   return sha3(JSON.stringify(proof))
