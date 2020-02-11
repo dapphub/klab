@@ -4,10 +4,10 @@ interface run(uint256 A, uint256 B)
 
 macros
 
-    C => A * B
-    D => C * B
+    C => A - B
+    D => C + B
     E => C + D
-    F => C - E
+    F => D - E
 
 
 iff in range uint256
