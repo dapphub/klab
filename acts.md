@@ -201,4 +201,13 @@ Lists the behaviours that this spec calls. If the listed behaviour's `_pass` pro
 calls
     DSToken.transferFrom
 ```
-    
+
+### where
+Allows for the definition of named expressions. All instances of the name on the LHS of the `where` binding will be expanded to the RHS as part of `klab build`. Helps to reduce duplication in specs for methods that have lots of intermediate variables.
+
+```
+where
+
+    Var := X + Y
+```
+
