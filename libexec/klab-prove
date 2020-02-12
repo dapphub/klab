@@ -82,7 +82,7 @@ if $dump; then
 fi
 
 if $kdebug; then
-  K_FLAGS=("$K_FLAGS" --debug)
+  K_FLAGS=("$K_FLAGS" --debug --debug-z3)
 fi
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
