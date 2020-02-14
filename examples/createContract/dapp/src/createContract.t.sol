@@ -19,10 +19,4 @@ contract MomTest is DSTest {
     mom.create_kid1();
     assertEq(mom.kid1(), 0xdf4626ABbA225CdC0ED0F4E57707ee0F54322005);
   }
-
-  function test_create_kid2() public {
-    mom.create_kid2();
-    assertEq(mom.kid2(), 0xDeb0D4a9860A97c02c7642992aec9B895bE89e96);
-  }
-
 }

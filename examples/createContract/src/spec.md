@@ -81,3 +81,36 @@ iff
 
     VCallValue == 0
 ```
+
+### create2 with packed salt
+
+```act
+behaviour create_kid3 of Mom
+interface create_kid3(address trait1, address trait2)
+
+types
+
+    KID : address Kid
+
+creates storage KID
+
+    #Kid.parent |-> ACCT_ID
+
+storage
+
+    #Mom.kid3 |-> 0 => KID
+
+if
+
+    KID == #newAddr(                                          \
+      ACCT_ID,                                                \
+      keccak(#take(20, #asByteStack(trait1 <<Int 96))   \
+          ++ #take(20, #asByteStack(trait2 <<Int 96))), \
+      Kid_bin                                                 \
+    )
+    VCallDepth < 1024
+
+iff
+
+    VCallValue == 0
+```
