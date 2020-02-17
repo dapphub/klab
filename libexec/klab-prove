@@ -133,6 +133,7 @@ timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/k
   --smt_prelude "$KLAB_OUT/prelude.smt2" \
   --concrete-rules "$(join_by , ${concrete_rules[@]})" \
   -v --debug \
+  --deterministic-functions \
   "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
 wait "$kprove_child"
 result=$?
