@@ -132,6 +132,7 @@ timeout "$TIMEOUT" "$KLAB_EVMS_PATH/deps/k/k-distribution/target/release/k/bin/k
   --smt_prelude "$KLAB_OUT/prelude.smt2" \
   --concrete-rules "$(join_by , ${concrete_rules[@]})" \
   --z3-tactic "(or-else (using-params smt :random-seed 3) (using-params smt :random-seed 2) (using-params smt :random-seed 1))" \
+  --deterministic-functions \
   "$target_spec" >"$STDOUT" 2>"$STDERR" & kprove_child=$!
 wait "$kprove_child"
 result=$?
