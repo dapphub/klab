@@ -15,11 +15,6 @@ syntax Int ::= "#Mom.kid2" [function]
 rule #Mom.kid2 => 2
 ```
 
-```k
-syntax Int ::= "#Mom.kid3" [function]
-rule #Mom.kid3 => 3
-```
-
 ### Kid storage
 
 ```k

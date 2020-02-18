@@ -12,7 +12,6 @@ contract Mom {
   address public kid0;
   address public kid1;
   address public kid2;
-  address public kid3;
 
   function create_kid0() public {
     kid0 = address(new Kid());
