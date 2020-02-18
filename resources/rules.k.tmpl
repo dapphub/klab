@@ -247,6 +247,7 @@ rule ACCTCODE in SetItem( 1 )
        andBool #sizeWordStack(WS) >=Int (D /Int 8)
        andBool #sizeWordStack(WS) <=Int 32
     rule #sizeWordStack(#take(N, _)) => N
+    rule #sizeWordStack(WS) >=Int 0 => true [smt-lemma]
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
