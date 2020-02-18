@@ -247,7 +247,6 @@ rule ACCTCODE in SetItem( 1 )
        andBool #sizeWordStack(WS) >=Int (D /Int 8)
        andBool #sizeWordStack(WS) <=Int 32
     rule #sizeWordStack(#take(N, _)) => N
-    rule #sizeWordStack(#take(N, _), M) => N +Int M
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
@@ -478,12 +477,6 @@ rule ACCTCODE in SetItem( 1 )
 
 
 
-
-    rule #sizeWordStack ( _ , _ ) >=Int 0 => true [smt-lemma]
-    rule #sizeWordStack ( WS , N:Int )
-      => #sizeWordStack ( WS , 0 ) +Int N
-      requires N =/=K 0
-      [lemma]
 
 rule chop(#unsigned(W)) => #unsigned(W)
   requires #rangeSInt(256, W)
