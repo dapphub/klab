@@ -65,6 +65,8 @@ report () {
     concat=$(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json")
     echo "$concat" > "$KLAB_REPORT_DIR/$PNAME/report.json"
     echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
+  else
+    echo "Report saved to ${KLAB_OUT}/report/index.html"
   fi;
   if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
     exec 3>&-
