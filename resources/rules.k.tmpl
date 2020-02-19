@@ -1,3 +1,4 @@
+// -*- mode: k3; -*-
 // VERIFICATION.k
 
     rule #rangeUInt    (   1 ,      X ) => #range ( 0               <= X <= 1               ) [macro]
@@ -245,8 +246,9 @@ rule ACCTCODE in SetItem( 1 )
      requires D modInt 8 ==Int 0 andBool D >=Int 0
        andBool #sizeWordStack(WS) >=Int (D /Int 8)
        andBool #sizeWordStack(WS) <=Int 32
+
     rule #sizeWordStack(#take(N, _)) => N
-    rule #sizeWordStack(#take(N, _), M) => N +Int M
+    rule #sizeWordStack(WS) >=Int 0 => true [smt-lemma]
 
     syntax WordStack ::= #asByteStackInWidth    ( Int, Int )                 [function]
                        | #asByteStackInWidthaux ( Int, Int, Int, WordStack ) [function]
@@ -477,12 +479,6 @@ rule ACCTCODE in SetItem( 1 )
 
 
 
-
-    rule #sizeWordStack ( _ , _ ) >=Int 0 => true [smt-lemma]
-    rule #sizeWordStack ( WS , N:Int )
-      => #sizeWordStack ( WS , 0 ) +Int N
-      requires N =/=K 0
-      [lemma]
 
 rule chop(#unsigned(W)) => #unsigned(W)
   requires #rangeSInt(256, W)
