@@ -246,6 +246,7 @@ rule ACCTCODE in SetItem( 1 )
      requires D modInt 8 ==Int 0 andBool D >=Int 0
        andBool #sizeWordStack(WS) >=Int (D /Int 8)
        andBool #sizeWordStack(WS) <=Int 32
+
     rule #sizeWordStack(#take(N, _)) => N
     rule #sizeWordStack(WS) >=Int 0 => true [smt-lemma]
 
