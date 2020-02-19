@@ -17,7 +17,8 @@
     rule ( WS1 ++ WS2 ) ++ WS3 => WS1 ++ ( WS2 ++ WS3 )
 
 
-    // Same rules exist in KEVM, but are marked [concrete]. Allowing them for symbolic arguments here.
+    // These rules exist in KEVM, but are marked [concrete].
+    // Declared here to allow symbolic arguments.
 
     rule #lookup( (KEY |-> VAL) M, KEY ) => VAL
     rule #lookup(               M, KEY ) => 0 requires notBool KEY in_keys(M)
@@ -26,9 +27,14 @@
 
     rule WM[ N := W : WS     ] => (WM[N <- W])[N +Int 1 := WS]
 
-    //semantics of #buf
-    rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES ))
-
+    // We use #asByteStack to represet byte arrays rather than the #buf abstraction.
+    // To enable this both #buf and #sizeByteArray must be symbolic.
+    //
+    // serialization.md
+    rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES )) // [concrete]
+    //
+    // evm-types.md
+    rule #sizeByteArray ( WS ) => #sizeWordStack(WS) // [concrete]
 
 //Operator direction normalization rules. Required to reduce the number of forms of inequalities that can be matched by general lemmas. We chose to keep <Int and <=Int because those operators are used in all range lemmas and in #range macros. Operators >Int and >=Int are still allowed anywhere except rules LHS. In all other places they will be matched and rewritten by rules below.
 rule notBool (X <Int Y)  => Y <=Int X
