@@ -55,7 +55,6 @@
         }
       },
       "network": {
-        "chainID": "_",
         "activeAccounts": "VActiveAccounts",
         "accounts": [],
         "txOrder": "_",
