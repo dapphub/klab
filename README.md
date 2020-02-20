@@ -1,8 +1,14 @@
 KLab
 ====
-**NOTE:** This software is still in the early stages of development. If you are confused, find some bugs, or just want some help, please file an issue or come talk to us at <https://dapphub.chat/channel/k-framework>.
+**NOTE:** This software is still in the early stages of development. If you are
+confused, find some bugs, or just want some help, please file an issue or come
+talk to us at <https://dapphub.chat/channel/k-framework>.
 
-Klab is a tool for generating and debugging proofs in the [K Framework](http://www.kframework.org/index.php/Main_Page), tailored for the formal verification of ethereum smart contracts. It includes a succinct [specification language](acts.md) for expressing the behavior of ethereum contracts, and an interactive debugger.
+Klab is a tool for generating and debugging proofs in the [K
+Framework](http://www.kframework.org/index.php/Main_Page), tailored for the
+formal verification of ethereum smart contracts. It includes a succinct
+[specification language](acts.md) for expressing the behavior of ethereum
+contracts, and an interactive debugger.
 
 Installation
 ------------
@@ -26,7 +32,9 @@ cd klab
 make deps
 ```
 
-**OPTIONAL**: `klab` has some optional Haskell components, for which the recommended installation method is [nix](https://nixos.org/nix/). If you have `nix`, you can install the Haskell components with
+**OPTIONAL**: `klab` has some optional Haskell components, for which the
+recommended installation method is [nix](https://nixos.org/nix/). If you have
+`nix`, you can install the Haskell components with
 
 ```sh
 make deps-haskell
@@ -40,7 +48,9 @@ To make klab available from the terminal, you can either just export the path to
 make link
 ```
 
-This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec` (will require `sudo` on Linux machines). You can also specify a custom directory for installation by doing:
+This installs symlinks globally at `/usr/local/bin` and `/usr/local/libexec`
+(will require `sudo` on Linux machines). You can also specify a custom directory
+for installation by doing:
 
 ```sh
 PREFIX=/path/to/custom/prefix make link
@@ -56,13 +66,18 @@ It sets three environment variables:
 -   `PATH`: include the `klab` executable.
 -   `KLAB_EVMS_PATH`: the EVM semantics to use.
 
-**OPTIONAL**: If you want to use a different version of K than what the KEVM ships with, you can set:
+**OPTIONAL**: If you want to use a different version of K than what the KEVM
+ships with, you can set:
 
 -   `KLAB_K_PATH`: override implementation of K.
 
-**OPTIONAL**: You might also want to add the K tool binaries in `evm-semantics/.build/k/k-distribution/bin` to your `$PATH`, if you didn't already have K installed.
+**OPTIONAL**: You might also want to add the K tool binaries in
+`evm-semantics/.build/k/k-distribution/bin` to your `$PATH`, if you didn't
+already have K installed.
 
-**OPTIONAL**: You can also use `nix-shell` for a more deterministic environment experience. If you have `nix` installed, run `nix-shell` in this repo to start a deterministic shell environment.
+**OPTIONAL**: You can also use `nix-shell` for a more deterministic environment
+experience. If you have `nix` installed, run `nix-shell` in this repo to start a
+deterministic shell environment.
 
 Usage
 -----
@@ -74,26 +89,33 @@ cd examples/SafeAdd/
 
 ### Specification
 
-The file `config.json` tells klab where to look for both the specification and the implementation of our contract. In this case, our specification lives in `src/`, and our implementation lives in `dapp/`.
+The file `config.json` tells klab where to look for both the specification and
+the implementation of our contract. In this case, our specification lives in
+`src/`, and our implementation lives in `dapp/`.
 
-Note that this example includes `dapp/out/SafeAdd.sol.json` compiled from the solidity source. With [solc](https://solidity.readthedocs.io/en/latest/installing-solidity.html) installed, you can compile it yourself:
+Note that this example includes `dapp/out/SafeAdd.sol.json` compiled from the
+solidity source. 
+With [solc](https://solidity.readthedocs.io/en/latest/installing-solidity.html) installed, you can compile it yourself:
 ```sh
 solc --combined-json=abi,bin,bin-runtime,srcmap,srcmap-runtime,ast dapp/src/SafeAdd.sol > dapp/out/SafeAdd.sol.json
 ```
 
 ### Proof
 
-Our goal is to prove that our implementation satisfies our specification. To do so, we'll start by building a set of K modules from our spec:
+Our goal is to prove that our implementation satisfies our specification. To do
+so, we'll start by building a set of K modules from our spec:
 ```sh
 klab build
 ```
-This will generate success and failure reachability rules for each `act` of our specification. We can find the results in the `out/specs` directory.
+This will generate success and failure reachability rules for each `act` of our
+specification. We can find the results in the `out/specs` directory.
 
 Now we're ready to prove each case, for example:
 ```sh
 klab prove --dump SafeAdd_add_fail
 ```
-The `--dump` flag outputs a log to `out/data/<hash>.log`, which will be needed later for interactive debugging. We can also do `klab prove-all` to prove all outstanding claims.
+The `--dump` flag outputs a log to `out/data/<hash>.log`, which will be needed
+later for interactive debugging. We can also do `klab prove-all` to prove all outstanding claims.
 
 Once the proof is complete, we can explore the generated symbolic execution trace using:
 ```sh
@@ -135,9 +157,10 @@ Toggle different views by pressing any of the following keys:
 
 **Toggling Debug Cells**:
 
-The following commands are prefixed with `:` (and are typed at the bottom of the interface).
-It's possible to toggle the debug cells view for specific cells, which prints out the JSON representation of the given cells.
-Remember, you must turn on the **d**ebug cells view to see these (above).
+The following commands are prefixed with `:` (and are typed at the bottom of the
+interface). It's possible to toggle the debug cells view for specific cells,
+which prints out the JSON representation of the given cells. Remember, you must
+turn on the **d**ebug cells view to see these (above).
 
 -   `:show ethereum.evm.callState.gas` - show the contents of the `<gas>` cell in the **d**ebug cells view.
 -   `:hide ethereum.evm.callStack.pc`  - hide the contents of the `<pc>` cell in the **d**ebug cells view.
@@ -146,21 +169,35 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 
 ### Available klab Commands
 
--   `klab build` - builds a set of K reachability claims in `out/specs` based on the spec, lemmas and source code as specified in the projects `config.json`.
--   `klab prove <hash> [--dump]` - executes a K reachability claim specified as a hash to the K prover. If the `--dump` flag is present, the proof can be explored using `klab debug`.
--   `klab prove-all` - builds and executes all proof objects in the project directory.
--   `klab debug <hash>` - opens up the cli proof explorer of a particular proof execution. See key bindings above.
--   `klab focus <hash>` - focus on a hash, allowing you to leave out it as an argument to other commands.
+-   `klab build` - builds a set of K reachability claims in `out/specs` based on
+    the spec, lemmas and source code as specified in the projects `config.json`.
+-   `klab prove <hash> [--dump]` - executes a K reachability claim specified as
+    a hash to the K prover. If the `--dump` flag is present, the proof can be
+    explored using `klab debug`.
+-   `klab prove-all` - builds and executes all proof objects in the project
+    directory.
+-   `klab debug <hash>` - opens up the cli proof explorer of a particular proof
+    execution. See key bindings above.
+-   `klab focus <hash>` - focus on a hash, allowing you to leave out it as an
+    argument to other commands.
 -   `klab hash` - prints the hash of the focused proof
--   `klab get-gas <hash>` - Traverses the execution trace of a proof object to fetch its gas usage, put in `out/gas/<hash>gas.k`.
--   `klab solve-gas <hash>` - Constructs the gas condition necessary for an execution to succeed.
--   `klab evm <hash>` - Shows opcodes and source code side-by-side (useful for extracting pc values).
--   `klab status <hash>` - Shows whether a proof has been run, and whether it was accepted or rejected.
+-   `klab get-gas <hash>` - Traverses the execution trace of a proof object to
+    fetch its gas usage, put in `out/gas/<hash>gas.k`.
+-   `klab solve-gas <hash>` - Constructs the gas condition necessary for an
+    execution to succeed.
+-   `klab evm <hash>` - Shows opcodes and source code side-by-side (useful for
+    extracting pc values).
+-   `klab status <hash>` - Shows whether a proof has been run, and whether it
+    was accepted or rejected.
 -   `klab status-js <hash>` - Shows the behaviour tree for an executed proof.
--   `klab fetch <url>` - Fetches the execution trace of a proof object at the url, preparing it for local debugging.
--   `klab zip <hash>` - zips up an execution trace so you can share it with a friend (or enemy).
--   `klab storage <contractName>` - Guesses what the storage layout of a given contract is
--   `klab report` - Generates a html report of the current project state in `out/report/index.html`.
+-   `klab fetch <url>` - Fetches the execution trace of a proof object at the
+    url, preparing it for local debugging.
+-   `klab zip <hash>` - zips up an execution trace so you can share it with a
+    friend (or enemy).
+-   `klab storage <contractName>` - Guesses what the storage layout of a given
+    contract is
+-   `klab report` - Generates a html report of the current project state in
+    `out/report/index.html`.
 -   `klab help` - Generates this view
 
 ### Configuration
@@ -207,7 +244,8 @@ Here's an example:
 
 ### Zsh completions
 
-There are automatic tab completions for `zsh` that can be installed by adding the following to your `.zshrc`:
+There are automatic tab completions for `zsh` that can be installed by adding
+the following to your `.zshrc`:
 
 ```sh
 # completions for klab
@@ -222,7 +260,8 @@ Troubleshooting
 
 ### Outdated npm
 
-You might have problems due to an outdated `npm`, in that case try updating it with:
+You might have problems due to an outdated `npm`, in that case try updating it
+with:
 
 ```sh
 npm install npm@latest -g
@@ -259,8 +298,9 @@ fs.js:119
 throw err;
 ```
 
-Notice how it's requesting `abstract-semantics.k` from proof-hash `b042...` but we're actually running proof-hash `dfc6...`.
-This is a problem with how K caches compiled definitions, and must be [fixed upstream](https://github.com/kframework/k/issues/107).
+Notice how it's requesting `abstract-semantics.k` from proof-hash `b042...` but
+we're actually running proof-hash `dfc6...`. This is a problem with how K caches
+compiled definitions, and must be [fixed upstream](https://github.com/kframework/k/issues/107).
 
 To fix this, run:
 
