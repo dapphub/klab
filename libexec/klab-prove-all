@@ -53,7 +53,7 @@ if [ -d ".git" ]; then
   jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
 fi;
 
-report () {
+report() {
   set -e
   exec 3>"$KLAB_REPORT_NAME_DIR"/report.json.lock
   flock -x 3 || exit 0
@@ -76,7 +76,7 @@ savelogs() {
 export -f savelogs
 
 # perform a single proof and exit
-do_proof () {
+do_proof() {
   set -e
 
   name=$1
