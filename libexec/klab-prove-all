@@ -39,18 +39,16 @@ export PNAME
 if [ -d ".git" ]; then
   build_hash=$(klab get-build-id)
   export build_hash
-  if [ -n "$KLAB_REPORT_DIR" ]; then
-    export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
-    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
-    if [ -n "$PNAME" ]; then
-      klab setup-ci-project --no-overwrite --report-dir "${KLAB_REPORT_DIR}" --project-name "${PNAME}"
-    fi;
-    if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
-      echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
-    fi;
-    jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
-    jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+  export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
+  export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
+  if [ -n "$PNAME" ]; then
+    klab setup-ci-project --no-overwrite --report-dir "${KLAB_REPORT_DIR}" --project-name "${PNAME}"
   fi;
+  if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
+    echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
+  fi;
+  jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+  jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
 fi;
 
 report () {
