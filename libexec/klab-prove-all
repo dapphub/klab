@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -eux
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -33,44 +33,36 @@ export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=8
 export THREADS=${THREADS:-2}
 PNAME=$(jq -r '.name' < config.json)
-if [ "$PNAME" == "null" ]; then PNAME=""; fi
+if [ "$PNAME" == "null" ]; then
+   echo "Please set a name in config.json"
+   exit 1
+fi
 export PNAME
 
 if [ -d ".git" ]; then
   build_hash=$(klab get-build-id)
   export build_hash
-  if [ -n "$KLAB_REPORT_DIR" ]; then
-    export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
-    export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
-    if [ -n "$PNAME" ]; then
-      klab setup-ci-project --no-overwrite --report-dir "${KLAB_REPORT_DIR}" --project-name "${PNAME}"
-    fi;
-    if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
-      echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
-    fi;
-    jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
-    jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+  export KLAB_REPORT_NAME_DIR=$KLAB_REPORT_DIR/$PNAME
+  export KLAB_REPORT_PROJECT_DIR=$KLAB_REPORT_DIR/$PNAME/$build_hash
+  klab setup-ci-project --no-overwrite --report-dir "${KLAB_REPORT_DIR}" --project-name "${PNAME}"
+  if [ ! -f "$KLAB_REPORT_DIR/$PNAME"/report.json ]; then
+    echo "Initializing empty report.json"
+    echo "{}" > "$KLAB_REPORT_DIR/$PNAME"/report.json
   fi;
+  jq -r '.src.rules[]'     < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
+  jq -r '.src.smt_prelude' < config.json | xargs -I {} cp {} "$KLAB_REPORT_PROJECT_DIR"
 fi;
 
-report () {
+report() {
   set -e
-  if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
-    exec 3>"$KLAB_REPORT_NAME_DIR"/report.json.lock
-    flock -x 3 || exit 0
-  fi;
+  exec 3>"$KLAB_REPORT_NAME_DIR"/report.json.lock
+  flock -x 3 || exit 0
   klab report
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
-    cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
-    concat=$(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json")
-    echo "$concat" > "$KLAB_REPORT_DIR/$PNAME/report.json"
-    echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
-  else
-    echo "Report saved to ${KLAB_OUT}/report/index.html"
-  fi;
-  if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
-    exec 3>&-
-  fi;
+  cp "$KLAB_OUT/report/index.html" "$KLAB_REPORT_PROJECT_DIR"
+  concat=$(jq -s '.[0] * .[1]' "$KLAB_REPORT_DIR/$PNAME/report.json" "$KLAB_OUT/report/report.json")
+  echo "$concat" > "$KLAB_REPORT_DIR/$PNAME/report.json"
+  echo "Report exported to $KLAB_REPORT_PROJECT_DIR"
+  exec 3>&-
 }
 export -f report
 
@@ -84,7 +76,7 @@ savelogs() {
 export -f savelogs
 
 # perform a single proof and exit
-do_proof () {
+do_proof() {
   set -e
 
   name=$1
@@ -156,10 +148,8 @@ function clean_running_dir {
 trap clean_running_dir EXIT
 
 
-make_batch () {
-  if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
-    cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
-  fi;
+make_batch() {
+  cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   parallel -u -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
   trap 'echo "Trapped SIGTERM in klab-prove-all" && kill -s INT $parallel_id && exit 1' TERM
   trap 'echo "Trapped SIGINT  in klab-prove-all" && kill -s INT $parallel_id && exit 1' INT
@@ -185,11 +175,9 @@ mkdir -p "$KLAB_OUT/timeout"
 rm -fdr "$KLAB_OUT/meta/name"
 rm -fdr "$KLAB_OUT/specs"
 klab build >/dev/null
-if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
-  rm -f "$KLAB_REPORT_NAME_DIR/latest"
-  ln -s "$KLAB_REPORT_PROJECT_DIR" "$KLAB_REPORT_NAME_DIR/latest"
-fi
-if [ -n "$KLAB_REPORT_PROJECT_DIR" ] && [ -f "$KLAB_OUT/bin_runtime.k" ]; then
+rm -f "$KLAB_REPORT_NAME_DIR/latest"
+ln -s "$KLAB_REPORT_PROJECT_DIR" "$KLAB_REPORT_NAME_DIR/latest"
+if [ -f "$KLAB_OUT/bin_runtime.k" ]; then
   cp "$KLAB_OUT/bin_runtime.k" "$KLAB_REPORT_PROJECT_DIR"
 fi
 
