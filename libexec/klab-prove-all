@@ -20,11 +20,6 @@ if [ -z "$KLAB_EVMS_PATH" ]; then
   exit 1
 fi
 
-if [ "$KLAB_LAX" ]; then
-  echo "KLAB_LAX flag is set to 1 -- _pass.k specs will have a weaker gas condition"
-fi
-
-
 export KLAB_OUT
 export GAS_DIR=$KLAB_OUT/gas
 export BEHAVIOUR_DIR=$KLAB_OUT/behaviour
