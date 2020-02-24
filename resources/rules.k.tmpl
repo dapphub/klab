@@ -118,6 +118,79 @@ rule notBool (X >=Int Y) => X <Int Y
                 : .WordStack ) => #unsigned(V)
       requires #rangeSInt(256, V)
 
+    rule #asWord( nthbyteof(#newAddr(A, B),  0, 32)
+                : nthbyteof(#newAddr(A, B),  1, 32)
+                : nthbyteof(#newAddr(A, B),  2, 32)
+                : nthbyteof(#newAddr(A, B),  3, 32)
+                : nthbyteof(#newAddr(A, B),  4, 32)
+                : nthbyteof(#newAddr(A, B),  5, 32)
+                : nthbyteof(#newAddr(A, B),  6, 32)
+                : nthbyteof(#newAddr(A, B),  7, 32)
+                : nthbyteof(#newAddr(A, B),  8, 32)
+                : nthbyteof(#newAddr(A, B),  9, 32)
+                : nthbyteof(#newAddr(A, B), 10, 32)
+                : nthbyteof(#newAddr(A, B), 11, 32)
+                : nthbyteof(#newAddr(A, B), 12, 32)
+                : nthbyteof(#newAddr(A, B), 13, 32)
+                : nthbyteof(#newAddr(A, B), 14, 32)
+                : nthbyteof(#newAddr(A, B), 15, 32)
+                : nthbyteof(#newAddr(A, B), 16, 32)
+                : nthbyteof(#newAddr(A, B), 17, 32)
+                : nthbyteof(#newAddr(A, B), 18, 32)
+                : nthbyteof(#newAddr(A, B), 19, 32)
+                : nthbyteof(#newAddr(A, B), 20, 32)
+                : nthbyteof(#newAddr(A, B), 21, 32)
+                : nthbyteof(#newAddr(A, B), 22, 32)
+                : nthbyteof(#newAddr(A, B), 23, 32)
+                : nthbyteof(#newAddr(A, B), 24, 32)
+                : nthbyteof(#newAddr(A, B), 25, 32)
+                : nthbyteof(#newAddr(A, B), 26, 32)
+                : nthbyteof(#newAddr(A, B), 27, 32)
+                : nthbyteof(#newAddr(A, B), 28, 32)
+                : nthbyteof(#newAddr(A, B), 29, 32)
+                : nthbyteof(#newAddr(A, B), 30, 32)
+                : nthbyteof(#newAddr(A, B), 31, 32)
+                : .WordStack ) => #newAddr(A, B)
+      requires #rangeAddress(A)
+      andBool #rangeUint(256, B)
+
+    rule #asWord( nthbyteof(#newAddr(A, B, C),  0, 32)
+                : nthbyteof(#newAddr(A, B, C),  1, 32)
+                : nthbyteof(#newAddr(A, B, C),  2, 32)
+                : nthbyteof(#newAddr(A, B, C),  3, 32)
+                : nthbyteof(#newAddr(A, B, C),  4, 32)
+                : nthbyteof(#newAddr(A, B, C),  5, 32)
+                : nthbyteof(#newAddr(A, B, C),  6, 32)
+                : nthbyteof(#newAddr(A, B, C),  7, 32)
+                : nthbyteof(#newAddr(A, B, C),  8, 32)
+                : nthbyteof(#newAddr(A, B, C),  9, 32)
+                : nthbyteof(#newAddr(A, B, C), 10, 32)
+                : nthbyteof(#newAddr(A, B, C), 11, 32)
+                : nthbyteof(#newAddr(A, B, C), 12, 32)
+                : nthbyteof(#newAddr(A, B, C), 13, 32)
+                : nthbyteof(#newAddr(A, B, C), 14, 32)
+                : nthbyteof(#newAddr(A, B, C), 15, 32)
+                : nthbyteof(#newAddr(A, B, C), 16, 32)
+                : nthbyteof(#newAddr(A, B, C), 17, 32)
+                : nthbyteof(#newAddr(A, B, C), 18, 32)
+                : nthbyteof(#newAddr(A, B, C), 19, 32)
+                : nthbyteof(#newAddr(A, B, C), 20, 32)
+                : nthbyteof(#newAddr(A, B, C), 21, 32)
+                : nthbyteof(#newAddr(A, B, C), 22, 32)
+                : nthbyteof(#newAddr(A, B, C), 23, 32)
+                : nthbyteof(#newAddr(A, B, C), 24, 32)
+                : nthbyteof(#newAddr(A, B, C), 25, 32)
+                : nthbyteof(#newAddr(A, B, C), 26, 32)
+                : nthbyteof(#newAddr(A, B, C), 27, 32)
+                : nthbyteof(#newAddr(A, B, C), 28, 32)
+                : nthbyteof(#newAddr(A, B, C), 29, 32)
+                : nthbyteof(#newAddr(A, B, C), 30, 32)
+                : nthbyteof(#newAddr(A, B, C), 31, 32)
+                : .WordStack ) => #newAddr(A, B, C)
+      requires #rangeAddress(A)
+      andBool #rangeUint(256, B)
+      andBool #rangeUint(256, C)
+
     rule #asWord( nthbyteof(keccakIntList(V),  0, 32)
                 : nthbyteof(keccakIntList(V),  1, 32)
                 : nthbyteof(keccakIntList(V),  2, 32)
@@ -219,19 +292,32 @@ rule ACCTCODE in SetItem( 1 )
     rule 0 <=Int keccakIntList(N)     => true
     rule keccaktIntList(N) <Int pow256 => true
 
-
-    rule #padToWidth(32, #asByteStack( #unsigned(V) )) => #asByteStackInWidth( #unsigned(V), 32)
-      requires #rangeSInt(256, V)
-
+    // Store symbolic values to memory
+    //
+    // rule <k> MSTORE INDEX VALUE => . ... </k>
+    //      <localMem> LM => LM [ INDEX := #padToWidth(32, #asByteStack(VALUE)) ] </localMem>
 
     rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
       requires 0 <=Int V andBool V <Int pow256
 
+    rule #padToWidth(32, #asByteStack(V)) => #asByteStackInWidth(V, 32)
+      requires 0 <=Int V andBool V <Int pow160
 
-    rule #padToWidth(32, #asByteStack( keccakIntList (V) )) => #asByteStackInWidth( keccakIntList (V), 32)
+    rule #padToWidth(32, #asByteStack( #unsigned(V) ))
+      => #asByteStackInWidth( #unsigned(V), 32)
+      requires #rangeSInt(256, V)
 
-    rule #padToWidth(32, #asByteStack( #symEcrec(MSG, V, R, S) )) => #asByteStackInWidth( #symEcrec(MSG, V, R, S), 32)
+    rule #padToWidth(32, #asByteStack( #newAddr(A, B) ))
+      => #asByteStackInWidth( #newAddr(A, B), 32)
 
+    rule #padToWidth(32, #asByteStack( #newAddr(A, B, C) ))
+      => #asByteStackInWidth( #newAddr(A, B, C), 32)
+
+    rule #padToWidth(32, #asByteStack( keccakIntList (V) ))
+      => #asByteStackInWidth( keccakIntList (V), 32)
+
+    rule #padToWidth(32, #asByteStack( #symEcrec(MSG, V, R, S) ))
+      => #asByteStackInWidth( #symEcrec(MSG, V, R, S), 32)
 
    // for Vyper
     rule #padToWidth(N, #asByteStack(#asWord(WS))) => WS
