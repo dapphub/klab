@@ -13,6 +13,9 @@
     },
     "Kid" : {
       "src": "src/createContract.sol"
+    },
+    "KidToken" : {
+      "src": "src/createContract.sol"
     }
   },
   "dapp_root": "dapp"
