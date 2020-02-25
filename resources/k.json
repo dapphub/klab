@@ -55,7 +55,7 @@
         }
       },
       "network": {
-        "chainID": "_",
+        "chainID": "VChainId",
         "activeAccounts": "VActiveAccounts",
         "accounts": [],
         "txOrder": "_",
@@ -80,6 +80,7 @@
     "andBool #rangeUInt(256, ECMUL_BAL)",
     "andBool #rangeUInt(256, ECPAIRING_BAL)",
     "andBool VCallDepth <=Int 1024",
-    "andBool #rangeUInt(256, VCallValue)"
+    "andBool #rangeUInt(256, VCallValue)",
+    "andBool #rangeUInt(256, VChainId)"
   ]
 }
