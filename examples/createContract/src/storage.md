@@ -9,12 +9,6 @@ rule #Mom.kid1 => 1
 
 syntax Int ::= "#Mom.kid2" [function]
 rule #Mom.kid2 => 2
-
-syntax Int ::= "#Mom.kid3" [function]
-rule #Mom.kid3 => 3
-
-syntax Int ::= "#Mom.kid4" [function]
-rule #Mom.kid4 => 4
 ```
 
 ### Kid storage
@@ -22,14 +16,7 @@ rule #Mom.kid4 => 4
 ```k
 syntax Int ::= "#Kid.parent" [function]
 rule #Kid.parent => 0
-```
 
-### KidToken storage
-
-```k
-syntax Int ::= "#KidToken.parent" [function]
-rule #KidToken.parent => 0
-
-syntax Int ::= "#KidToken.DOMAIN_SEPARATOR" [function]
-rule #KidToken.DOMAIN_SEPARATOR => 1
+syntax Int ::= "#Kid.ID" [function]
+rule #Kid.ID => 1
 ```
