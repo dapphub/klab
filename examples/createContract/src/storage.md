@@ -30,9 +30,6 @@ rule #Kid.parent => 0
 syntax Int ::= "#KidToken.parent" [function]
 rule #KidToken.parent => 0
 
-syntax Int ::= "#KidToken.name" [function]
-rule #KidToken.name => 1
-
 syntax Int ::= "#KidToken.DOMAIN_SEPARATOR" [function]
-rule #KidToken.DOMAIN_SEPARATOR => 2
+rule #KidToken.DOMAIN_SEPARATOR => 1
 ```

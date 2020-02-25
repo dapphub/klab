@@ -61,9 +61,9 @@ contract Mom {
   }
 
   function create_kid4() public {
-    bytes memory tokenBytecode = type(KidToken).creationCode;
+    bytes memory kidBytecode = type(KidToken).creationCode;
     assembly {
-      sstore(4, create2(0, add(tokenBytecode, 32), mload(tokenBytecode), 1))
+      sstore(4, create2(0, add(kidBytecode, 32), mload(kidBytecode), 1))
     }
   }
 }

@@ -90,23 +90,28 @@ interface create_kid3()
 
 types
 
-    TKN              : address KidToken
-    Name             : string
-    Domain_separator : bytes32
+    KID              : address KidToken
+    Domain_separator : uint256
 
-creates storage TKN
+creates storage KID
 
     #KidToken.parent           |-> ACCT_ID
-    #KidToken.name             |-> Name
     #KidToken.DOMAIN_SEPARATOR |-> Domain_separator
 
 storage
 
-    #Mom.kid3 |-> 0 => TKN
+    #Mom.kid3 |-> 0 => KID
 
 if
 
-    #newAddr(ACCT_ID, Nonce_Mom) == TKN
+    #newAddr(ACCT_ID, Nonce_Mom) == KID
+    Domain_separator == keccakIntList(                                                                                   \
+        keccak(#parseByteStackRaw("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")) \
+        keccak(#parseByteStackRaw("Kid Token V1"))                                                                       \
+        keccak(#parseByteStackRaw("1"))                                                                                  \
+        VChainId                                                                                                         \
+        KID                                                                                                              \
+    )
     VCallDepth < 1024
 
 iff
@@ -122,23 +127,28 @@ interface create_kid4()
 
 types
 
-    TKN              : address KidToken
-    Name             : string
-    Domain_separator : bytes32
+    KID              : address KidToken
+    Domain_separator : uint256
 
-creates storage TKN
+creates storage KID
 
     #KidToken.parent           |-> ACCT_ID
-    #KidToken.name             |-> Name
     #KidToken.DOMAIN_SEPARATOR |-> Domain_separator
 
 storage
 
-    #Mom.kid3 |-> 0 => TKN
+    #Mom.kid4 |-> 0 => KID
 
 if
 
-    #newAddr(ACCT_ID, 1, KidToken_bin) == TKN
+    #newAddr(ACCT_ID, 1, KidToken_bin) == KID
+    Domain_separator == keccakIntList(                                                                                   \
+        keccak(#parseByteStackRaw("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")) \
+        keccak(#parseByteStackRaw("Kid Token V1"))                                                                       \
+        keccak(#parseByteStackRaw("1"))                                                                                  \
+        VChainId                                                                                                         \
+        KID                                                                                                              \
+    )
     VCallDepth < 1024
 
 iff
