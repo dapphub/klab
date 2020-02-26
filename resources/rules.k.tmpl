@@ -29,18 +29,20 @@
 
     // We use #asByteStack to represet byte arrays rather than the #buf abstraction.
     // To enable this both #buf and #sizeByteArray must be symbolic.
-    //
-    // serialization.md
-    rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES )) // [concrete]
-    //
-    // evm-types.md
-    rule #sizeByteArray ( WS ) => #sizeWordStack(WS) // [concrete]
 
-//Operator direction normalization rules. Required to reduce the number of forms of inequalities that can be matched by general lemmas. We chose to keep <Int and <=Int because those operators are used in all range lemmas and in #range macros. Operators >Int and >=Int are still allowed anywhere except rules LHS. In all other places they will be matched and rewritten by rules below.
-rule notBool (X <Int Y)  => Y <=Int X
-rule notBool (X <=Int Y) => Y <Int X
-rule notBool (X >Int Y)  => X <=Int Y
-rule notBool (X >=Int Y) => X <Int Y
+    rule #buf(LEN, BYTES) => #padToWidth(LEN, #asByteStack( BYTES ))
+    rule #sizeByteArray ( WS ) => #sizeWordStack(WS)
+
+    // Operator direction normalization rules. Required to reduce the number of
+    // forms of inequalities that can be matched by general lemmas. We chose to
+    // keep <Int and <=Int because those operators are used in all range lemmas
+    // and in #range macros. Operators >Int and >=Int are still allowed
+    // anywhere except rules LHS. In all other places they will be matched and
+    // rewritten by rules below.
+    rule notBool (X <Int Y)  => Y <=Int X
+    rule notBool (X <=Int Y) => Y <Int X
+    rule notBool (X >Int Y)  => X <=Int Y
+    rule notBool (X >=Int Y) => X <Int Y
 
 
 
@@ -215,6 +217,8 @@ rule ACCTCODE in SetItem( 1 )
 // for terms came from bytecode not via #hashedLocation
     rule keccak(WS) => keccakIntList(bytesToWords(WS))
       requires ( notBool #isConcrete(WS) )
+      andBool ( #sizeOfWordStack(WS) modInt 32 ==Int 0 )
+
 
     rule 0 <=Int keccakIntList(N)     => true
     rule keccaktIntList(N) <Int pow256 => true
