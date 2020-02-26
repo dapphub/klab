@@ -39,8 +39,8 @@ pkgs.stdenv.mkDerivation {
     z3
   ];
   shellHook = ''
-    export PATH=$PWD/node_modules/.bin/:$PWD/bin:$PATH
-    export KLAB_EVMS_PATH="''${KLAB_EVMS_PATH:-''${PWD}/evm-semantics}"
+    export PATH=${toString ./node_modules/.bin}:${toString ./bin}:$PATH
+    export KLAB_EVMS_PATH="''${KLAB_EVMS_PATH:-${toString ./evm-semantics}}"
     export NODE_OPTIONS="--max-old-space-size=4096"
   '';
 }
