@@ -19,4 +19,7 @@ rule #Kid.parent => 0
 
 syntax Int ::= "#Kid.ID" [function]
 rule #Kid.ID => 1
+
+syntax Int ::= "#Kid.initialized" [function]
+rule #Kid.initialized => 2
 ```

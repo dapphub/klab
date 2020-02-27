@@ -4,6 +4,7 @@ contract Kid {
   address public parent;
   string  public constant name = 'Kid V1';
   bytes32 public ID;
+  bool    public initialized;
 
   constructor() public {
       parent = msg.sender;
@@ -21,6 +22,11 @@ contract Kid {
           )
       );
   }
+
+  function init() external {
+    require(msg.sender == parent, 'FORBIDDEN');
+    initialized = true;
+  }
 }
 
 contract Mom {
@@ -29,7 +35,9 @@ contract Mom {
   address public kid2;
 
   function create_kid0() public {
-    kid0 = address(new Kid());
+    Kid kid = new Kid();
+    kid0 = address(kid);
+    kid.init();
   }
 
   function create_kid1() public {
