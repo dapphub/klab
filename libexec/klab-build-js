@@ -95,8 +95,7 @@ config.get_proof_hash = ({name, spec}) => {
     rules: rules_str,
     smt_prelude: prelude_str,
     spec : spec,
-    timeout: timeouts[name] || null,
-    smt_prelude: prelude_str,
+    timeout: timeouts[name] || null
   }
   if (memory[name]) proof.memory = memory[name];
   return sha3(JSON.stringify(proof))
@@ -109,7 +108,7 @@ Object.keys(config.implementations)
   .forEach(alias => {
     const cname = config.implementations[alias].name
     const name = alias + "__exhaustiveness";
-    const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname])
+    const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname], config.get_proof_hash)
 
     // TODO - write meta/data and name
 
