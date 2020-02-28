@@ -508,6 +508,18 @@ syntax Bool ::= #notPrecompileAddress ( Int ) [function]
 // ---------------------------------------
 rule #notPrecompileAddress ( X ) => 0 ==Int X orBool (10 <=Int X andBool #rangeAddress(X))
 
+// New addresses are not precompiles
+
+rule #newAddr(A, B, C) in #precompiledAccounts(SCHED) => false
+rule #newAddr(A, B) in #precompiledAccounts(SCHED) => false
+
+// New addresses are not zero
+
+rule #newAddr(A, B, C) ==K 0 => false
+rule #newAddr(A, B) ==K 0 => false
+rule 0 ==K #newAddr(A, B, C) => false
+rule 0 ==K #newAddr(A, B) => false
+
 // ABSTRACT SEMANTICS.k
 
   rule <k> LT W0 W1 => bool2Word(W0  <Int W1) ~> #push ... </k> [trusted]
@@ -518,9 +530,6 @@ rule #notPrecompileAddress ( X ) => 0 ==Int X orBool (10 <=Int X andBool #rangeA
 
 //RULES MUST USE ==K and not ==Int
 //Warning: assumes injective hashing
-rule #newAddr(A, B) ==K 0 => false
-
-rule 0 ==K #newAddr(A, B, C) => false
 
 rule keccakIntList(A B .IntList) ==K keccakIntList(C D .IntList) => A ==Int C andBool B ==Int D
 

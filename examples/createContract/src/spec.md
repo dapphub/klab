@@ -8,16 +8,12 @@ types
 
     KID          : address Kid
     Id           : uint256
-    Initialized  : uint256
 
 creates storage KID
 
     #Kid.parent      |-> ACCT_ID
     #Kid.ID          |-> Id
-
-storage KID
-
-    #Kid.initialized |-> _ => Initialized
+    #Kid.initialized |-> 1
 
 storage
 
