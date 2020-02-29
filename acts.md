@@ -169,9 +169,20 @@ andBool #rangeSInt(256,B)
 To specify the storage of the contract the `act` refers to, simply use the `storage` header. You can also specify the storage of other contracts using:
 ```
 storage [4]
-    [5]
+
+    slot |-> PreStateValue => PostStateValue
 ```
 where `[4]` should the name of the contract, which needs to be specified in the `config.json`.
+
+To specify storage for contracts which are expected to be created at runtime use the `creates` prefix with the `storage` header:
+```
+creates storage [4]
+
+    slot |-> InitialStateValue
+```
+Note that in the case of contract creation there can be no re-writing of storage values - the expectation is for initial contract state.
+
+
 
 ### stack
 Specifies the wordstack.

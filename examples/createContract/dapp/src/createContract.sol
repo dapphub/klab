@@ -2,9 +2,30 @@ pragma solidity >=0.5.15;
 
 contract Kid {
   address public parent;
+  string  public constant name = 'Kid V1';
+  bytes32 public ID;
+  bool    public initialized;
 
   constructor() public {
-    parent = msg.sender;
+      parent = msg.sender;
+      uint chainId;
+      assembly {
+          chainId := chainid
+      }
+      ID = keccak256(
+          abi.encode(
+              keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+              keccak256(bytes(name)),
+              keccak256(bytes('1')),
+              chainId,
+              address(this)
+          )
+      );
+  }
+
+  function init() external {
+    require(msg.sender == parent, 'FORBIDDEN');
+    initialized = true;
   }
 }
 
@@ -14,7 +35,9 @@ contract Mom {
   address public kid2;
 
   function create_kid0() public {
-    kid0 = address(new Kid());
+    Kid kid = new Kid();
+    kid0 = address(kid);
+    kid.init();
   }
 
   function create_kid1() public {
