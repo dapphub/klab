@@ -2,6 +2,20 @@
 behaviour run of Calculate
 interface run(uint256 A, uint256 B)
 
+for all
+
+    Result : uint256
+
+where
+
+    C := A - B
+    D := C * B
+    E := D + A
+
+storage
+
+    result |-> Result => E
+
 iff in range uint256
 
     C
@@ -11,12 +25,6 @@ iff in range uint256
 iff
 
     VCallValue == 0
-
-where
-
-    C := A - B
-    D := C * B
-    E := D + C
 
 returns E
 ```
