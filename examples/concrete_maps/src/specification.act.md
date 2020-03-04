@@ -14,15 +14,16 @@ where
 
 storage
 
-    balanceOf[0]         |-> Burned => Burned + BURN
-    balanceOf[dst]       |-> DstBal => DstBal + (value - BURN)
     balanceOf[CALLER_ID] |-> SrcBal => SrcBal - value
+    balanceOf[dst]       |-> DstBal => DstBal + (value - BURN)
+    balanceOf[0]         |-> Burned => Burned + BURN
 
 iff in range uint256
 
+    value - BURN
     SrcBal - value
-    DstBal + (value - BURN)
     Burned + BURN
+    DstBal + (value - BURN)
 
 iff
 
