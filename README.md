@@ -204,6 +204,28 @@ Here's an example:
 }
 ```
 
+#### Limits
+
+##### Time
+
+By default, `klab-prove` sets a timeout of 1 day. This can be changed by passing
+the `--timeout` flag a value of the format `[0-9]+[dhms]`.
+
+`klab-prove-all` defaults to a per-proof timeout of `200m`. This can be changed
+by setting `timeouts` to a different value in `config.json`, as shown above.
+
+##### Memory
+
+By default, both `klab-prove` and `klab-prove-all` run the JVM with a maximum
+heap size of 10GB.
+
+This can be changed by setting the `K_OPTS` environment variable to something
+like `--Xmx4G`. Refer to the [JVM
+docs](https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm#PERFM164)
+for more information.
+
+`klab-prove-all` also reads the `config.json` file, and the maximum heap size
+can be changed with the `memory` key, as shown above.
 
 ### Zsh completions
 
