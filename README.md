@@ -227,6 +227,11 @@ for more information.
 `klab-prove-all` also reads the `config.json` file, and the maximum heap size
 can be changed with the `memory` key, as shown above.
 
+##### Gas
+
+In rough specs, the amount of gas available defaults to 3,000,000. This can be
+changed using the [`gas` header](https://github.com/dapphub/klab/blob/master/acts.md/#gas).
+
 ### Zsh completions
 
 There are automatic tab completions for `zsh` that can be installed by adding the following to your `.zshrc`:
