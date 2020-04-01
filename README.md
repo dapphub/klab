@@ -232,6 +232,8 @@ can be changed with the `memory` key, as shown above.
 In rough specs, the amount of gas available defaults to 3,000,000. This can be
 changed using the [`gas` header](https://github.com/dapphub/klab/blob/master/acts.md/#gas).
 
+Once a `pass_rough` spec has been proven, the gas used for each execution path is combined into a single expression, which is the upper gas bound for the stronger `pass` spec.
+
 ### Zsh completions
 
 There are automatic tab completions for `zsh` that can be installed by adding the following to your `.zshrc`:
