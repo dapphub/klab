@@ -13,6 +13,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = with pkgs; [
     autoconf
     bc
+    cacert
     flex
     utillinux
     gcc
