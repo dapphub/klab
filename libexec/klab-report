@@ -179,7 +179,7 @@ const getBadges = (cases, act) => {
 
       let zip = "";
       if(finished && hasZip) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch http://${config.host}/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
+        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch https://${config.host}/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
       } else if (rejected || aborted) {
         zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="No log archive found"`])("")}</td>`)
       }
