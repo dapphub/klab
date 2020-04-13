@@ -34,10 +34,9 @@ pkgs.stdenv.mkDerivation {
     python
     python3
     time
-    unzip
     wget
-    zip
     z3
+    zstd
   ];
   shellHook = ''
     export PATH=${toString ./node_modules/.bin}:${toString ./bin}:$PATH
