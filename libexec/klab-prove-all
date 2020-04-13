@@ -72,7 +72,7 @@ export -f report
 
 savelogs() {
   local hash=$1
-  klab zip "$hash" > /dev/null
+  klab compress "$hash" > /dev/null
   cp "$KLAB_OUT/log/${hash}.zip" "$KLAB_REPORT_NAME_DIR"
   cp "$KLAB_OUT/log/${hash}.log" "$KLAB_REPORT_NAME_DIR"
   cp "$KLAB_OUT/log/${hash}.err.log" "$KLAB_REPORT_NAME_DIR"

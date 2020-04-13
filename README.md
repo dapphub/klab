@@ -158,7 +158,7 @@ Remember, you must turn on the **d**ebug cells view to see these (above).
 -   `klab status <hash>` - Shows whether a proof has been run, and whether it was accepted or rejected.
 -   `klab status-js <hash>` - Shows the behaviour tree for an executed proof.
 -   `klab fetch <url>` - Fetches the execution trace of a proof object at the url, preparing it for local debugging.
--   `klab zip <hash>` - zips up an execution trace so you can share it with a friend (or enemy).
+-   `klab compress <hash>` - compresses an execution trace so you can share it with a friend (or enemy).
 -   `klab storage <contractName>` - Guesses what the storage layout of a given contract is
 -   `klab report` - Generates a html report of the current project state in `out/report/index.html`.
 -   `klab help` - Generates this view
