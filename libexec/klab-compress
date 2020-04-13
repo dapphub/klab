@@ -35,8 +35,8 @@ zip -r "$KLAB_OUT/log/$spec_hash.zip" config.json
 
 cd $KLAB_OUT
 find . \
-     \( -wholename "*$spec_hash*" -or -wholename "*$spec_name*" \) \
-     -and ! -wholename "*/log/*.zip" \
+     \( -wholename "*$spec_hash*" -o -wholename "*$spec_name*" \) \
+     -a ! -wholename "*/log/*.zip" \
      -exec zip "./log/$spec_hash.zip" {} +
 
 zip -r "log/$spec_hash.zip" \
