@@ -22,7 +22,7 @@ a {
   .actstatus table {
     border-spacing: 0px;
     width: 100%; }
-    .actstatus table td.zipselect {
+    .actstatus table td.tarballselect {
       padding-bottom: 1em; }
     .actstatus table td:last-child {
       text-align: right; }

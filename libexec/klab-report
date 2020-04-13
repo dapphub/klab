@@ -152,13 +152,13 @@ const getBadges = (cases, act) => {
 
       const outPath = path.join(KLAB_OUT, "log", s.proofid + ".log");
       const errPath = path.join(KLAB_OUT, "log", s.proofid + ".err.log");
-      const zipPath = path.join(KLAB_OUT, "log", s.proofid + ".zip");
+      const tarballPath = path.join(KLAB_OUT, "log", s.proofid + ".tar");
       const gasPath = path.join(KLAB_OUT, "gas", s.proofid + ".all.json");
 
       const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
       const hasOut = testPath(outPath) && read(outPath).trim() !== "";
       const hasErr = testPath(errPath) && read(errPath).trim() !== "";
-      const hasZip = testPath(zipPath);
+      const hasTarball = testPath(tarballPath);
       const hasGas = testPath(gasPath);
 
       const lemma_stats = testPath(lemmaPath) && JSON.parse(read(lemmaPath)) || {};
@@ -177,11 +177,11 @@ const getBadges = (cases, act) => {
 
       proof_info.push(td(badge(c.suffix, ((rejected || aborted) ? `${s.status} [${s.exit}]` : s.status))))
 
-      let zip = "";
-      if(finished && hasZip) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="klab fetch https://${config.host}/${config.name}/${s.proofid+'.zip'}" onfocus="this.select()"`])("")}</td>`)
+      let tarball = "";
+      if(finished && hasTarball) {
+        tarball = tr(`<td colspan="4" class="tarballselect">${h(['input', `class="autoselect" type="text" value="klab fetch https://${config.host}/${config.name}/${s.proofid+'.tar'}" onfocus="this.select()"`])("")}</td>`)
       } else if (rejected || aborted) {
-        zip = tr(`<td colspan="4" class="zipselect">${h(['input', `class="autoselect" type="text" value="No log archive found"`])("")}</td>`)
+        tarball = tr(`<td colspan="4" class="tarballselect">${h(['input', `class="autoselect" type="text" value="No log archive found"`])("")}</td>`)
       }
 
       let lemmas = ""
@@ -191,7 +191,7 @@ const getBadges = (cases, act) => {
         ])
       }
 
-      return h(["tr", `id="${s.spec}" class="${s.status}"`])(proof_info) + zip + lemmas
+      return h(["tr", `id="${s.spec}" class="${s.status}"`])(proof_info) + tarball + lemmas
     })
     .join('\n')
   return {

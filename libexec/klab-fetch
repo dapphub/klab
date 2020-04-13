@@ -9,7 +9,7 @@ url=$1
 
 mkdir -p "$KLAB_OUT"/log
 wget -c "$url" -P "$KLAB_OUT"/log/
-unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
+tar xf "$KLAB_OUT/log/${url##*/}" -C "$KLAB_OUT"
 # log the proof hash
 hash=$(basename "$url" '.tar')
 echo $hash > $KLAB_OUT/HEAD
