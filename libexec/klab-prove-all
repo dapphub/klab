@@ -31,7 +31,7 @@ PNAME=$(jq -r '.name' < config.json)
 if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
 
-if [ -d ".git" ]; then
+if [ -d ".git" ] || [ -f ".git" ]; then
   build_hash=$(klab get-build-id)
   export build_hash
   if [ -n "$KLAB_REPORT_DIR" ]; then
