@@ -34,6 +34,7 @@ pkgs.stdenv.mkDerivation {
     python
     python3
     time
+    unzip
     wget
     z3
     zstd

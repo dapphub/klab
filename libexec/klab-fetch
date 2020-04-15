@@ -6,11 +6,21 @@ if [ -z "$KLAB_OUT" ]; then
 fi
 
 url=$1
+filename=${url##*/}
 
 mkdir -p "$KLAB_OUT"/log
 wget -c "$url" -P "$KLAB_OUT"/log/
-tar xf "$KLAB_OUT/log/${url##*/}" -C "$KLAB_OUT"
-# log the proof hash
-hash=$(basename "$url" '.tar')
-echo $hash > $KLAB_OUT/HEAD
+
+case $url in
+  *.zip)
+    unzip -qu "$KLAB_OUT/log/$filename" -d "$KLAB_OUT"
+    ;;
+  *)
+    tar xf "$KLAB_OUT/log/$filename" -C "$KLAB_OUT"
+    ;;
+esac
+
+# remove extension
+hash=${filename%%.*}
 echo "Focusing on: $hash"
+echo "$hash" > $KLAB_OUT/HEAD
