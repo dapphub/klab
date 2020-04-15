@@ -5,6 +5,7 @@ if [ -z "$KLAB_OUT" ]; then
   KLAB_OUT=out
 fi
 
+[[ $# -eq 1 ]] || (echo >&2 "Usage: klab fetch \$URL" && exit 1)
 url=$1
 filename=${url##*/}
 
