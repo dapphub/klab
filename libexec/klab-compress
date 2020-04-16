@@ -31,15 +31,14 @@ if [ ! -d "$KLAB_OUT/log" ]; then
     mkdir -p "$KLAB_OUT/log"
 fi
 
-zip -r "$KLAB_OUT/log/$spec_hash.zip" config.json
-
 cd $KLAB_OUT
 find . \
-     \( -wholename "*$spec_hash*" -or -wholename "*$spec_name*" \) \
-     -and ! -wholename "*/log/*.zip" \
-     -exec zip "./log/$spec_hash.zip" {} +
-
-zip -r "log/$spec_hash.zip" \
-    "prelude.smt2" \
-    "rules.k" \
-    "bin_runtime.k"
+  \( -name "*$spec_hash*" \
+  -o -name "*$spec_name*" \
+  -o -name config.tmp.json \
+  -o -name prelude.smt2 \
+  -o -name rules.k \
+  -o -name bin_runtime.k \) \
+  -a \! -name "*.tar" \
+  -a \! -name "*.zip" \
+  -exec tar --create --zstd --file "./log/$spec_hash.tar" {} +

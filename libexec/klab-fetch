@@ -5,12 +5,23 @@ if [ -z "$KLAB_OUT" ]; then
   KLAB_OUT=out
 fi
 
+[[ $# -eq 1 ]] || (echo >&2 "Usage: klab fetch \$URL" && exit 1)
 url=$1
+filename=${url##*/}
 
 mkdir -p "$KLAB_OUT"/log
 wget -c "$url" -P "$KLAB_OUT"/log/
-unzip -qu "$KLAB_OUT/log/${url##*/}" -d "$KLAB_OUT"
-# log the proof hash
-hash=$(basename "$url" '.zip')
-echo $hash > $KLAB_OUT/HEAD
+
+case $url in
+  *.zip)
+    unzip -qu "$KLAB_OUT/log/$filename" -d "$KLAB_OUT"
+    ;;
+  *)
+    tar xf "$KLAB_OUT/log/$filename" -C "$KLAB_OUT"
+    ;;
+esac
+
+# remove extension
+hash=${filename%%.*}
 echo "Focusing on: $hash"
+echo "$hash" > $KLAB_OUT/HEAD

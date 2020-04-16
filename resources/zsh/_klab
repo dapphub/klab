@@ -19,7 +19,7 @@ _klab() {
               "--evm[reduce a k term to only include evm relevant information]"
             _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
             ;;
-          focus|do-prove|get-gas|solve-gas|status|zip)
+          focus|do-prove|get-gas|solve-gas|status|compress)
             _values -C 'proofname' $(ls ${KLAB_OUT:-out}/meta/{name,data}/)
             ;;
           debug)
@@ -56,7 +56,7 @@ _klab() {
       "report:generate a report"
       "solve-gas:generate a simple gas kast expression based on the raw gas"
       "status:display the proofstatus"
-      "zip:bundle a proof to a zip file"
+      "compress:bundle a proof into a compressed tarball"
       )
       _describe -t commands 'klab' subcommands
     fi
