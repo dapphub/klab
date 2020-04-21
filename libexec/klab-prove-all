@@ -27,6 +27,7 @@ export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=8
 export THREADS=${THREADS:-2}
+export MEMORY_HEADROOM=${MEMORY_HEADROOM:-2G}
 PNAME=$(jq -r '.name' < config.json)
 if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
@@ -156,7 +157,7 @@ make_batch () {
   if [ -n "$KLAB_REPORT_PROJECT_DIR" ]; then
     cp -n "$KLAB_OUT"/specs/*.k "$KLAB_REPORT_NAME_DIR"
   fi;
-  parallel -u -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
+  parallel -u --memfree $MEMORY_HEADROOM -P "$THREADS" do_proof {} < "$OBLIGATIONS" & parallel_id=$!
   trap 'echo "Trapped SIGTERM in klab-prove-all" && kill -s INT $parallel_id && exit 1' TERM
   trap 'echo "Trapped SIGINT  in klab-prove-all" && kill -s INT $parallel_id && exit 1' INT
   wait $parallel_id
