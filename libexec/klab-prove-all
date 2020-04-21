@@ -27,7 +27,7 @@ export RUNNING_DIR=$KLAB_OUT/meta/running
 export OBLIGATIONS=$KLAB_OUT/obligations.batch
 export BATCH_LIMIT=8
 export THREADS=${THREADS:-2}
-MEMORY_HEADROOM=${MEMORY_HEADROOM:-2G}
+MEMORY_HEADROOM=${MEMORY_HEADROOM:-4G}
 PNAME=$(jq -r '.name' < config.json)
 if [ "$PNAME" == "null" ]; then PNAME=""; fi
 export PNAME
