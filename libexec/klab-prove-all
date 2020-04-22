@@ -122,6 +122,7 @@ do_proof () {
       cp "$GAS_DIR/${hash}.all.json" "$KLAB_REPORT_NAME_DIR"
     elif [ -n "$KLAB_REPORT_NAME_DIR" ]; then
       echo "${magenta}Proof ${bold}BADGAS${reset}: $hash [$name]"
+      rm -f "$KLAB_OUT/accept/$hash"
       savelogs "$hash"
     fi
     klab get-lemmas "$hash"
