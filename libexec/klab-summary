@@ -3,9 +3,11 @@ const {run} = require("@cycle/run");
 const {docopt} = require("docopt");
 const fs = require("fs");
 const path = require("path");
+const clc = require('cli-color');
 process.title = "klab";
 
 const format = require("../lib/format.js")
+const kast = require("../lib/kast.js")
 const { genBehaviour } = require("../lib/behavior.js");
 const {
   prune_edges,
@@ -14,6 +16,8 @@ const {
   testPath,
   read
 } = require("../lib/util.js");
+
+const setMinus = (a, b) => a.filter(e => b.indexOf(e) == -1)
 
 const KLAB_OUT = process.env.KLAB_OUT || "out";
 const KLAB_WD_PATH = path.join(KLAB_OUT, "data");
@@ -29,7 +33,7 @@ const cmd = docopt(usage, {
 
 const proofid = cmd['<hash>'] || process.env.KLAB_HEAD || (testPath(path.join(KLAB_OUT, "HEAD")) && read(path.join(KLAB_OUT, "HEAD"))).trim();
 
-const {pruned_edges, initt, finished, steps, rule_debug} = prune_edges(proofid);
+const {pruned_edges, initt, finished, steps, rule_debug, targett} = prune_edges(proofid);
 const finished_ = finished
   .reduce((a, node) => ({...a, [node]: true}), {});
 const steps_ = steps
@@ -91,7 +95,8 @@ const traverse = (firstNode) => {
       .reduce((a, e) => a.concat(e), [])
 }
 
-const blobs_data = constraint_blobs.concat(traverse(initt))
+const targettid = targett.split("_")[0];
+const blobs_data = constraint_blobs.concat(targettid).concat(traverse(initt))
   .map(blobid => [blobid, JSON.parse(read(path.join(KLAB_WD_PATH, `${proofid}_blobs`, blobid + ".json")))])
   .reduce((a, [id, json]) => ({...a, [id]: json.term}), {})
 
@@ -102,6 +107,7 @@ const rules_data = rule_blobs
 const state = {
   edges: pruned_edges,      // done: klab compile-fsm
   initt,                    // done: klab compile-fsm
+  targett,
   rule_debug,
   finished: finished_,      // done: klab compile-fsm
   steps: steps_,
@@ -137,3 +143,94 @@ console.log(format
   .split("\n")
   .join("\n  "))
 
+let flattenize = (node, path = "") => node.leaf
+  ? [{path, node}]
+  : node.children.map((child, i) => flattenize(child, path + "." + i)).reduce((a, b) => a.concat(b), [])
+
+
+const ignorePathPrefixes = [
+  '<kevm>.<ethereum>.<evm>.<substate>.<refund>',
+  '<kevm>.<ethereum>.<evm>.<substate>.<log>',
+  '<kevm>.<ethereum>.<network>.<accounts>.<acctID>ACCT_ID</acctID>.<account>.<origStorage>',
+  '<kevm>.<ethereum>.<network>.<accounts>.<acctID>Token1</acctID>.<account>.<origStorage>',
+  '<kevm>.<ethereum>.<network>.<accounts>.<acctID>Token0</acctID>.<account>.<origStorage>'
+];
+
+let displayTarget = leaf => {
+  let termid = leaf.node.id.split("_")[0];
+  let targettt = state.nodes[targettid];
+  let term = state.nodes[termid];
+  let dirtymatcher = kast.antimatch(targettt, term)
+  let matcher = dirtymatcher
+    .filter(([path, p, t]) => ignorePathPrefixes
+      .map(prefix => path.join(".").indexOf(prefix) == -1)
+      .reduce((a, b) => a && b, true)
+    )
+    .map(([path, p, t]) => [path.join("."), t])
+  return [leaf.path, matcher];
+}
+
+// not fully explored
+const toFilter = [
+  ".0.1.1.1",
+  ".0.1.0.1.1",
+  ".0.1.0.0.1"
+]
+
+const leafs = flattenize(behaviour)
+const leafPaths = leafs
+  .filter(leaf => toFilter.reduce(((a, k) => k != leaf.path && a), true))
+  .map(leaf => leaf.path)
+
+// console.log(displayTarget(leafs[0]));
+// console.log(displayTarget(leafs[1]));
+
+// process.exit()
+
+const leafDiffs = leafs
+  .filter(leaf => toFilter.reduce(((a, k) => k != leaf.path && a), true))
+  .map(displayTarget)
+
+const inverseDiffs = {};
+
+leafDiffs
+  .forEach(([path, targets]) => {
+    targets.forEach(([diff_key, target]) => {
+      if(!(diff_key in inverseDiffs)) {
+        inverseDiffs[diff_key] = {};
+      }
+      if(!(target in inverseDiffs[diff_key])) {
+        inverseDiffs[diff_key][target] = [];
+      }
+      inverseDiffs[diff_key][target] = inverseDiffs[diff_key][target].concat([path]);
+    })
+  })
+
+Object.keys(inverseDiffs)
+  .forEach(path => {
+    const changedPaths = Object.keys(inverseDiffs[path])
+      .map(target => inverseDiffs[path][target])
+      .reduce((a, b) => a.concat(b), [])
+    const noChangedPaths = setMinus(leafPaths, changedPaths)
+    if(noChangedPaths.length > 0) inverseDiffs[path]["----no change----"] = noChangedPaths;
+  })
+
+// TODO - some paths are missing - maybe they are untouched from
+//        the current state. investigate and extend the current
+//        state with the path.
+//        also investigate what "" means as a target
+// TODO - extend paths with actual constraints and diff the paths
+//        => construct if_then_else_fi constructs with the diffs
+//        and different targets
+
+let str = Object.keys(inverseDiffs).sort()
+  .filter(key => Object.keys(inverseDiffs[key]).length > 1 || Object.keys(inverseDiffs[key])[0] != "")
+  .map(key => key + "\n" + Object.keys(inverseDiffs[key]).sort()
+    .map(target => {
+      let paths = inverseDiffs[key][target];
+      return `  ${target}:\n    ${leafDiffs.length == paths.length ? "all" : paths.join("\n    ")}`
+    }).join('\n')
+  )
+  .join('\n\n')
+
+console.log(str);
