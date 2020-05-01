@@ -1,0 +1,189 @@
+#!/usr/bin/env node
+
+const fs            = require("fs");
+const os            = require("os");
+const path          = require("path");
+const marked        = require("marked");
+const {docopt}      = require("docopt");
+const clc           = require("cli-color");
+const _             = require("lodash");
+const kjson         = require("../lib/kjson.js");
+const kast          = require("../lib/kast.js");
+const { execSync }  = require('child_process');
+const makeConfig    = require("../lib/config.js");
+const {
+  proofCollection,
+  makePrelude,
+  makeRules,
+  getActs,
+  parseAct,
+  buildAct,
+  buildActs,
+  caseSplitAct,
+  newCleanup,
+  makeInterabiExhaustiveness
+}                   = require("../lib/build.js");
+const {
+  ensureDirs,
+  getKlabHEAD,
+  read,
+  revert,
+  sha3,
+  testPath,
+  warn,
+}                   = require("../lib/util.js");
+const __a2n = act => act.subject + "_" + act.name;
+
+const KLAB_OUT = process.env.KLAB_OUT || "out";
+
+const usage = `
+Usage:
+  klab build [options] [<spec>]
+
+Options:
+  --filter=<filter>
+  --debug
+`
+const cmd = docopt(usage, {
+  argv: ["build"].concat(process.argv.slice(2))
+});
+
+if (!testPath("./config.json")) {revert("No config.json file in directory. Review `klab/examples` folder for inspiration")}
+const config_json   = JSON.parse(fs.readFileSync("./config.json"));
+const config        = makeConfig(config_json);
+const config_path   = cmd["<spec>"] || config.src.specification;
+const filter_subject= cmd["--filter"] || null;
+const OOGActs       = config.oog || [];
+const splitActs     = config.split_fail  || [];
+const timeouts      = config.timeouts || {}
+const memory        = config.memory || {}
+const DEBUG         = cmd["--debug"] || false;
+config.DEBUG        = DEBUG;
+const raw_md_config = Array.isArray(config_path) && config_path.map(p => read(p)).join("\n\n") || read(config_path)
+
+// RULES
+var {rules_str} = makeRules(config);
+// prelude
+const {prelude_str, write_prelude} = makePrelude(config);
+// TODO error when not set
+const KLAB_EVMS_PATH = process.env.KLAB_EVMS_PATH || path.join(__dirname, '..', 'evm-semantics');
+if ('evm-semantics' !== KLAB_EVMS_PATH.match(/([^\/]*)\/*$/)[1]) {
+  throw new Error(`Wrong EVMS path: ${KLAB_EVMS_PATH}`);
+}
+const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
+  cwd: KLAB_EVMS_PATH,
+  encoding: 'utf8'
+});
+
+config.get_proof_hash = ({name, spec}) => {
+  let proof = {
+    evms: EVM_SEMANTICS_VERSION,
+    klab: getKlabHEAD(),
+    rules: rules_str,
+    smt_prelude: prelude_str,
+    spec : spec,
+    timeout: timeouts[name] || null
+  }
+  if (memory[name]) proof.memory = memory[name];
+  return sha3(JSON.stringify(proof))
+}
+
+const exhaustiveness_obligations = [];
+const exhaustiveness = {};
+
+Object.keys(config.implementations)
+  .forEach(alias => {
+    const cname = config.implementations[alias].name
+    const name = alias + "__exhaustiveness";
+    const {id, module, status} = makeInterabiExhaustiveness(alias, cname, config.contracts[cname], config.get_proof_hash)
+
+    // TODO - write meta/data and name
+
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), id);
+    // hash -> data
+    fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", id), JSON.stringify({
+      name,
+      src: config.src,
+      srcs: config.srcs,
+      contracts: config.contracts,
+      implementations: config.implementations
+    }));
+
+    fs.writeFileSync(path.join(KLAB_OUT, "specs", `${id}.k`), module)
+
+    if(status == "????") {
+      console.log(id, name);
+      exhaustiveness_obligations.push(name)
+    }
+    exhaustiveness[cname] = {
+      hash: id,
+      name,
+      spec: module,
+      status
+    }
+  })
+
+// TODO - enriched cases should be exported here.
+fs.writeFileSync(path.join(KLAB_OUT, "exhaustiveness.tmp.json"), JSON.stringify(exhaustiveness));
+//fs.writeFileSync(path.join(KLAB_OUT, "report.tmp.json"), JSON.stringify(final_tokens));
+fs.writeFileSync(path.join(KLAB_OUT, "config.tmp.json"), JSON.stringify(config));
+
+
+// Implementations
+const wrapModule = (name, str) => `requires "data.k"\n\nmodule ${name}\n    imports EVM-DATA\n\n${str}\n\nendmodule`
+
+
+const renderModule = (name, content) => `requires "../rules.k"
+
+module ${name.toUpperCase()}
+  imports ETHEREUM-SIMULATION
+  imports EVM
+  imports RULES
+
+${content}
+
+endmodule
+`
+
+
+// for each case - buildAct
+const luaFile = path.join(os.tmpdir(), "extract.lua")
+const luaExtract = fs.writeFileSync(luaFile, "function CodeBlock(el) \n  print(el.text)\n end")
+const outActdir = path.join(KLAB_OUT, "act")
+execSync('pandoc --lua-filter ' + luaFile + " ./" + config_path + ' > ' + outActdir + ' -o /dev/null')
+const act2_proof_dir = path.join(KLAB_OUT, "proofs")
+ensureDirs([act2_proof_dir]);
+ try {
+   execSync('act compile --spec ' + outActdir + " --soljson ./" + path.join(config.dapp_root, "out/dapp.sol.json") + " --out " + act2_proof_dir)
+ } catch (e) {
+   console.log('act compilation failure:')
+   throw new Error(e.stderr.toString())
+}
+
+fs.readdirSync(act2_proof_dir).forEach(s => {
+  let spec = fs.readFileSync(path.join(act2_proof_dir, s));
+  let name = s.split('.k')[0]
+  let hash = config.get_proof_hash(name, spec)
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), JSON.stringify({
+      name,
+      src: config.src,
+      srcs: config.srcs,
+      contracts: config.contracts,
+      implementations: config.implementations
+  }));
+//  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), wrapModule(hash, spec));
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), hash);
+  fs.writeFileSync(path.join(KLAB_OUT, "specs", `${hash}.k`), renderModule(hash, spec));
+  console.log(hash, s)
+})
+
+if(write_prelude) {
+  console.log('write prelude')
+  fs.writeFileSync(path.join(KLAB_OUT, "prelude.smt2"), prelude_str)
+}
+
+var {rules_str, write_rules} = makeRules(config, true);
+if(write_rules) {
+  console.log('write rules.k')
+  fs.writeFileSync(path.join(KLAB_OUT, "rules.k"), rules_str)
+}

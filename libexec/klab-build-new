@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ -z "$KLAB_OUT" ]; then
+  KLAB_OUT=out
+fi
+
+rm -fdR "$KLAB_OUT/meta/name"
+
+mkdir -p "$KLAB_OUT/specs"
+mkdir -p "$KLAB_OUT/gas"
+mkdir -p "$KLAB_OUT/meta/name"
+mkdir -p "$KLAB_OUT/meta/data"
+
+$(dirname $0)/klab-build-js-new
+

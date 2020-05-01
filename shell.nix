@@ -6,11 +6,18 @@ let
     # git ls-remote https://github.com/nixos/nixpkgs-channels nixos-20.03
     rev = "0bb35152be895abfd1fc743b42f1c4e56ae71906";
   }) {};
+
+  act = import (builtins.fetchGit {
+    url = "https://github.com/ethereum/act.git";
+    rev = "651d58c1bca846a5242e79ab292bdabd71cb93ae";
+    ref = "kbackend";
+  }) {};
 in
 pkgs.stdenv.mkDerivation {
   passthru = { inherit pkgs; };
   name = "klab-env";
   buildInputs = with pkgs; [
+    act
     autoconf
     bc
     flex

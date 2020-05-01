@@ -1,3 +1,5 @@
+This is safe add:
+
 
 ```act
 behaviour add of SafeAdd
@@ -9,7 +11,7 @@ iff in range uint256
 
 iff
 
-    VCallValue == 0
+    CALLVALUE == 0
 
 returns X + Y
 ```
