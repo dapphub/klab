@@ -29,8 +29,8 @@
         },
         "substate": {
           "selfDestruct": "VSelfDestruct",
-          "log": "_ => ?VLog",
-          "refund": "_ => ?VRefund"
+          "log": "_",
+          "refund": "_"
         },
         "gasPrice": "_",
         "origin": "ORIGIN_ID",
