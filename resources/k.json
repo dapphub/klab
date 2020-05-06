@@ -10,7 +10,7 @@
         "statusCode": "VStatusCode",
         "callStack": "VCallStack",
         "interimStates": "_",
-        "touchedAccounts": "_ => _",
+        "touchedAccounts": "_ => ?_",
         "callState": {
           "program": "#parseByteStack({CODE})",
           "jumpDests": "#computeValidJumpDests(#parseByteStack({CODE}))",
@@ -19,18 +19,18 @@
           "callData": "VCallData",
           "callValue": "VCallValue",
           "wordStack": "VWordStack",
-          "localMem": ".Map => _",
+          "localMem": ".Map => ?_",
           "pc": "VPC",
           "gas": "VGas",
-          "memoryUsed": "0 => _",
-          "callGas": "_ => _",
+          "memoryUsed": "0 => ?_",
+          "callGas": "_ => ?_",
           "static": "VStatic",
           "callDepth": "VCallDepth"
         },
         "substate": {
           "selfDestruct": "VSelfDestruct",
-          "log": "_ => VLog",
-          "refund": "_ => VRefund"
+          "log": "_ => ?VLog",
+          "refund": "_ => ?VRefund"
         },
         "gasPrice": "_",
         "origin": "ORIGIN_ID",
