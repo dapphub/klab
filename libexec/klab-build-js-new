@@ -31,6 +31,7 @@ const {
   sha3,
   testPath,
   warn,
+  getStatus
 }                   = require("../lib/util.js");
 const __a2n = act => act.subject + "_" + act.name;
 
@@ -75,7 +76,7 @@ const EVM_SEMANTICS_VERSION = execSync(`git rev-parse HEAD`, {
   encoding: 'utf8'
 });
 
-config.get_proof_hash = ({name, spec}) => {
+config.get_proof_hash = (name, spec) => {
   let proof = {
     evms: EVM_SEMANTICS_VERSION,
     klab: getKlabHEAD(),
@@ -154,28 +155,48 @@ execSync('pandoc --lua-filter ' + luaFile + " ./" + config_path + ' > ' + outAct
 const act2_proof_dir = path.join(KLAB_OUT, "proofs")
 ensureDirs([act2_proof_dir]);
  try {
-   execSync('act compile --spec ' + outActdir + " --soljson ./" + path.join(config.dapp_root, "out/dapp.sol.json") + " --out " + act2_proof_dir)
+   execSync('act k --spec ' + outActdir + " --soljson ./" + path.join(config.dapp_root, "out/dapp.sol.json") + " --out " + act2_proof_dir)
  } catch (e) {
    console.log('act compilation failure:')
    throw new Error(e.stderr.toString())
 }
 
-fs.readdirSync(act2_proof_dir).forEach(s => {
-  let spec = fs.readFileSync(path.join(act2_proof_dir, s));
-  let name = s.split('.k')[0]
-  let hash = config.get_proof_hash(name, spec)
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), JSON.stringify({
-      name,
+
+const act_proofs = fs.readdirSync(act2_proof_dir)
+      .map(s => {
+        const name = s.split('.k')[0]
+        const spec = fs.readFileSync(path.join(act2_proof_dir, s))
+        const hash = config.get_proof_hash(name, spec)
+           return {
+            spec: spec,
+            name: name,
+            hash: hash,
+            status: getStatus(hash)
+           }
+      });
+
+// write proof files and metadata
+act_proofs.forEach(s => {
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", s.hash), JSON.stringify({
+      name: s.name,
       src: config.src,
       srcs: config.srcs,
       contracts: config.contracts,
       implementations: config.implementations
   }));
-//  fs.writeFileSync(path.join(KLAB_OUT, "meta", "data", hash), wrapModule(hash, spec));
-  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", name), hash);
-  fs.writeFileSync(path.join(KLAB_OUT, "specs", `${hash}.k`), renderModule(hash, spec));
-  console.log(hash, s)
+  fs.writeFileSync(path.join(KLAB_OUT, "meta", "name", s.name), s.hash);
+  fs.writeFileSync(path.join(KLAB_OUT, "specs", `${s.hash}.k`), renderModule(s.hash, s.spec));
+  console.log(s.hash, s.name)
 })
+
+fs.writeFileSync(path.join(KLAB_OUT, "report.tmp.json"), JSON.stringify({}));
+//
+var obligations = act_proofs
+  .filter(n => n.status === '????')
+  .filter(n => !(n.name in timeouts))
+  .concat(exhaustiveness_obligations)
+  .sort((a, b) => Math.random() - 0.5)
+
 
 if(write_prelude) {
   console.log('write prelude')

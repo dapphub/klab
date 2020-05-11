@@ -9,7 +9,7 @@ let
 
   act = import (builtins.fetchGit {
     url = "https://github.com/ethereum/act.git";
-    rev = "651d58c1bca846a5242e79ab292bdabd71cb93ae";
+    rev = "db3f56c4b2d297b1f3db626a83202bd943fed607";
     ref = "kbackend";
   }) {};
 in

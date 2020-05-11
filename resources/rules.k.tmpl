@@ -214,6 +214,16 @@ rule ACCTCODE in SetItem( 1 )
     rule bytesToWords ( WS ) => byteStack2IntList(WS)
          requires #sizeWordStack(WS) modInt 32 ==Int 0
 
+
+    // Packs a list of words and offsets
+    syntax Int ::= "#packWords" "(" IntList "," IntList ")" [function]
+    syntax Int ::= "#packWords" "(" IntList "," IntList "," Int ")" [function]
+    rule #packWords(X, Y) => #packWords(X, Y, 0)
+    rule #packWords(X XS, Y YS, Z) => #packWords(XS, YS, 16 ^Int X *Int Y +Int Z)
+    rule #packWords(.IntList, .IntList, Z) => Z
+
+
+
 // for terms came from bytecode not via #hashedLocation
     rule keccak(WS) => keccakIntList(bytesToWords(WS))
       requires ( notBool #isConcrete(WS) )

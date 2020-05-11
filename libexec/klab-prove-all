@@ -167,7 +167,7 @@ make_batch () {
     exit $result
   else
     echo "batch ${bold}COMPLETE${reset} ($result): no outstanding proof obligations."
-    klab build >/dev/null
+    klab build-new >/dev/null
     return $result
   fi;
 }
@@ -180,7 +180,7 @@ mkdir -p "$KLAB_OUT/meta/time"
 mkdir -p "$KLAB_OUT/timeout"
 rm -fdr "$KLAB_OUT/meta/name"
 rm -fdr "$KLAB_OUT/specs"
-klab build >/dev/null
+klab build-new >/dev/null
 if [ ! -z "$KLAB_REPORT_NAME_DIR" ]; then
   rm -f "$KLAB_REPORT_NAME_DIR/latest"
   ln -s "$KLAB_REPORT_PROJECT_DIR" "$KLAB_REPORT_NAME_DIR/latest"
