@@ -156,8 +156,8 @@ const getBadges = (cases, act) => {
       const gasPath = path.join(KLAB_OUT, "gas", s.proofid + ".all.json");
 
       const lemmaPath = path.join(KLAB_OUT, "log", s.proofid + "_lemma_stats.json");
-      const hasOut = testPath(outPath) && read(outPath).trim() !== "";
-      const hasErr = testPath(errPath) && read(errPath).trim() !== "";
+      const hasOut = testPath(outPath);
+      const hasErr = testPath(errPath);
       const hasTarball = testPath(tarballPath);
       const hasGas = testPath(gasPath);
 
