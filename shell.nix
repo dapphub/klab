@@ -36,6 +36,7 @@ pkgs.stdenv.mkDerivation {
     time
     unzip
     wget
+    which
     z3
     zstd
   ];
